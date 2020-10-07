@@ -56,7 +56,7 @@ namespace Mango {
 
 			ss << pMessage->pDescription;
 			if (i != end - 1) {
-				ss << "\n\n";
+				ss << "\n";
 			}
 		}
 

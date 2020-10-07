@@ -33,6 +33,7 @@ namespace Mango {
 		vp.MaxDepth = 1.0f;
 		vp.Width = (float)mProps.Width;
 		vp.Height = (float)mProps.Height;
+		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
 		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr));
 	}
 

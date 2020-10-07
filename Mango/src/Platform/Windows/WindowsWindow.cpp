@@ -5,16 +5,6 @@
 
 namespace Mango {
 
-	static std::wstring convert(const std::string& as)
-	{
-		if (as.empty())   
-			return std::wstring();
-		size_t reqLength = ::MultiByteToWideChar(CP_UTF8, 0, as.c_str(), (int)as.length(), 0, 0);
-		std::wstring ret(reqLength, L'\0');
-		::MultiByteToWideChar(CP_UTF8, 0, as.c_str(), (int)as.length(), &ret[0], (int)ret.length());
-		return ret;
-	}
-
 	Window* Window::Create(const WindowProperties& props) {
 		return new WindowsWindow(props);
 	}
@@ -177,7 +167,7 @@ namespace Mango {
 		wr.bottom = mHeight + wr.top;
 		AdjustWindowRectEx(&wr, WS_OVERLAPPEDWINDOW, FALSE, 0);
 
-		mHandle = CreateWindowEx(0, window_class, convert(mTitle).c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr, hInstance, this);
+		mHandle = CreateWindowEx(0, window_class, WidenString(mTitle).c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr, hInstance, this);
 
 		MG_CORE_ASSERT(mHandle, "Failed to create window: {0}", Translate(GetLastError()));
 

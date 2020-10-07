@@ -35,9 +35,10 @@ project "Mango"
     }
 
     links {
-        "d3d11.lib",
-        "dxguid.lib"
+        "dxguid.lib",
+        "dxgi.lib"
     }
+
 
     filter "configurations:Debug"
         defines "MG_DEBUG"
@@ -64,16 +65,30 @@ project "Sandbox"
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
+        "%{prj.name}/src/Shaders/**.hlsl"
     }
 
     links {
-        "Mango"
+        "Mango",
+        "d3d11.lib",
+        "d3dcompiler.lib"
     }
 
     includedirs {
         "Mango/src",
         "%{Includes.spdlog}"
     }
+
+    filter "files:**.hlsl"
+		shaderobjectfileoutput("assets/shaders/%{file.basename}"..".cso")
+		shadermodel "4.0"
+
+	filter "files:**_ps.hlsl"
+		shadertype "Pixel"
+
+	filter "files:**_vs.hlsl"
+        shadertype "Vertex"
+        
 
     filter "configurations:Debug"
         defines "MG_DEBUG"
