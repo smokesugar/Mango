@@ -13,17 +13,37 @@ namespace Mango {
         mWindow = Scope<Window>(Window::Create(props));
     }
 
+    Application::~Application()
+    {
+        for (auto layer : mLayerStack)
+            delete layer;
+    }
+
     void Application::Run()
     {
         while (mRunning) {
             mWindow->OnUpdate();
+
+            for (auto layer : mLayerStack)
+                layer->OnUpdate();
         }
+    }
+
+    void Application::PushLayer(Layer* layer)
+    {
+        mLayerStack.push_back(layer);
     }
 
     void Application::EventCallback(Event& e)
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(MG_BIND_FN(Application::OnWindowClose));
+
+        for (auto it = mLayerStack.rbegin(); it != mLayerStack.rend(); it++) {
+            if (e.Handled)
+                break;
+            (*it)->OnEvent(e);
+        }
     }
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
