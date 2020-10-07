@@ -25,6 +25,8 @@ public:
 		};
 		
 		mIndexBuffer = Ref<IndexBuffer>(IndexBuffer::Create(indices, std::size(indices)));
+
+		mUniformBuffer = Ref<UniformBuffer>(UniformBuffer::Create<ColorBuffer>());
 	}
 
 	void OnUpdate() {
@@ -34,10 +36,17 @@ public:
 		mShader->Bind();
 		mVertexBuffer->Bind();
 		mIndexBuffer->Bind();
+		mUniformBuffer->SetData<ColorBuffer>({ {1.0, 1.0, 1.0, 1.0} });
+		mUniformBuffer->PSBind(0);
 		RenderCommand::DrawIndexed(6, 0);
 	}
 private:
 	Ref<Shader> mShader;
 	Ref<VertexBuffer> mVertexBuffer;
 	Ref<IndexBuffer> mIndexBuffer;
+
+	struct ColorBuffer {
+		float4 color;
+	};
+	Ref<UniformBuffer> mUniformBuffer;
 };

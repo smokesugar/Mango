@@ -66,4 +66,41 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->IASetIndexBuffer(mInternal.Get(), DXGI_FORMAT_R16_UINT, 0));
 	}
 
+	UniformBuffer* UniformBuffer::InternalCreate(size_t sizeBytes) {
+		return new DirectXUniformBuffer(sizeBytes);
+	}
+
+	DirectXUniformBuffer::DirectXUniformBuffer(size_t sizeBytes)
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_BUFFER_DESC desc = {};
+		desc.ByteWidth = (uint32_t)sizeBytes;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		desc.StructureByteStride = (uint32_t)sizeBytes;
+
+		HR_CALL(context.GetDevice()->CreateBuffer(&desc, nullptr, &mInternal));
+	}
+
+	void DirectXUniformBuffer::InternalSetData(void* data, size_t sizeBytes)
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->UpdateSubresource(mInternal.Get(), 0, nullptr, data, (uint32_t)sizeBytes, 0));
+	}
+
+	void DirectXUniformBuffer::VSBind(size_t slot) const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->VSSetConstantBuffers((uint32_t)slot, 1, mInternal.GetAddressOf()));
+	}
+
+	void DirectXUniformBuffer::PSBind(size_t slot) const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->PSSetConstantBuffers((uint32_t)slot, 1, mInternal.GetAddressOf()));
+	}
+
 }

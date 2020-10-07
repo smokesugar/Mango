@@ -25,4 +25,16 @@ namespace Mango {
 		Microsoft::WRL::ComPtr<ID3D11Buffer> mInternal;
 	};
 
+	class DirectXUniformBuffer : public UniformBuffer {
+	public:
+		DirectXUniformBuffer(size_t sizeBytes);
+
+		virtual void InternalSetData(void* data, size_t sizeBytes) override;
+
+		virtual void VSBind(size_t slot) const override;
+		virtual void PSBind(size_t slot) const override;
+	private:
+		Microsoft::WRL::ComPtr<ID3D11Buffer> mInternal;
+	};
+
 }
