@@ -2,6 +2,7 @@
 
 #include "Base.h"
 #include "Window.h"
+#include "Mango/Events/Events.h"
 
 namespace Mango {
 	
@@ -14,7 +15,11 @@ namespace Mango {
 
 		inline Window& GetWindow() { return *mWindow; }
 	private:
+		void EventCallback(Event& e);
+		bool OnWindowClose(WindowCloseEvent& e);
+	private:
 		Scope<Window> mWindow;
+		bool mRunning = true;
 	};
 
 	static Application* CreateApplication();

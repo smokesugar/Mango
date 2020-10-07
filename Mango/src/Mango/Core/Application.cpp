@@ -5,14 +5,31 @@ namespace Mango {
 
     Application::Application(const std::string& title)
     {
-        mWindow = Scope<Window>(Window::Create({1280, 720, title}));
+        WindowProperties props = {};
+        props.Width = 1280;
+        props.Height = 720;
+        props.Title = title;
+        props.EventFn = MG_BIND_FN(Application::EventCallback);
+        mWindow = Scope<Window>(Window::Create(props));
     }
 
     void Application::Run()
     {
-        while (true) {
+        while (mRunning) {
             mWindow->OnUpdate();
         }
+    }
+
+    void Application::EventCallback(Event& e)
+    {
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowCloseEvent>(MG_BIND_FN(Application::OnWindowClose));
+    }
+
+    bool Application::OnWindowClose(WindowCloseEvent& e)
+    {
+        mRunning = false;
+        return false;
     }
 
 }
