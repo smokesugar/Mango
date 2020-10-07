@@ -23,6 +23,9 @@ project "Mango"
         "%{prj.name}/src/**.cpp",
     }
 
+    pchheader "mgpch.h"
+    pchsource "%{prj.name}/src/mgpch.cpp"
+
     includedirs {
         "%{prj.name}/src"
     }

@@ -1,3 +1,4 @@
+#include "mgpch.h"
 #include "Application.h"
 
 namespace Mango {
