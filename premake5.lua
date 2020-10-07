@@ -7,8 +7,8 @@ workspace "Mango"
 
     startproject "Sandbox"
 
-IncludeDirs = {}
-IncludeDirs["spdlog"] = "Mango/vendor/spdlog/include"
+Includes = {};
+Includes["spdlog"] = "Mango/vendor/spdlog/include"
 
 project "Mango"
     kind "StaticLib"
@@ -31,7 +31,12 @@ project "Mango"
 
     includedirs {
         "%{prj.name}/src",
-        "%{IncludeDirs.spdlog}"
+        "%{Includes.spdlog}"
+    }
+
+    links {
+        "d3d11.lib",
+        "dxguid.lib"
     }
 
     filter "configurations:Debug"
@@ -67,7 +72,7 @@ project "Sandbox"
 
     includedirs {
         "Mango/src",
-        "%{IncludeDirs.spdlog}"
+        "%{Includes.spdlog}"
     }
 
     filter "configurations:Debug"

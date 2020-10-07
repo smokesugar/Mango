@@ -73,6 +73,8 @@ namespace Mango {
 			if (mHandle) {
 				mWidth = LOWORD(lparam);
 				mHeight = HIWORD(lparam);
+				if(mSwapChain)
+					mSwapChain->Resize(mWidth, mHeight);
 				WindowResizeEvent e(mWidth, mHeight);
 				mEventCallback(e);
 			}

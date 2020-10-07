@@ -6,11 +6,10 @@ using namespace Mango;
 
 class SandboxLayer : public Layer {
 public:
-	SandboxLayer() {
-	
+	SandboxLayer() {	
 	}
 
 	void OnUpdate() {
-		MG_CORE_INFO("SandboxLayer::OnUpdate");
+		Application::Get().GetWindow().GetSwapChain().GetFramebuffer().Clear({0.1f, 0.1f, 0.1f, 1.0f});
 	}
 };

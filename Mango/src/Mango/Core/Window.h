@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "Mango/Events/Events.h"
+#include "Mango/Renderer/SwapChain.h"
 
 namespace Mango {
 
@@ -34,6 +35,11 @@ namespace Mango {
 		static Window* Create(const WindowProperties& props = WindowProperties());
 
 		virtual void* GetNativeWindow() = 0;
+
+		void CreateSwapChain() { mSwapChain = Scope<SwapChain>(SwapChain::Create()); }
+		inline SwapChain& GetSwapChain() const { return *mSwapChain; }
+	protected:
+		Scope<SwapChain> mSwapChain;
 	};
 
 }
