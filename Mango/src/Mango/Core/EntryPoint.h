@@ -5,7 +5,6 @@
 extern Mango::Application* Mango::CreateApplication();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) {
-
 	#ifdef MG_DEBUG
 		AllocConsole();
 		SetConsoleTitle(L"Mango Debug Console");
@@ -14,6 +13,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 		freopen_s(&fDummy, "CONOUT$", "w", stderr);
 		freopen_s(&fDummy, "CONOUT$", "w", stdout);
 	#endif
+
+	Mango::Log::Init();
 
 	auto app = Mango::CreateApplication();
 	app->Run();

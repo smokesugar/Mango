@@ -7,6 +7,9 @@ workspace "Mango"
 
     startproject "Sandbox"
 
+IncludeDirs = {}
+IncludeDirs["spdlog"] = "Mango/vendor/spdlog/include"
+
 project "Mango"
     kind "StaticLib"
     location "%{prj.name}"
@@ -27,7 +30,8 @@ project "Mango"
     pchsource "%{prj.name}/src/mgpch.cpp"
 
     includedirs {
-        "%{prj.name}/src"
+        "%{prj.name}/src",
+        "%{IncludeDirs.spdlog}"
     }
 
     filter "configurations:Debug"
@@ -62,7 +66,8 @@ project "Sandbox"
     }
 
     includedirs {
-        "Mango/src"
+        "Mango/src",
+        "%{IncludeDirs.spdlog}"
     }
 
     filter "configurations:Debug"
