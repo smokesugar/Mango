@@ -1,7 +1,16 @@
 #include "mgpch.h"
 #include "Application.h"
+#include "Mango/Renderer/Renderer.h"
 
 namespace Mango {
+
+    static double GetTime() {
+		LARGE_INTEGER time, freq;
+		QueryPerformanceCounter(&time);
+		QueryPerformanceFrequency(&freq);
+
+		return (double)time.QuadPart / (double)freq.QuadPart;
+    }
 
     Application* Application::sInstance = nullptr;
 
@@ -30,14 +39,23 @@ namespace Mango {
 
     void Application::Run()
     {
+        Renderer::Init();
+
         while (mRunning) {
+            static double lastTime = GetTime();
+            double time = GetTime();
+            double deltaTime = time - lastTime;
+            lastTime = time;
+
             mWindow->OnUpdate();
 
             for (auto layer : mLayerStack)
-                layer->OnUpdate();
+                layer->OnUpdate((float)deltaTime);
 
             mWindow->GetSwapChain().Present();
         }
+        
+        Renderer::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)

@@ -12,6 +12,6 @@ namespace Mango {
 	using float3x3 = DirectX::XMFLOAT3X3;
 	using float4x4 = DirectX::XMFLOAT4X4;
 	using xmvector = DirectX::XMVECTOR;
-	using xmmatrx = DirectX::XMMATRIX;
+	using xmmatrix = DirectX::XMMATRIX;
 
 }

@@ -11,7 +11,7 @@ namespace Mango {
 	}
 
 	DirectXVertexBuffer::DirectXVertexBuffer(void* data, size_t count, uint32_t stride)
-		: mStride(stride)
+		: mStride(stride), VertexBuffer(count)
 	{
 		auto& context = RetrieveContext();
 
@@ -43,6 +43,7 @@ namespace Mango {
 	}
 
 	DirectXIndexBuffer::DirectXIndexBuffer(uint16_t* data, size_t count)
+		: IndexBuffer(count)
 	{
 		auto& context = RetrieveContext();
 

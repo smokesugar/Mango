@@ -8,7 +8,7 @@ namespace Mango {
 	public:
 		virtual ~Layer() {}
 
-		virtual void OnUpdate() {}
+		virtual void OnUpdate(float dt) {}
 		virtual void OnEvent(Event& e) {}
 	};
 
