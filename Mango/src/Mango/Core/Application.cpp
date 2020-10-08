@@ -1,6 +1,7 @@
 #include "mgpch.h"
 #include "Application.h"
 #include "Mango/Renderer/Renderer.h"
+#include "Mango/ImGui/ImGuiContext.h"
 
 namespace Mango {
 
@@ -39,6 +40,7 @@ namespace Mango {
 
     void Application::Run()
     {
+        ImGuiContext::Init();
         Renderer::Init();
 
         while (mRunning) {
@@ -47,14 +49,20 @@ namespace Mango {
             double deltaTime = time - lastTime;
             lastTime = time;
 
-            mWindow->OnUpdate();
-
             for (auto layer : mLayerStack)
                 layer->OnUpdate((float)deltaTime);
 
+            ImGuiContext::Begin();
+            for (auto layer : mLayerStack)
+                layer->OnImGuiRender();
+            ImGuiContext::End();
+
             mWindow->GetSwapChain().Present();
+
+            mWindow->OnUpdate();
         }
         
+        ImGuiContext::Shutdown();
         Renderer::Shutdown();
     }
 

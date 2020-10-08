@@ -1,9 +1,26 @@
 #include "mgpch.h"
 #include "WindowsWindow.h"
 
+#include <examples/imgui_impl_win32.h>
+#include <examples/imgui_impl_win32.cpp>
+
 #include "Mango/Core/Base.h"
+#include "Mango/Core/Application.h"
+#include "Mango/ImGui/ImGuiContext.h"
 
 namespace Mango {
+
+	void ImGuiContext::WindowAPI_Init() {
+		ImGui_ImplWin32_Init(Application::Get().GetWindow().GetNativeWindow());
+	}
+
+	void ImGuiContext::WindowAPI_Shutdown() {
+		ImGui_ImplWin32_Shutdown();
+	}
+
+	void ImGuiContext::WindowAPI_Begin() {
+		ImGui_ImplWin32_NewFrame();
+	}
 
 	Window* Window::Create(const WindowProperties& props) {
 		return new WindowsWindow(props);
@@ -52,6 +69,8 @@ namespace Mango {
 
 	LRESULT WindowsWindow::WindowProc(UINT msg, WPARAM wparam, LPARAM lparam)
 	{
+		ImGui_ImplWin32_WndProcHandler(mHandle, msg, wparam, lparam);
+
 		switch (msg) {
 			// Application Events
 		case WM_CLOSE: {

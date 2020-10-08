@@ -9,6 +9,7 @@ public:
 	SandboxLayer();
 
 	void OnUpdate(float dt);
+	void OnImGuiRender();
 private:
 	Ref<Shader> mShader;
 	Ref<VertexArray> mQuad;

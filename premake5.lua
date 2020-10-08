@@ -9,6 +9,33 @@ workspace "Mango"
 
 Includes = {};
 Includes["spdlog"] = "Mango/vendor/spdlog/include"
+Includes["ImGui"] = "Mango/vendor/ImGui"
+
+TargetDir = "bin/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
+ObjDir = "bin-int/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
+
+project "ImGui"
+    kind "StaticLib"
+    location "Mango/vendor/ImGui"
+    language "C++"
+    cppdialect "C++17"
+	staticruntime "On"
+    systemversion "latest"
+
+    targetdir "%{TargetDir}"
+    objdir "%{ObjDir}"
+
+    files {
+        "%{prj.location}/*.h",
+        "%{prj.location}/*.cpp",
+    }
+
+    filter "configurations:Debug"
+        symbols "On"
+
+    filter "configurations:Release"
+        defines "NDEBUG"
+        optimize "On"
 
 project "Mango"
     kind "StaticLib"
@@ -18,8 +45,8 @@ project "Mango"
 	staticruntime "On"
 	systemversion "latest"
 
-    targetdir "bin/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
-    objdir "bin-int/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
+    targetdir "%{TargetDir}"
+    objdir "%{ObjDir}"
 
     files {
         "%{prj.name}/src/**.h",
@@ -31,12 +58,14 @@ project "Mango"
 
     includedirs {
         "%{prj.name}/src",
-        "%{Includes.spdlog}"
+        "%{Includes.spdlog}",
+        "%{Includes.ImGui}",
     }
 
     links {
         "dxguid.lib",
-        "dxgi.lib"
+        "dxgi.lib",
+        "ImGui"
     }
 
 
@@ -59,8 +88,8 @@ project "Sandbox"
 	staticruntime "On"
 	systemversion "latest"
 
-    targetdir "bin/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
-    objdir "bin-int/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
+    targetdir "%{TargetDir}"
+    objdir "%{ObjDir}"
 
     files {
         "%{prj.name}/src/**.h",
@@ -76,7 +105,8 @@ project "Sandbox"
 
     includedirs {
         "Mango/src",
-        "%{Includes.spdlog}"
+        "%{Includes.spdlog}",
+        "%{Includes.ImGui}",
     }
 
     filter "files:**.hlsl"

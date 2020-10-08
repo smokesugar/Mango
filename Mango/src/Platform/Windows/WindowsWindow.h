@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Mango/Core/WinCore.h"
-
 #include "Mango/Core/Window.h"
 
 namespace Mango {

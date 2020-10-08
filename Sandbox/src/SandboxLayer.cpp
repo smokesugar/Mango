@@ -1,5 +1,7 @@
 #include "SandboxLayer.h"
 
+#include <imgui.h>
+
 using namespace DirectX;
 
 SandboxLayer::SandboxLayer()
@@ -38,4 +40,9 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	mUniformBuffer->PSBind(0);
 	Renderer::Submit(mQuad);
 	Renderer::EndScene();
+}
+
+void SandboxLayer::OnImGuiRender()
+{
+	ImGui::ShowDemoWindow();
 }
