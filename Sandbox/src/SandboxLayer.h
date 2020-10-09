@@ -15,5 +15,6 @@ private:
 	Ref<VertexArray> mQuad;
 	OrthographicCamera mCamera;
 	Ref<Framebuffer> mFramebuffer;
-	Ref<UniformBuffer> mUniformBuffer;
+	Ref<Texture2D> mTexture;
+	Ref<SamplerState> mSampler;
 };

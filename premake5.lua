@@ -10,6 +10,7 @@ workspace "Mango"
 Includes = {};
 Includes["spdlog"] = "Mango/vendor/spdlog/include"
 Includes["ImGui"] = "Mango/vendor/ImGui"
+Includes["stb_image"] = "Mango/vendor/stb_image"
 
 TargetDir = "bin/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
 ObjDir = "bin-int/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
@@ -60,6 +61,7 @@ project "Mango"
         "%{prj.name}/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
+        "%{Includes.stb_image}"
     }
 
     links {
@@ -107,6 +109,7 @@ project "Sandbox"
         "Mango/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
+        "%{Includes.stb_image}"
     }
 
     filter "files:**.hlsl"
