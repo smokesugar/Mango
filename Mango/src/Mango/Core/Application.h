@@ -19,6 +19,8 @@ namespace Mango {
 
 		inline Window& GetWindow() { return *mWindow; }
 		inline GraphicsContext& GetGraphicsContext() { return *mGraphicsContext; }
+
+		inline void Close() { mRunning = false; }
 	protected:
 		void PushLayer(Layer* layer);
 	private:

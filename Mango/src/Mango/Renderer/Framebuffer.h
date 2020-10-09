@@ -20,6 +20,8 @@ namespace Mango {
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+
+		virtual void* GetTextureAttachment() const = 0;
 		
 		static void Blit(const Ref<Framebuffer>& dst, const Ref<Framebuffer>& src);
 

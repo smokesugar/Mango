@@ -21,15 +21,18 @@ namespace Mango {
 		virtual uint32_t GetWidth() const override { return mProps.Width; }
 		virtual uint32_t GetHeight() const override { return mProps.Height; }
 
+		virtual void* GetTextureAttachment() const override { return mSRV.Get(); }
+
 		inline ID3D11RenderTargetView* GetRenderTargetView() { return mRTV.Get(); }
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateTexture();
-		void CreateRenderTargetView(ID3D11Resource* resource);
+		void CreateViews(ID3D11Resource* resource);
 	private:
 		bool mOwnsTexture;
 		FramebufferProperties mProps;
 		ID3D11Resource* mResourceReference;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
 	};
 
 }

@@ -23,13 +23,13 @@ namespace Mango {
 		: mProps(props), mOwnsTexture(true)
 	{
 		auto texture = CreateTexture();
-		CreateRenderTargetView(texture.Get());
+		CreateViews(texture.Get());
 	}
 
 	DirectXFramebuffer::DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height)
 		: mProps({width, height}), mOwnsTexture(false)
 	{
-		CreateRenderTargetView(resource);
+		CreateViews(resource);
 	}
 
 	void DirectXFramebuffer::Bind()
@@ -62,7 +62,7 @@ namespace Mango {
 		mProps.Height = height;
 
 		auto texture = CreateTexture();
-		CreateRenderTargetView(texture.Get());
+		CreateViews(texture.Get());
 	}
 
 	void DirectXFramebuffer::EnsureSize(uint32_t width, uint32_t height)
@@ -91,11 +91,13 @@ namespace Mango {
 		return texture;
 	}
 
-	void DirectXFramebuffer::CreateRenderTargetView(ID3D11Resource* resource)
+	void DirectXFramebuffer::CreateViews(ID3D11Resource* resource)
 	{
 		mResourceReference = resource;
 		auto& context = RetrieveContext();
 		HR_CALL(context.GetDevice()->CreateRenderTargetView(resource, nullptr, &mRTV));
+		if(mOwnsTexture)
+			HR_CALL(context.GetDevice()->CreateShaderResourceView(resource, nullptr, &mSRV));
 	}
 
 }

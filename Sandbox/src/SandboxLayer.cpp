@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include "Panels/Dockspace.h"
+
 using namespace DirectX;
 
 SandboxLayer::SandboxLayer()
@@ -28,7 +30,7 @@ SandboxLayer::SandboxLayer()
 	props.Height = Application::Get().GetWindow().GetHeight();
 	mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
 
-	mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/MangoTexture.png"));
+	mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 	mSampler = Ref<SamplerState>(SamplerState::Create());
 }
 
@@ -36,12 +38,12 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	Window& window = Application::Get().GetWindow();
 	auto buf = window.GetSwapChain().GetFramebuffer();
 
-	mFramebuffer->EnsureSize(window.GetWidth(), window.GetHeight());
+	mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 	
 	mFramebuffer->Bind();
 	mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
-	mCamera.SetAspectRatio((float)window.GetWidth() / (float)window.GetHeight());
+	mCamera.SetAspectRatio(mViewportSize.x/mViewportSize.y);
 
 	Renderer::BeginScene(mCamera, XMMatrixIdentity());
 	mShader->Bind();
@@ -49,13 +51,29 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	mSampler->Bind(0);
 	mTexture->Bind(0);
 
-	Renderer::Submit(mQuad);
+	static float accum = 0;
+	accum += dt;
+	float s = sinf(accum) * 0.5f + 0.5f;
+	xmmatrix transform = XMMatrixScaling(s, s, 1.0);
+	Renderer::Submit(mQuad, transform);
 	Renderer::EndScene();
-
-	Framebuffer::Blit(buf, mFramebuffer);
 }
 
 void SandboxLayer::OnImGuiRender()
 {
-	ImGui::ShowDemoWindow();
+	Dockspace::Begin();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0.0f, 0.0f});
+	ImGui::Begin("Viewport");
+	ImVec2 size = ImGui::GetContentRegionAvail();
+	mViewportSize = *(float2*)&size;
+	ImGui::Image(mFramebuffer->GetTextureAttachment(), size);
+	ImGui::End();
+	ImGui::PopStyleVar();
+
+	ImGui::Begin("Properties");
+	ImGui::Text("Mango Engine");
+	ImGui::End();
+
+	Dockspace::End();
 }
