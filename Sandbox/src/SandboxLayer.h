@@ -14,6 +14,6 @@ private:
 	Ref<Shader> mShader;
 	Ref<VertexArray> mQuad;
 	OrthographicCamera mCamera;
-
+	Ref<Framebuffer> mFramebuffer;
 	Ref<UniformBuffer> mUniformBuffer;
 };

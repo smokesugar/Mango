@@ -52,10 +52,10 @@ namespace Mango {
             for (auto layer : mLayerStack)
                 layer->OnUpdate((float)deltaTime);
 
-            ImGuiContext::Begin();
-            for (auto layer : mLayerStack)
-                layer->OnImGuiRender();
-            ImGuiContext::End();
+			ImGuiContext::Begin();
+			for (auto layer : mLayerStack)
+				layer->OnImGuiRender();
+			ImGuiContext::End();
 
             mWindow->GetSwapChain().Present();
 

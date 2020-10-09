@@ -10,6 +10,15 @@ namespace Mango {
 		return new DirectXFramebuffer(props);
 	}
 
+	void Framebuffer::Blit(const Ref<Framebuffer>& dst, const Ref<Framebuffer>& src) {
+		MG_CORE_ASSERT(dst->GetWidth() == src->GetWidth() && dst->GetHeight() == src->GetHeight(), "Framebuffers must have identical dimensions to blit");
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->CopyResource(
+			std::static_pointer_cast<DirectXFramebuffer>(dst)->mResourceReference,
+			std::static_pointer_cast<DirectXFramebuffer>(src)->mResourceReference
+		));
+	}
+
 	DirectXFramebuffer::DirectXFramebuffer(const FramebufferProperties& props)
 		: mProps(props), mOwnsTexture(true)
 	{
@@ -26,6 +35,7 @@ namespace Mango {
 	void DirectXFramebuffer::Bind()
 	{
 		auto& context = RetrieveContext();
+
 		D3D11_VIEWPORT vp;
 		vp.TopLeftX = 0.0f;
 		vp.TopLeftY = 0.0f;
@@ -33,6 +43,7 @@ namespace Mango {
 		vp.MaxDepth = 1.0f;
 		vp.Width = (float)mProps.Width;
 		vp.Height = (float)mProps.Height;
+
 		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
 		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr));
 	}
@@ -52,6 +63,12 @@ namespace Mango {
 
 		auto texture = CreateTexture();
 		CreateRenderTargetView(texture.Get());
+	}
+
+	void DirectXFramebuffer::EnsureSize(uint32_t width, uint32_t height)
+	{
+		if (mProps.Width != width || mProps.Height != height)
+			Resize(width, height);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> DirectXFramebuffer::CreateTexture()
@@ -76,6 +93,7 @@ namespace Mango {
 
 	void DirectXFramebuffer::CreateRenderTargetView(ID3D11Resource* resource)
 	{
+		mResourceReference = resource;
 		auto& context = RetrieveContext();
 		HR_CALL(context.GetDevice()->CreateRenderTargetView(resource, nullptr, &mRTV));
 	}

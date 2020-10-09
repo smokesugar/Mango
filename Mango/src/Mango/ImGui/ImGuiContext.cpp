@@ -36,8 +36,8 @@ namespace Mango {
 
 	void ImGuiContext::Begin()
 	{
-		WindowAPI_Begin();
 		RendererAPI_Begin();
+		WindowAPI_Begin();
 		ImGui::NewFrame();
 	}
 

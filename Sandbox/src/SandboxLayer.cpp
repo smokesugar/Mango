@@ -24,13 +24,21 @@ SandboxLayer::SandboxLayer()
 	mQuad = Ref<VertexArray>(new VertexArray({ vertexBuffer, indexBuffer }));
 
 	mUniformBuffer = Ref<UniformBuffer>(UniformBuffer::Create<float4>());
+
+	FramebufferProperties props;
+	props.Width = Application::Get().GetWindow().GetWidth();
+	props.Height = Application::Get().GetWindow().GetHeight();
+	mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
 }
 
 inline void SandboxLayer::OnUpdate(float dt) {
 	Window& window = Application::Get().GetWindow();
-	auto& framebuffer = window.GetSwapChain().GetFramebuffer();
-	framebuffer.Bind();
-	framebuffer.Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+	auto buf = window.GetSwapChain().GetFramebuffer();
+
+	mFramebuffer->EnsureSize(window.GetWidth(), window.GetHeight());
+	
+	mFramebuffer->Bind();
+	mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
 	mCamera.SetAspectRatio((float)window.GetWidth() / (float)window.GetHeight());
 
@@ -40,6 +48,8 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	mUniformBuffer->PSBind(0);
 	Renderer::Submit(mQuad);
 	Renderer::EndScene();
+
+	Framebuffer::Blit(buf, mFramebuffer);
 }
 
 void SandboxLayer::OnImGuiRender()

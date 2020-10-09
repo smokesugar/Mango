@@ -10,7 +10,7 @@ namespace Mango {
 	public:
 		virtual ~SwapChain() {}
 		virtual void Present() = 0;
-		virtual Framebuffer& GetFramebuffer() = 0;
+		virtual Ref<Framebuffer> GetFramebuffer() = 0;
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 		static SwapChain* Create();
 	};
