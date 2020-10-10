@@ -6,6 +6,18 @@
 
 using namespace DirectX;
 
+struct BruhComponent {
+	int i;
+};
+
+struct PotatoComponent {
+	float bruh;
+
+	PotatoComponent() = default;
+	PotatoComponent(float b)
+		: bruh(b) {}
+};
+
 SandboxLayer::SandboxLayer()
 {
 	mShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
@@ -32,6 +44,43 @@ SandboxLayer::SandboxLayer()
 
 	mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 	mSampler = Ref<SamplerState>(SamplerState::Create());
+
+	// ECS test.
+	
+	ECS::Registry reg;
+
+	ECS::Entity entities[5];
+	for (size_t i = 0; i < std::size(entities); i++) {
+		entities[i] = reg.Create();
+		reg.Insert<BruhComponent>(entities[i], { (int)i });
+	}
+
+	for (size_t i = 0; i < std::size(entities); i++) {
+		if (reg.Has<BruhComponent>(entities[i]))
+			MG_INFO("{0}", reg.Get<BruhComponent>(entities[i]).i);
+	}
+
+	for (size_t i = 0; i < std::size(entities); i++) {
+		if (reg.Has<PotatoComponent>(entities[i]))
+			MG_INFO("{0}", reg.Get<PotatoComponent>(entities[i]).bruh);
+	}
+
+	reg.Destroy(entities[1]);
+	reg.Destroy(entities[3]);
+
+	reg.Emplace<PotatoComponent>(entities[0], 10.0f );
+	reg.Insert<PotatoComponent>(entities[4], { 4.0f });
+	reg.Remove<PotatoComponent>(entities[4]);
+
+	for (size_t i = 0; i < std::size(entities); i++) {
+		if(reg.Has<BruhComponent>(entities[i]))
+			MG_INFO("{0}", reg.Get<BruhComponent>(entities[i]).i);
+	}
+
+	for (size_t i = 0; i < std::size(entities); i++) {
+		if (reg.Has<PotatoComponent>(entities[i]))
+			MG_INFO("{0}", reg.Get<PotatoComponent>(entities[i]).bruh);
+	}
 }
 
 inline void SandboxLayer::OnUpdate(float dt) {
