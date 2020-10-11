@@ -6,12 +6,7 @@
 
 namespace Mango { namespace ECS {
 	
-	using ID = uint32_t;
-
-	struct Entity {
-		ECS::ID ID;
-		size_t Index;
-	};
+	using Entity = uint32_t;
 
 	static size_t _Hash() {
 		static size_t next = 0;
@@ -28,10 +23,11 @@ namespace Mango { namespace ECS {
 	public:
 		virtual ~_ComponentArray() {}
 		virtual _ComponentArray* NewOfSameType() const = 0;
-		virtual void Copy(ID id, _ComponentArray* other) = 0;
-		virtual void Erase(ID id) = 0;
+		virtual void Copy(Entity entity, _ComponentArray* other) = 0;
+		virtual void Erase(Entity entity) = 0;
 		virtual size_t GetHash() const = 0;
-		virtual bool Contains(ID id) const = 0;
+		virtual bool Contains(Entity entity) const = 0;
+		virtual size_t Size() const = 0;
 	};
 
 	template<typename T>
@@ -45,17 +41,17 @@ namespace Mango { namespace ECS {
 			return new ComponentArray<T>();
 		}
 
-		T& Insert(ID id, const T& data) {
+		T& Insert(Entity entity, const T& data) {
 			MG_CORE_ASSERT(!Contains(id), "Array already contains entity.");
-			mIndices[id] = Size();
-			mEntities.push_back(id);
+			mIndices[entity] = Size();
+			mEntities.push_back(entity);
 			mComponents.push_back(data);
-			return At(id);
+			return At(entity);
 		}
 
-		virtual void Erase(ID id) override {
-			MG_CORE_ASSERT(Contains(id), "Array does not contain entity.");
-			size_t index = mIndices[id];
+		virtual void Erase(Entity entity) override {
+			MG_CORE_ASSERT(Contains(entity), "Array does not contain entity.");
+			size_t index = mIndices[entity];
 
 			mEntities[index] = mEntities.back();
 			mComponents[index] = mComponents.back();
@@ -63,33 +59,35 @@ namespace Mango { namespace ECS {
 
 			mEntities.pop_back();
 			mComponents.pop_back();
-			mIndices.erase(id);
+			mIndices.erase(entity);
 		}
 
-		inline size_t Size() const {
+		inline virtual size_t Size() const override {
 			return mIndices.size();
 		}
 
-		inline virtual bool Contains(ID id) const override { return mIndices.find(id) != mIndices.end(); }
+		inline virtual bool Contains(Entity entity) const override { return mIndices.find(entity) != mIndices.end(); }
 
-		T& At(ID id) {
+		T& At(Entity entity) {
 			MG_CORE_ASSERT(Contains(id), "Array does not contain entity.");
-			return mComponents[mIndices[id]];
+			return mComponents[mIndices[entity]];
 		}
 
-		virtual void Copy(ID id, _ComponentArray* other) override {
+		virtual void Copy(Entity entity, _ComponentArray* other) override {
 			MG_CORE_ASSERT(mHash == other->GetHash(), "Cannot copy across different ComponentArray types.");
-			Insert(id, ((ComponentArray<T>*)other)->At(id));
+			Insert(entity, ((ComponentArray<T>*)other)->At(entity));
 		}
 
 		virtual size_t GetHash() const override { return mHash; }
+
+		T* Data() { return mComponents.data(); }
 
 		inline auto begin() { return mComponents.begin(); }
 		inline auto end() { return mComponents.end(); }
 	private:
 		size_t mHash;
-		std::unordered_map<ID, size_t> mIndices;
-		std::vector<ID> mEntities;
+		std::unordered_map<Entity, size_t> mIndices;
+		std::vector<Entity> mEntities;
 		std::vector<T> mComponents;
 	};
 
@@ -98,26 +96,26 @@ namespace Mango { namespace ECS {
 		Archetype() = default;
 
 		template<typename T>
-		T& Get(ID id) {
+		T& Get(Entity entity) {
 			MG_CORE_ASSERT(ContainsArray(Hash<T>()), "This archetype doesn't contain that component.");
-			return (std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()]))->At(id);
+			return (std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()]))->At(entity);
 		}
 
 		template<typename T>
-		T& Insert(ID id, const T& data) {
+		T& Insert(Entity entity, const T& data) {
 			MG_CORE_ASSERT(ContainsArray(Hash<T>()), "This archetype doesn't contain that component.");
-			return (std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()]))->Insert(id, data);
+			return (std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()]))->Insert(entity, data);
 		}
 
-		void Destroy(ID id) {
+		void Destroy(Entity entity) {
 			for (auto& pair : mMap)
-				pair.second->Erase(id);
+				pair.second->Erase(entity);
 		}
 
 		template<typename T>
-		bool Has(ID id) {
+		bool Has(Entity entity) {
 			if (!ContainsArray(Hash<T>())) return false;
-			return mMap[Hash<T>()]->Contains(id);
+			return mMap[Hash<T>()]->Contains(entity);
 		}
 
 		std::unordered_set<size_t> GetHashes() {
@@ -125,6 +123,10 @@ namespace Mango { namespace ECS {
 			for (auto& pair : mMap)
 				hashes.insert(pair.first);
 			return hashes;
+		}
+
+		size_t Size() {
+			return mMap.begin()->second->Size();
 		}
 
 		void InsertArray(size_t hash, _ComponentArray* array) {
@@ -136,27 +138,34 @@ namespace Mango { namespace ECS {
 			return mMap;
 		}
 
-		void Move(ID id, Archetype* other) {
+		template<typename T>
+		inline T* GetComponentArray() {
+			MG_CORE_ASSERT(HasTypes<T>(), "Archetype does not contain this type.");
+			return std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()])->Data();
+		}
+
+		void Move(Entity entity, Archetype* other) {
 			for (auto& pair : mMap) {
 				if(other->ContainsArray(pair.first))
-					pair.second->Copy(id, other->GetMap()[pair.first].get());
+					pair.second->Copy(entity, other->GetMap()[pair.first].get());
 			}
 
 			for (auto& pair : other->GetMap()) {
-				pair.second->Erase(id);
+				pair.second->Erase(entity);
 			}
 		}
 		
 		template<typename... T>
 		bool HasTypes() {
-			bool doesNotHave = false;
-			(DoesNotHaveArray<T>(doesNotHave), ...);
-			return !doesNotHave;
+			bool has = true;
+			(ContainsArrayBool<T>(has), ...);
+			return has;
 		}
 	private:
 		template<typename T>
-		inline void DoesNotHaveArray(bool& b) {
-			b |= !ContainsArray(Hash<T>());
+		inline void ContainsArrayBool(bool& b) {
+			if (!ContainsArray(Hash<T>()))
+				b = false;
 		}
 
 		inline bool ContainsArray(size_t hash) const { return mMap.find(hash) != mMap.end(); }
@@ -174,31 +183,32 @@ namespace Mango { namespace ECS {
 		}
 
 		Entity Create() {
-			ID id = mNextId++;
+			Entity id = mNextId++;
 			mAliveEntities.insert(id);
-			return { id, 0 };
+			mEntityIndexMap[id] = 0;
+			return id;
 		}
 
 		template<typename T, typename...Args>
-		T& Emplace(Entity& entity, Args...args) {
+		T& Emplace(Entity entity, Args...args) {
 			return Insert<T>(entity, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		T& Insert(Entity& entity, const T& data)
+		T& Insert(Entity entity, const T& data)
 		{
 			size_t hashT = Hash<T>();
-			std::unordered_set<size_t> hashes = mArchetypes[entity.Index].GetHashes();
+			std::unordered_set<size_t> hashes = mArchetypes[GetIndex(entity)].GetHashes();
 			MG_CORE_ASSERT(hashes.find(hashT) == hashes.end(), "Entity already owns this component type.");
 
 			hashes.insert(hashT);
-			size_t newIndex = FindArchetype(hashes, &mArchetypes[entity.Index]);
+			size_t newIndex = FindArchetype(hashes, &mArchetypes[GetIndex(entity)]);
 
 			if (newIndex == mArchetypes.size()) {
 				// No matching archetype was found and one must be created
 				MG_CORE_INFO("Registry::Insert: Creating a new archetype.");
 				mArchetypes.push_back(Archetype()); // "newIndex" now points to our new archetype
-				for (auto& pair : mArchetypes[entity.Index].GetMap())
+				for (auto& pair : mArchetypes[GetIndex(entity)].GetMap())
 					mArchetypes[newIndex].InsertArray(pair.first, pair.second->NewOfSameType()); // Copy all the component types
 				mArchetypes[newIndex].InsertArray(hashT, new ComponentArray<T>()); // Add the additional array
 			}
@@ -206,25 +216,25 @@ namespace Mango { namespace ECS {
 				MG_CORE_INFO("Registry::Insert: Found an existing archetype.");
 			}
 
-			mArchetypes[newIndex].Move(entity.ID, &mArchetypes[entity.Index]);
-			entity.Index = newIndex;
-			return mArchetypes[entity.Index].Insert<T>(entity.ID, data); // Finally add the component
+			mArchetypes[newIndex].Move(entity, &mArchetypes[GetIndex(entity)]);
+			mEntityIndexMap[entity] = newIndex;
+			return mArchetypes[GetIndex(entity)].Insert<T>(entity, data); // Finally add the component
 		}
 
 		template<typename T>
-		void Remove(Entity& entity) {
+		void Remove(Entity entity) {
 			size_t hashT = Hash<T>();
-			std::unordered_set<size_t> hashes = mArchetypes[entity.Index].GetHashes();
+			std::unordered_set<size_t> hashes = mArchetypes[GetIndex(entity)].GetHashes();
 			MG_CORE_ASSERT(hashes.find(hashT) != hashes.end(), "Entity does not own this component type.");
 
 			hashes.erase(hashT);
-			size_t newIndex = FindArchetype(hashes, &mArchetypes[entity.Index]);
+			size_t newIndex = FindArchetype(hashes, &mArchetypes[GetIndex(entity)]);
 
 			if (newIndex == mArchetypes.size()) {
 				// No matching archetype was found and one must be created
 				MG_CORE_INFO("Registry::Remove: Creating a new archetype.");
 				mArchetypes.push_back(Archetype()); // "newIndex" now points to our new archetype
-				for (auto& pair : mArchetypes[entity.Index].GetMap()) {
+				for (auto& pair : mArchetypes[GetIndex(entity)].GetMap()) {
 					if(pair.first != hashT) // Exclude the one to be erased
 						mArchetypes[newIndex].InsertArray(pair.first, pair.second->NewOfSameType()); // Copy all the component types
 				}
@@ -233,30 +243,51 @@ namespace Mango { namespace ECS {
 				MG_CORE_INFO("Registry::Remove: Found an existing archetype.");
 			}
 
-			mArchetypes[newIndex].Move(entity.ID, &mArchetypes[entity.Index]);
-			entity.Index = newIndex;
+			mArchetypes[newIndex].Move(entity, &mArchetypes[GetIndex(entity)]);
+			mEntityIndexMap[entity] = newIndex;
 		}
 
-		bool Valid(const Entity& entity) {
-			return mAliveEntities.find(entity.ID) != mAliveEntities.end();
+		bool Valid(Entity entity) {
+			return mAliveEntities.find(entity) != mAliveEntities.end();
 		}
 
-		void Destroy(Entity& entity) {
-			MG_CORE_ASSERT(mAliveEntities.find(entity.ID) != mAliveEntities.end(), "This entity is not valid.");
-			mArchetypes[entity.Index].Destroy(entity.ID);
-			mAliveEntities.erase(entity.ID);
-		}
-
-		template<typename T>
-		T& Get(const Entity& entity) {
-			return mArchetypes[entity.Index].Get<T>(entity.ID);
+		void Destroy(Entity entity) {
+			MG_CORE_ASSERT(mAliveEntities.find(entity) != mAliveEntities.end(), "This entity is not valid.");
+			mArchetypes[GetIndex(entity)].Destroy(entity);
+			mAliveEntities.erase(entity);
 		}
 
 		template<typename T>
-		bool Has(const Entity& entity) {
-			return mArchetypes[entity.Index].Has<T>(entity.ID);
+		T& Get(Entity entity) {
+			return mArchetypes[GetIndex(entity)].Get<T>(entity);
 		}
-	private:
+
+		template<typename T>
+		bool Has(Entity entity) {
+			return mArchetypes[GetIndex(entity)].Has<T>(entity);
+		}
+
+		template<typename... Types>
+		void Query(std::vector<std::tuple<size_t, Types*...>>& out) {
+			out.clear();
+			for (auto& arch : mArchetypes) {
+				bool matching = true;
+				(DoesArchetypeContain<Types>(matching, &arch), ...);
+				if (!matching || arch.Size() == 0) continue;
+				out.push_back({ arch.Size(), arch.GetComponentArray<Types>()... });
+			}
+		}
+	
+		size_t GetIndex(Entity entity) {
+			return mEntityIndexMap[entity];
+		}
+
+		template<typename T>
+		void DoesArchetypeContain(bool& b, Archetype* arch) {
+			if (!arch->HasTypes<T>())
+				b = false;
+		}
+
 		size_t FindArchetype(const std::unordered_set<size_t> signature, Archetype* excluding)
 		{
 			size_t index = mArchetypes.size();
@@ -283,8 +314,9 @@ namespace Mango { namespace ECS {
 			return index;
 		}
 	private:
-		ID mNextId;
-		std::unordered_set<ID> mAliveEntities;
+		Entity mNextId;
+		std::unordered_map<Entity, size_t> mEntityIndexMap;
+		std::unordered_set<Entity> mAliveEntities;
 		std::vector<Archetype> mArchetypes;
 	};
 
