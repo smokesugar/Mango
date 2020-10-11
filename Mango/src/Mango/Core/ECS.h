@@ -146,7 +146,19 @@ namespace Mango { namespace ECS {
 				pair.second->Erase(id);
 			}
 		}
+		
+		template<typename... T>
+		bool HasTypes() {
+			bool doesNotHave = false;
+			(DoesNotHaveArray<T>(doesNotHave), ...);
+			return !doesNotHave;
+		}
 	private:
+		template<typename T>
+		inline void DoesNotHaveArray(bool& b) {
+			b |= !ContainsArray(Hash<T>());
+		}
+
 		inline bool ContainsArray(size_t hash) const { return mMap.find(hash) != mMap.end(); }
 	private:
 		std::unordered_map<size_t, Ref<_ComponentArray>> mMap;
@@ -223,6 +235,10 @@ namespace Mango { namespace ECS {
 
 			mArchetypes[newIndex].Move(entity.ID, &mArchetypes[entity.Index]);
 			entity.Index = newIndex;
+		}
+
+		bool Valid(const Entity& entity) {
+			return mAliveEntities.find(entity.ID) != mAliveEntities.end();
 		}
 
 		void Destroy(Entity& entity) {
