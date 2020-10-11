@@ -19,6 +19,8 @@ namespace Mango { namespace ECS {
 		return id;
 	}
 
+	// Component Arrays -----------------------------------------------------------------------------------------------
+
 	class _ComponentArray {
 	public:
 		virtual ~_ComponentArray() {}
@@ -91,6 +93,8 @@ namespace Mango { namespace ECS {
 		std::vector<T> mComponents;
 	};
 
+	// Archetype --------------------------------------------------------------------------------------------------------
+
 	class Archetype {
 	public:
 		Archetype() = default;
@@ -139,7 +143,7 @@ namespace Mango { namespace ECS {
 		}
 
 		template<typename T>
-		inline T* GetComponentArray() {
+		inline T* Data() {
 			MG_CORE_ASSERT(HasTypes<T>(), "Archetype does not contain this type.");
 			return std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()])->Data();
 		}
@@ -173,6 +177,8 @@ namespace Mango { namespace ECS {
 		std::unordered_map<size_t, Ref<_ComponentArray>> mMap;
 	};
 
+	// Registry - User Interface ------------------------------------------------------------------------------------------
+
 	class Registry {
 	public:
 		Registry()
@@ -182,12 +188,27 @@ namespace Mango { namespace ECS {
 			mArchetypes.push_back(Archetype());
 		}
 
+
+		// Entity Creation and Destruction -------------------------------------------------------------------------------
+
 		Entity Create() {
 			Entity id = mNextId++;
 			mAliveEntities.insert(id);
 			mEntityIndexMap[id] = 0;
 			return id;
 		}
+
+		bool Valid(Entity entity) {
+			return mAliveEntities.find(entity) != mAliveEntities.end();
+		}
+
+		void Destroy(Entity entity) {
+			MG_CORE_ASSERT(mAliveEntities.find(entity) != mAliveEntities.end(), "This entity is not valid.");
+			mArchetypes[GetIndex(entity)].Destroy(entity);
+			mAliveEntities.erase(entity);
+		}
+
+		// Component Interfacing ----------------------------------------------------------------------------------------
 
 		template<typename T, typename...Args>
 		T& Emplace(Entity entity, Args...args) {
@@ -247,16 +268,6 @@ namespace Mango { namespace ECS {
 			mEntityIndexMap[entity] = newIndex;
 		}
 
-		bool Valid(Entity entity) {
-			return mAliveEntities.find(entity) != mAliveEntities.end();
-		}
-
-		void Destroy(Entity entity) {
-			MG_CORE_ASSERT(mAliveEntities.find(entity) != mAliveEntities.end(), "This entity is not valid.");
-			mArchetypes[GetIndex(entity)].Destroy(entity);
-			mAliveEntities.erase(entity);
-		}
-
 		template<typename T>
 		T& Get(Entity entity) {
 			return mArchetypes[GetIndex(entity)].Get<T>(entity);
@@ -267,6 +278,8 @@ namespace Mango { namespace ECS {
 			return mArchetypes[GetIndex(entity)].Has<T>(entity);
 		}
 
+		// Systems ---------------------------------------------------------------------------------------------------
+
 		template<typename... Types>
 		void Query(std::vector<std::tuple<size_t, Types*...>>& out) {
 			out.clear();
@@ -274,7 +287,7 @@ namespace Mango { namespace ECS {
 				bool matching = true;
 				(DoesArchetypeContain<Types>(matching, &arch), ...);
 				if (!matching || arch.Size() == 0) continue;
-				out.push_back({ arch.Size(), arch.GetComponentArray<Types>()... });
+				out.push_back({ arch.Size(), arch.Data<Types>()... });
 			}
 		}
 	
@@ -282,6 +295,9 @@ namespace Mango { namespace ECS {
 			return mEntityIndexMap[entity];
 		}
 
+		// -----------------------------------------------------------------------------------------------------------
+		
+	private:
 		template<typename T>
 		void DoesArchetypeContain(bool& b, Archetype* arch) {
 			if (!arch->HasTypes<T>())
