@@ -42,7 +42,7 @@ namespace Mango { namespace ECS {
 		}
 
 		T& Insert(Entity entity, const T& data) {
-			MG_CORE_ASSERT(!Contains(id), "Array already contains entity.");
+			MG_CORE_ASSERT(!Contains(entity), "Array already contains entity.");
 			mIndices[entity] = Size();
 			mEntities.push_back(entity);
 			mComponents.push_back(data);
@@ -69,7 +69,7 @@ namespace Mango { namespace ECS {
 		inline virtual bool Contains(Entity entity) const override { return mIndices.find(entity) != mIndices.end(); }
 
 		T& At(Entity entity) {
-			MG_CORE_ASSERT(Contains(id), "Array does not contain entity.");
+			MG_CORE_ASSERT(Contains(entity), "Array does not contain entity.");
 			return mComponents[mIndices[entity]];
 		}
 
