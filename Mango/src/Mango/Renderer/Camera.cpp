@@ -1,8 +1,6 @@
 #include "mgpch.h"
 #include "Camera.h"
 
-using namespace DirectX;
-
 namespace Mango {
 
 	OrthographicCamera::OrthographicCamera()

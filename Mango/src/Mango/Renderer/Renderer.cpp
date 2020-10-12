@@ -5,8 +5,6 @@
 #include "Buffer.h"
 #include "RenderCommand.h"
 
-using namespace DirectX;
-
 namespace Mango {
 
 	struct RendererData {

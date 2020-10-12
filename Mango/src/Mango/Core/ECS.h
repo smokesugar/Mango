@@ -4,6 +4,8 @@
 
 #include "Base.h"
 
+#define ECS_SIZE(tuple) std::get<0>(tuple)
+
 namespace Mango { namespace ECS {
 	
 	using Entity = uint32_t;
@@ -210,9 +212,9 @@ namespace Mango { namespace ECS {
 
 		// Component Interfacing ----------------------------------------------------------------------------------------
 
-		template<typename T, typename...Args>
-		T& Emplace(Entity entity, Args...args) {
-			return Insert<T>(entity, std::forward<Args>(args)...);
+		template<typename T, typename... Args>
+		T& Emplace(Entity entity, Args&&...args) {
+			return Insert<T>(entity, T(std::forward<Args>(args)...));
 		}
 
 		template<typename T>
@@ -281,14 +283,15 @@ namespace Mango { namespace ECS {
 		// Systems ---------------------------------------------------------------------------------------------------
 
 		template<typename... Types>
-		void Query(std::vector<std::tuple<size_t, Types*...>>& out) {
-			out.clear();
+		decltype(auto) Query() {
+			std::vector<std::tuple<size_t, Types*...>> out;
 			for (auto& arch : mArchetypes) {
 				bool matching = true;
 				(DoesArchetypeContain<Types>(matching, &arch), ...);
 				if (!matching || arch.Size() == 0) continue;
 				out.push_back({ arch.Size(), arch.Data<Types>()... });
 			}
+			return out;
 		}
 	
 		size_t GetIndex(Entity entity) {

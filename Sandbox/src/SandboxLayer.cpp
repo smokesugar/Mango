@@ -4,22 +4,10 @@
 
 #include "Panels/Dockspace.h"
 
-using namespace DirectX;
-
-struct BruhComponent {
-	int i;
-};
-
-struct PotatoComponent {
-	float bruh;
-
-	PotatoComponent() = default;
-	PotatoComponent(float b)
-		: bruh(b) {}
-};
-
 SandboxLayer::SandboxLayer()
 {
+	mScene = CreateRef<Scene>();
+
 	mShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
 
 	float vertices[] = {
@@ -69,6 +57,8 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	xmmatrix transform = XMMatrixScaling(s, s, 1.0);
 	Renderer::Submit(mQuad, transform);
 	Renderer::EndScene();
+
+	mScene->OnUpdate(dt);
 }
 
 void SandboxLayer::OnImGuiRender()

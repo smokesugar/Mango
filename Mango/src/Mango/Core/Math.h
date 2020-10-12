@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 
+using namespace DirectX;
+
 #define ValuePtr(x) (float*)&x
 
 namespace Mango {

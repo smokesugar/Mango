@@ -18,5 +18,7 @@ private:
 	Ref<Texture2D> mTexture;
 	Ref<SamplerState> mSampler;
 
+	Ref<Scene> mScene;
+
 	float2 mViewportSize = { 800.0f, 600.0f };
 };

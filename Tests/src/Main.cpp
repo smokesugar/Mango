@@ -73,8 +73,7 @@ TEST_CASE("Basic query", "[core,ecs]") {
 		}
 	}
 
-	std::vector<std::tuple<size_t, Position*, Health*>> query;
-	registry.Query(query);
+	auto query = registry.Query<Position, Health>();
 	REQUIRE(query.size() == 1);
 	REQUIRE(std::get<0>(query[0]) == 10);
 
@@ -137,8 +136,7 @@ TEST_CASE("Add component to entity", "[core,ecs]") {
 
 	ECS::Entity eid = registry.Create();
 	registry.Insert(eid, p);
-	std::vector<std::tuple<size_t, Position*>> query1;
-	registry.Query(query1);
+	auto query1 = registry.Query<Position>();
 
 	// Testing we only get one archetype and one item in it
 	REQUIRE(query1.size() == 1);
@@ -155,8 +153,7 @@ TEST_CASE("Add component to entity", "[core,ecs]") {
 
 	// similarly now we query and check that only get one archetype that has
 	// both components
-	std::vector<std::tuple<size_t, Position*, Health*>> query2;
-	registry.Query(query2);
+	auto query2 = registry.Query<Position, Health>();
 	REQUIRE(query2.size() == 1);
 	const Position* p2 = std::get<1>(query2[0]);
 	const Health* h2 = std::get<2>(query2[0]);
@@ -178,7 +175,7 @@ TEST_CASE("Add component to entity", "[core,ecs]") {
 
 	// we need to make sure the old query for position only,returns one, since
 	// the entity got moved.
-	registry.Query(query1);
+	query1 = registry.Query<Position>();
 	REQUIRE(query1.size() == 1);
 
 	// adding only two positions entities
@@ -188,8 +185,7 @@ TEST_CASE("Add component to entity", "[core,ecs]") {
 	p.x = 40;
 	ECS::Entity eid3 = registry.Create();
 	registry.Insert(eid3, p);
-	std::vector<std::tuple<size_t, Position*>> query3;
-	registry.Query(query3);
+	auto query3 = registry.Query<Position>();
 
 	// now we check that two archetypes actually match the query
 	REQUIRE(query3.size() == 2);
@@ -209,8 +205,7 @@ TEST_CASE("Add component to entity", "[core,ecs]") {
 	// last one created
 	registry.Insert(eid3, d);
 
-	std::vector<std::tuple<size_t, Position*>> query4;
-	registry.Query(query4);
+	auto query4 = registry.Query<Position>();
 	// we now expect 3 archetypes (position), (position,health),(position,dummy)
 	REQUIRE(query4.size() == 3);
 	const Position* p4 = std::get<1>(query4[0]);
@@ -231,8 +226,7 @@ TEST_CASE("Add component to entity", "[core,ecs]") {
 	REQUIRE(registry.Has<Dummy>(eid) == false);
 	REQUIRE(registry.Has<Dummy>(eid3) == true);
 
-	std::vector<std::tuple<size_t, Position*, Dummy*>> query5;
-	registry.Query(query5);
+	auto query5 = registry.Query<Position, Dummy>();
 	REQUIRE(query5.size() == 1);
 	REQUIRE(std::get<0>(query5[0]) == 1);
 	REQUIRE(std::get<1>(query5[0])[0].x == Approx(40));
@@ -280,8 +274,7 @@ TEST_CASE("Delete component to entity", "[core,ecs]") {
 	ECS::Entity eid = registry.Create();
 	registry.Insert(eid, p);
 	registry.Insert(eid, h);
-	std::vector<std::tuple<size_t, Position*, Health*>> query1;
-	registry.Query(query1);
+	auto query1 = registry.Query<Position, Health>();
 
 	// testing that we only get one archetype and one item in it
 	REQUIRE(query1.size() == 1);
@@ -294,12 +287,10 @@ TEST_CASE("Delete component to entity", "[core,ecs]") {
 
 	// now we delete a component
 	registry.Remove<Health>(eid);
-	std::vector<std::tuple<size_t, Position*, Health*>> query2;
-	registry.Query(query2);
+	auto query2 = registry.Query<Position, Health>();
 	REQUIRE(query2.size() == 0);
 
-	std::vector<std::tuple<size_t, Position*>> query3;
-	registry.Query(query3);
+	auto query3 = registry.Query<Position>();
 	REQUIRE(query3.size() == 1);
 }
 
@@ -312,8 +303,7 @@ TEST_CASE("Add component to existing archetype", "[core,ecs]") {
 	ECS::Entity eid = registry.Create();
 	registry.Insert(eid, p);
 	registry.Insert(eid, h);
-	std::vector<std::tuple<size_t, Position*, Health*>> query1;
-	registry.Query(query1);
+	auto query1 = registry.Query<Position, Health>();
 
 	REQUIRE(query1.size() == 1);
 	REQUIRE(std::get<0>(query1[0]) == 1);
@@ -322,8 +312,7 @@ TEST_CASE("Add component to existing archetype", "[core,ecs]") {
 	p.x = 100;
 	ECS::Entity eid2 = registry.Create();
 	registry.Insert(eid2, p);
-	std::vector<std::tuple<size_t, Position*>> query2;
-	registry.Query(query2);
+	auto query2 = registry.Query<Position>();
 	// at this point we should have two archetype returned in the query
 	// and each archetype has one entity in it
 	REQUIRE(query2.size() == 2);
@@ -333,8 +322,7 @@ TEST_CASE("Add component to existing archetype", "[core,ecs]") {
 	h.hp = 900;
 	registry.Insert(eid2, h);
 	// now we should still have one archetype, a new one should not be created
-	std::vector<std::tuple<size_t, Position*, Health*>> query3;
-	registry.Query(query3);
+	auto query3 = registry.Query<Position, Health>();
 	REQUIRE(query3.size() == 1);
 	// and the current archetype should have two entities with position and
 	// health
@@ -358,8 +346,7 @@ TEST_CASE("Add component to existing archetype", "[core,ecs]") {
 
 	// the query for position only should return just one archetype
 	// because the other archetype is empty
-	std::vector<std::tuple<size_t, Position*>> query4;
-	registry.Query(query4);
+	auto query4 = registry.Query<Position>();
 	REQUIRE(query4.size() == 1);
 }
 
@@ -418,16 +405,14 @@ TEST_CASE("Add - Delete entities", "[core,ecs]") {
 	ECS::Entity eid1 = registry.Create();
 	registry.Insert(eid1, p);
 	registry.Destroy(eid1);
-	std::vector<std::tuple<size_t, Position*>> query1;
-	registry.Query(query1);
+	auto query1 = registry.Query<Position>();
 	REQUIRE(query1.empty());
 	p.x = 10;
 	ECS::Entity eid2 = registry.Create();
 	registry.Insert(eid2, p);
 	REQUIRE(!registry.Valid(eid1));
 	REQUIRE(registry.Valid(eid2));
-	std::vector<std::tuple<size_t, Position*>> query2;
-	registry.Query(query2);
+	auto query2 = registry.Query<Position>();
 	REQUIRE(query2.size() == 1);
 }
 
@@ -446,8 +431,7 @@ TEST_CASE("Multiple deletes", "[core,ecs]") {
 	// we start by removing the first entity, should get
 	// eid3 to move in the archetype
 	registry.Destroy(eid2);
-	std::vector<std::tuple<size_t, Position*>> query;
-	registry.Query(query);
+	auto query = registry.Query<Position>();
 	REQUIRE(query.size() == 1);
 	REQUIRE(std::get<0>(query[0]) == 2);
 	// e3 got moved in the archetype
@@ -457,7 +441,7 @@ TEST_CASE("Multiple deletes", "[core,ecs]") {
 
 	// delete now entity1 , so entity3 should be moved again
 	registry.Destroy(eid1);
-	registry.Query(query);
+	query = registry.Query<Position>();
 	REQUIRE(query.size() == 1);
 	REQUIRE(std::get<0>(query[0]) == 1);
 	// e3 got moved in the archetype
@@ -483,8 +467,7 @@ TEST_CASE("Three components creation", "[core,ecs]") {
 	registry.Insert(eid2, h2);
 	registry.Insert(eid2, d2);
 
-	std::vector<std::tuple<size_t, Position*, Dummy* >> query;
-	registry.Query(query);
+	auto query = registry.Query<Position, Dummy>();
 	REQUIRE(query.size() == 1);
 	REQUIRE(std::get<0>(query[0]) == 2);
 	// just checking the components
@@ -496,8 +479,7 @@ TEST_CASE("Three components creation", "[core,ecs]") {
 	REQUIRE(dummyPtr[0].a == Approx(10));
 	REQUIRE(dummyPtr[1].a == Approx(90));
 
-	std::vector<std::tuple<size_t, Position*, Health*, Dummy* >> query2;
-	registry.Query(query2);
+	auto query2 = registry.Query<Position, Health, Dummy>();
 	REQUIRE(query2.size() == 1);
 	REQUIRE(std::get<0>(query2[0]) == 2);
 
