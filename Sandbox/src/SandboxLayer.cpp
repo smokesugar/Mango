@@ -8,30 +8,13 @@ SandboxLayer::SandboxLayer()
 {
 	mScene = CreateRef<Scene>();
 
-	mShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
-
-	float vertices[] = {
-		  0.5f,  0.5f, 0.0f,   1.0f, 0.0f,
-		  0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
-		 -0.5f, -0.5f, 0.0f,   0.0f, 1.0f,
-		 -0.5f,  0.5f, 0.0f,   0.0f, 0.0f
-	};
-	uint16_t indices[] = {
-		0, 1, 3,
-		1, 2, 3
-	};
-
-	auto vertexBuffer = Ref<VertexBuffer>(VertexBuffer::Create(vertices, 4, 5 * sizeof(float)));
-	auto indexBuffer = Ref<IndexBuffer>(IndexBuffer::Create(indices, std::size(indices)));
-	mQuad = Ref<VertexArray>(new VertexArray({ vertexBuffer, indexBuffer }));
-
 	FramebufferProperties props;
 	props.Width = Application::Get().GetWindow().GetWidth();
 	props.Height = Application::Get().GetWindow().GetHeight();
+	props.Depth = true;
 	mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
 
 	mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
-	mSampler = Ref<SamplerState>(SamplerState::Create());
 }
 
 inline void SandboxLayer::OnUpdate(float dt) {
@@ -41,21 +24,19 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 	
 	mFramebuffer->Bind();
-	mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+	mFramebuffer->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	mCamera.SetAspectRatio(mViewportSize.x/mViewportSize.y);
 
 	Renderer::BeginScene(mCamera, XMMatrixIdentity());
-	mShader->Bind();
-	
-	mSampler->Bind(0);
-	mTexture->Bind(0);
 
 	static float accum = 0;
 	accum += dt;
 	float s = sinf(accum) * 0.5f + 0.5f;
-	xmmatrix transform = XMMatrixScaling(s, s, 1.0);
-	Renderer::Submit(mQuad, transform);
+
+	Renderer::DrawQuad(float3(0.0f, 0.0f, 0.0f), float2(1.0f, 1.0f), mTexture);
+	Renderer::DrawQuad(float3(0.0f, 0.0f, -0.5f), float2(1.0f, 1.0f), mSquareColor);
+
 	Renderer::EndScene();
 
 	mScene->OnUpdate(dt);
@@ -75,6 +56,7 @@ void SandboxLayer::OnImGuiRender()
 
 	ImGui::Begin("Properties");
 	ImGui::Text("Mango Engine");
+	ImGui::ColorEdit4("Square Color", ValuePtr(mSquareColor));
 	ImGui::End();
 
 	Dockspace::End();

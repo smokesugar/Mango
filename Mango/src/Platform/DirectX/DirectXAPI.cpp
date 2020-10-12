@@ -22,4 +22,29 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->DrawIndexed((uint32_t)count, (uint32_t)offset, 0));
 	}
 
+	void DirectXAPI::EnableBlending()
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = TRUE;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+		Microsoft::WRL::ComPtr<ID3D11BlendState> blendState;
+		HR_CALL(context.GetDevice()->CreateBlendState(&desc, &blendState));
+		VOID_CALL(context.GetDeviceContext()->OMSetBlendState(blendState.Get(), nullptr, 0xffffffff));
+	}
+
+	void DirectXAPI::DisableBlending()
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff));
+	}
+
 }

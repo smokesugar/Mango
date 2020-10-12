@@ -11,14 +11,13 @@ public:
 	void OnUpdate(float dt);
 	void OnImGuiRender();
 private:
-	Ref<Shader> mShader;
-	Ref<VertexArray> mQuad;
+	Ref<Scene> mScene;
+
 	OrthographicCamera mCamera;
 	Ref<Framebuffer> mFramebuffer;
 	Ref<Texture2D> mTexture;
-	Ref<SamplerState> mSampler;
 
-	Ref<Scene> mScene;
+	float4 mSquareColor = float4(1.0f, 0.2f, 0.3f, 1.0f);
 
 	float2 mViewportSize = { 800.0f, 600.0f };
 };

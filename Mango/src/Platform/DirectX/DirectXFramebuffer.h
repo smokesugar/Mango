@@ -11,7 +11,7 @@ namespace Mango {
 		friend class Framebuffer;
 	public:
 		DirectXFramebuffer(const FramebufferProperties& props);
-		DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height);
+		DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height, bool depth);
 
 		virtual void Bind() override;
 		virtual void Clear(const float4& color) override;
@@ -33,6 +33,7 @@ namespace Mango {
 		ID3D11Resource* mResourceReference;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDSV;
 	};
 
 }

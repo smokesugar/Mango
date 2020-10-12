@@ -14,6 +14,16 @@ namespace Mango {
 		return new DirectXTexture2D(filePath);
 	}
 
+	Texture2D* Texture2D::Create(void* data, uint32_t width, uint32_t height) {
+		return new DirectXTexture2D(data, width, height);
+	}
+
+	DirectXTexture2D::DirectXTexture2D(void* data, uint32_t width, uint32_t height)
+		: mWidth(width), mHeight(height)
+	{
+		Create(data);
+	}
+
 	DirectXTexture2D::DirectXTexture2D(const std::string& filePath)
 		: mWidth(0), mHeight(0)
 	{
@@ -32,7 +42,7 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
 	}
 
-	void DirectXTexture2D::Create(unsigned char* data)
+	void DirectXTexture2D::Create(void* data)
 	{
 		auto& context = RetrieveContext();
 

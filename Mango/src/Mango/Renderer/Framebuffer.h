@@ -8,6 +8,7 @@ namespace Mango {
 	struct FramebufferProperties {
 		uint32_t Width;
 		uint32_t Height;
+		bool Depth = false;
 	};
 	
 	class Framebuffer {

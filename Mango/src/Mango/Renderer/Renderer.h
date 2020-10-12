@@ -3,18 +3,19 @@
 #include "Mango/Core/Base.h"
 #include "VertexArray.h"
 #include "Camera.h"
+#include "Texture.h"
 
 namespace Mango {
 
-	class Renderer {
-	public:
-		static void Init();
-		static void Shutdown();
+	namespace Renderer {
+		void Init();
+		void Shutdown();
 
-		static void BeginScene(Camera& camera, const xmmatrix& transform);
-		static void EndScene();
+		void BeginScene(Camera& camera, const xmmatrix& transform);
+		void EndScene();
 
-		static void Submit(const Ref<VertexArray>& va, const xmmatrix& transform = DirectX::XMMatrixIdentity());
-	};
+		void DrawQuad(const float3& pos, const float2& size, const float4& color);
+		void DrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture);
+	}
 
 }

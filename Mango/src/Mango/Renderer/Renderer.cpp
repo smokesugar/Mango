@@ -4,21 +4,64 @@
 #include "Mango/Core/Math.h"
 #include "Buffer.h"
 #include "RenderCommand.h"
+#include "Shader.h"
 
 namespace Mango {
+
+	struct IndividualData {
+		xmmatrix ViewProjection;
+		float4 color;
+	};
 
 	struct RendererData {
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
+		Ref<VertexArray> Quad;
+		Ref<Shader> TextureShader;
+		Ref<Texture2D> WhiteTexture;
+		Scope<SamplerState> Sampler;
 	};
 
 	static RendererData* sData;
 
 	void Renderer::Init()
 	{
+		RenderCommand::EnableBlending();
+
 		sData = new RendererData();
+
+		// Shaders -----------------------------------------------------------------------------------
+
+		sData->TextureShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
+
+		// Textures ----------------------------------------------------------------------------------
+
+		sData->Sampler = Scope<SamplerState>(SamplerState::Create());
+
+		uint32_t color = 0xffffffff;
+		sData->WhiteTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
+
+		// Uniform Buffers ---------------------------------------------------------------------------
+
 		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<xmmatrix>());
-		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<xmmatrix>());
+		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<IndividualData>());
+
+		// Quad --------------------------------------------------------------------------------------
+
+		float vertices[] = {
+		  0.5f,  0.5f, 0.0f,   1.0f, 0.0f,
+		  0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
+		 -0.5f, -0.5f, 0.0f,   0.0f, 1.0f,
+		 -0.5f,  0.5f, 0.0f,   0.0f, 0.0f
+		};
+		uint16_t indices[] = {
+			0, 1, 3,
+			1, 2, 3
+		};
+
+		auto vertexBuffer = Ref<VertexBuffer>(VertexBuffer::Create(vertices, 4, 5 * sizeof(float)));
+		auto indexBuffer = Ref<IndexBuffer>(IndexBuffer::Create(indices, std::size(indices)));
+		sData->Quad = CreateRef<VertexArray>(vertexBuffer, indexBuffer);
 	}
 
 	void Renderer::Shutdown()
@@ -37,16 +80,28 @@ namespace Mango {
 	{
 	}
 
-	void Renderer::Submit(const Ref<VertexArray>& va, const xmmatrix& transform)
-	{
-		sData->IndividualUniforms->SetData(transform);
+	static void InternalDrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture, const float4& color) {
+		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+		texture->Bind(0);
+		sData->Sampler->Bind(0);
+
+		sData->IndividualUniforms->SetData<IndividualData>({ transform, color });
 		sData->IndividualUniforms->VSBind(1);
 
-		va->Bind();
-		if(va->IsIndexed())
-			RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
-		else
-			RenderCommand::Draw(va->GetDrawCount(), 0);
+		sData->TextureShader->Bind();
+		sData->Quad->Bind();
+		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
+	}
+
+	void Renderer::DrawQuad(const float3& pos, const float2& size, const float4& color)
+	{
+		InternalDrawQuad(pos, size, sData->WhiteTexture, color);
+	}
+
+	void Renderer::DrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture)
+	{
+		InternalDrawQuad(pos, size, texture, float4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 
 }

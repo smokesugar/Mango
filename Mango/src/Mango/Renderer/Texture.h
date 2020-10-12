@@ -20,6 +20,7 @@ namespace Mango {
 		virtual ~Texture2D() {}
 
 		static Texture2D* Create(const std::string& filePath);
+		static Texture2D* Create(void* data, uint32_t width, uint32_t height);
 	};
 
 	class SamplerState {

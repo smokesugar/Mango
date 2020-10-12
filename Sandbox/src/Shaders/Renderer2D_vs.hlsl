@@ -2,6 +2,7 @@
 struct VSOut {
 	float3 pos : Position;
 	float2 uv : TexCoord;
+	float4 col : Color;
 	float4 svpos : SV_Position;
 };
 
@@ -11,6 +12,7 @@ cbuffer GlobalUniforms : register(b0) {
 
 cbuffer IndividualUniforms : register(b1) {
 	row_major matrix model;
+	float4 color;
 }
 
 VSOut main(float3 pos : Position, float2 uv : TexCoord) {
@@ -19,5 +21,6 @@ VSOut main(float3 pos : Position, float2 uv : TexCoord) {
 	vso.pos = worldPos.xyz;
 	vso.uv = uv;
 	vso.svpos = mul(worldPos, viewProjection);
+	vso.col = color;
 	return vso;
 }

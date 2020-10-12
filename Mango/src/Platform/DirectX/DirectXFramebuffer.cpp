@@ -26,8 +26,8 @@ namespace Mango {
 		CreateViews(texture.Get());
 	}
 
-	DirectXFramebuffer::DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height)
-		: mProps({width, height}), mOwnsTexture(false)
+	DirectXFramebuffer::DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height, bool depth)
+		: mProps({width, height, depth}), mOwnsTexture(false)
 	{
 		CreateViews(resource);
 	}
@@ -45,13 +45,15 @@ namespace Mango {
 		vp.Height = (float)mProps.Height;
 
 		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
-		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr));
+		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), mProps.Depth ? mDSV.Get() : nullptr));
 	}
 
 	void DirectXFramebuffer::Clear(const float4& color)
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->ClearRenderTargetView(mRTV.Get(), ValuePtr(color)));
+		if(mProps.Depth)
+			VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0));
 	}
 
 	void DirectXFramebuffer::Resize(uint32_t width, uint32_t height)
@@ -98,6 +100,21 @@ namespace Mango {
 		HR_CALL(context.GetDevice()->CreateRenderTargetView(resource, nullptr, &mRTV));
 		if(mOwnsTexture)
 			HR_CALL(context.GetDevice()->CreateShaderResourceView(resource, nullptr, &mSRV));
+
+		if (mProps.Depth) {
+			D3D11_TEXTURE2D_DESC desc = {};
+			desc.Width = mProps.Width;
+			desc.Height = mProps.Height;
+			desc.MipLevels = 1;
+			desc.ArraySize = 1;
+			desc.Format = DXGI_FORMAT_D32_FLOAT;
+			desc.SampleDesc = { 1, 0 };
+			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+			Microsoft::WRL::ComPtr<ID3D11Texture2D> depthTexture;
+			HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &depthTexture));
+			HR_CALL(context.GetDevice()->CreateDepthStencilView(depthTexture.Get(), nullptr, &mDSV));
+		}
 	}
 
 }

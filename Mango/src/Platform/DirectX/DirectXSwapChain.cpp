@@ -61,7 +61,7 @@ namespace Mango {
 	{
 		Microsoft::WRL::ComPtr<ID3D11Resource> backbuffer;
 		HR_CALL(mInternal->GetBuffer(0, __uuidof(ID3D11Resource), &backbuffer));
-		mFramebuffer = CreateRef<DirectXFramebuffer>(backbuffer.Get(), width, height);
+		mFramebuffer = CreateRef<DirectXFramebuffer>(backbuffer.Get(), width, height, false);
 	}
 
 }
