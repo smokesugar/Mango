@@ -26,13 +26,6 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt)
 	{
-		auto query = mRegistry.Query<TagComponent>();
-		for (auto& tuple : query) {
-			for (int i = 0; i < ECS_SIZE(tuple); i++) {
-				auto& tag = std::get<1>(tuple)[i].Tag;
-				MG_CORE_INFO("Tag: {0}", tag);
-			}
-		}
 	}
 
 }
