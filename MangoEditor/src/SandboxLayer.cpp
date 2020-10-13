@@ -9,7 +9,7 @@ namespace Mango {
 	SandboxLayer::SandboxLayer()
 	{
 		mScene = CreateRef<Scene>();
-		mSceneHierarchy = CreateScope<SceneHierarchyPanel>(mScene.get());
+		mSceneHierarchy.SetScene(mScene.get());
 
 		FramebufferProperties props;
 		props.Width = Application::Get().GetWindow().GetWidth();
@@ -19,9 +19,11 @@ namespace Mango {
 
 		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 
-		Entity entity = mScene->Create();
-
+		Entity entity = mScene->Create("Square");
 		entity.AddComponent<SpriteRendererComponent>(float4(0.2f, 0.3f, 1.0f, 1.0f));
+
+		mCamera = mScene->Create("Main Camera");
+		mCamera.AddComponent<CameraComponent>(Ref<Camera>(new OrthographicCamera())).Primary = true;
 	}
 
 	inline void SandboxLayer::OnUpdate(float dt) {
@@ -33,17 +35,9 @@ namespace Mango {
 		mFramebuffer->Bind();
 		mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
-		mCamera.SetAspectRatio(mViewportSize.x / mViewportSize.y);
-
-		Renderer::BeginScene(mCamera, XMMatrixIdentity());
-
-		static float accum = 0;
-		accum += dt;
-		float s = sinf(accum) * 0.5f + 0.5f;
+		mCamera.GetComponent<CameraComponent>().Camera->SetAspectRatio(mViewportSize.x / mViewportSize.y);
 
 		mScene->OnUpdate(dt);
-
-		Renderer::EndScene();
 	}
 
 	void SandboxLayer::OnImGuiRender()
@@ -59,11 +53,16 @@ namespace Mango {
 		ImGui::PopStyleVar();
 
 		ImGui::Begin("Properties");
-		ImGui::Text("Mango Engine");
-		ImGui::ColorEdit4("Square Color", ValuePtr(mSquareColor));
+
+		xmmatrix& mat = mCamera.GetComponent<TransformComponent>().Transform;
+		float4 pos;
+		XMStoreFloat4(&pos, mat.r[3]);
+		ImGui::DragFloat3("Camera Position", ValuePtr(pos), 0.01f);
+		mat.r[3] = XMLoadFloat4(&pos);
+
 		ImGui::End();
 
-		mSceneHierarchy->OnImGuiRender();
+		mSceneHierarchy.OnImGuiRender();
 
 		Dockspace::End();
 	}

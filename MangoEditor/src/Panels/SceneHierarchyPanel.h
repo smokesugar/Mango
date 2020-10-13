@@ -7,11 +7,13 @@ namespace Mango {
 	class SceneHierarchyPanel {
 	public:
 		SceneHierarchyPanel();
-		SceneHierarchyPanel(Scene* scene);
+		
+		inline void SetScene(Scene* scene) { mScene = scene; }
 
 		void OnImGuiRender();
 	private:
 		Scene* mScene;
+		ECS::Entity mSelectedEntity = ECS::Null;
 	};
 
 }

@@ -27,13 +27,32 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt)
 	{
-		auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
-		for (auto& tuple : query) {
-			for (size_t i = 0; i < ECS_SIZE(tuple); i++) {
-				auto& spriteComp = std::get<1>(tuple)[i];
-				auto& transformComp = std::get<2>(tuple)[i];
-				Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
+		Camera* currentCamera = nullptr;
+		xmmatrix* cameraTransform = nullptr;
+		auto camQuery = mRegistry.Query<CameraComponent, TransformComponent>();
+		for (auto& [size, cameras, transforms] : camQuery) {
+			for (size_t i = 0; i < size; i++) {
+				if (currentCamera) continue;
+				auto& camComp = cameras[i];
+				auto& transComp = transforms[i];
+				currentCamera = camComp.Camera.get();
+				cameraTransform = &transComp.Transform;
 			}
+		}
+
+		if (currentCamera) {
+			Renderer::BeginScene(*currentCamera, *cameraTransform);
+
+			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
+			for (auto& [size, sprites, transforms] : query) {
+				for (size_t i = 0; i < size; i++) {
+					auto& spriteComp = sprites[i];
+					auto& transformComp = transforms[i];
+					Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
+				}
+			}
+			
+			Renderer::EndScene();
 		}
 	}
 

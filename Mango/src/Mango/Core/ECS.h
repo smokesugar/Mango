@@ -9,6 +9,7 @@
 namespace Mango { namespace ECS {
 	
 	using Entity = uint32_t;
+	static Entity Null = std::numeric_limits<uint32_t>::max();
 
 	template<typename T>
 	static size_t Hash() {
@@ -27,6 +28,7 @@ namespace Mango { namespace ECS {
 		virtual size_t GetHash() const = 0;
 		virtual bool Contains(Entity entity) const = 0;
 		virtual size_t Size() const = 0;
+		virtual Entity* EntitiesData() = 0;
 	};
 
 	template<typename T>
@@ -80,6 +82,7 @@ namespace Mango { namespace ECS {
 		virtual size_t GetHash() const override { return mHash; }
 
 		T* Data() { return mComponents.data(); }
+		virtual Entity* EntitiesData() override { return mEntities.data(); }
 
 		inline auto begin() { return mComponents.begin(); }
 		inline auto end() { return mComponents.end(); }
@@ -109,8 +112,8 @@ namespace Mango { namespace ECS {
 		}
 
 		void Destroy(Entity entity) {
-			for (auto& pair : mMap)
-				pair.second->Erase(entity);
+			for (auto& [hash, array] : mMap)
+				array->Erase(entity);
 		}
 
 		template<typename T>
@@ -121,8 +124,8 @@ namespace Mango { namespace ECS {
 
 		std::unordered_set<size_t> GetHashes() {
 			std::unordered_set<size_t> hashes;
-			for (auto& pair : mMap)
-				hashes.insert(pair.first);
+			for (auto& [hash, array] : mMap)
+				hashes.insert(hash);
 			return hashes;
 		}
 
@@ -145,14 +148,19 @@ namespace Mango { namespace ECS {
 			return std::static_pointer_cast<ComponentArray<T>>(mMap[Hash<T>()])->Data();
 		}
 
+		inline Entity* EntitiesData() {
+			if (mMap.empty()) return nullptr;
+			return mMap.begin()->second->EntitiesData();
+		}
+
 		void Move(Entity entity, Archetype* other) {
-			for (auto& pair : mMap) {
-				if(other->ContainsArray(pair.first))
-					pair.second->Copy(entity, other->GetMap()[pair.first].get());
+			for (auto& [hash, array] : mMap) {
+				if(other->ContainsArray(hash))
+					array->Copy(entity, other->GetMap()[hash].get());
 			}
 
-			for (auto& pair : other->GetMap()) {
-				pair.second->Erase(entity);
+			for (auto& [hash, array] : other->GetMap()) {
+				array->Erase(entity);
 			}
 		}
 		
@@ -226,8 +234,8 @@ namespace Mango { namespace ECS {
 				// No matching archetype was found and one must be created
 				MG_CORE_INFO("Registry::Insert: Creating a new archetype.");
 				mArchetypes.push_back(Archetype()); // "newIndex" now points to our new archetype
-				for (auto& pair : mArchetypes[GetIndex(entity)].GetMap())
-					mArchetypes[newIndex].InsertArray(pair.first, pair.second->NewOfSameType()); // Copy all the component types
+				for (auto& [hash, array] : mArchetypes[GetIndex(entity)].GetMap())
+					mArchetypes[newIndex].InsertArray(hash, array->NewOfSameType()); // Copy all the component types
 				mArchetypes[newIndex].InsertArray(hashT, new ComponentArray<T>()); // Add the additional array
 			}
 			else {
@@ -252,9 +260,9 @@ namespace Mango { namespace ECS {
 				// No matching archetype was found and one must be created
 				MG_CORE_INFO("Registry::Remove: Creating a new archetype.");
 				mArchetypes.push_back(Archetype()); // "newIndex" now points to our new archetype
-				for (auto& pair : mArchetypes[GetIndex(entity)].GetMap()) {
-					if(pair.first != hashT) // Exclude the one to be erased
-						mArchetypes[newIndex].InsertArray(pair.first, pair.second->NewOfSameType()); // Copy all the component types
+				for (auto& [hash, array] : mArchetypes[GetIndex(entity)].GetMap()) {
+					if(hash != hashT) // Exclude the one to be erased
+						mArchetypes[newIndex].InsertArray(hash, array->NewOfSameType()); // Copy all the component types
 				}
 			}
 			else {
@@ -278,13 +286,25 @@ namespace Mango { namespace ECS {
 		// Systems ---------------------------------------------------------------------------------------------------
 
 		template<typename... Types>
-		decltype(auto) Query() {
+		auto Query() {
 			std::vector<std::tuple<size_t, Types*...>> out;
 			for (auto& arch : mArchetypes) {
 				size_t size = arch.Size();
 				bool matching = arch.HasTypes<Types...>() && arch.Size() != 0;
 				if (!matching) continue;
-				out.push_back({ arch.Size(), arch.Data<Types>()... });
+				out.push_back({ arch.Size(), arch.Data<Types>()...});
+			}
+			return out;
+		}
+
+		template<typename... Types>
+		auto QueryEntities() {
+			std::vector<std::tuple<size_t, Entity*, Types*...>> out;
+			for (auto& arch : mArchetypes) {
+				size_t size = arch.Size();
+				bool matching = arch.HasTypes<Types...>() && arch.Size() != 0;
+				if (!matching) continue;
+				out.push_back({ arch.Size(), arch.EntitiesData(), arch.Data<Types>()...});
 			}
 			return out;
 		}
@@ -296,6 +316,11 @@ namespace Mango { namespace ECS {
 		// -----------------------------------------------------------------------------------------------------------
 		
 	private:
+		template<typename T>
+		void PushArrayIntoQuery(std::vector<void*>& arrays, Archetype& arch) {
+			arrays.push_back(arch.Data<T>());
+		}
+
 		size_t FindArchetype(const std::unordered_set<size_t> signature, Archetype* excluding)
 		{
 			size_t index = mArchetypes.size();

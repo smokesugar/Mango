@@ -25,6 +25,7 @@ namespace Mango {
 
 	struct CameraComponent {
 		Ref<Mango::Camera> Camera;
+		bool Primary = false;
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
