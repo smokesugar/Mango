@@ -34,9 +34,11 @@ namespace Mango {
 			for (size_t i = 0; i < size; i++) {
 				if (currentCamera) continue;
 				auto& camComp = cameras[i];
-				auto& transComp = transforms[i];
-				currentCamera = camComp.Camera.get();
-				cameraTransform = &transComp.Transform;
+				if (camComp.Primary) {
+					auto& transComp = transforms[i];
+					currentCamera = camComp.Camera.get();
+					cameraTransform = &transComp.Transform;
+				}
 			}
 		}
 

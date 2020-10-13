@@ -52,16 +52,6 @@ namespace Mango {
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		ImGui::Begin("Properties");
-
-		xmmatrix& mat = mCamera.GetComponent<TransformComponent>().Transform;
-		float4 pos;
-		XMStoreFloat4(&pos, mat.r[3]);
-		ImGui::DragFloat3("Camera Position", ValuePtr(pos), 0.01f);
-		mat.r[3] = XMLoadFloat4(&pos);
-
-		ImGui::End();
-
 		mSceneHierarchy.OnImGuiRender();
 
 		Dockspace::End();

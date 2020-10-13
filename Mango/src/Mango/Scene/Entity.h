@@ -36,6 +36,11 @@ namespace Mango {
 			return mScene->mRegistry.Get<T>(mHandle);
 		}
 
+		template<typename T>
+		bool HasComponent() {
+			return mScene->mRegistry.Has<T>(mHandle);
+		}
+
 		bool IsValid() {
 			return mScene ? mScene->mRegistry.Valid(mHandle) : false;
 		}
