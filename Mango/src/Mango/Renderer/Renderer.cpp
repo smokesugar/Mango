@@ -80,8 +80,8 @@ namespace Mango {
 	{
 	}
 
-	static void InternalDrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture, const float4& color) {
-		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+	static void InternalDrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
+		
 
 		texture->Bind(0);
 		sData->Sampler->Bind(0);
@@ -96,12 +96,24 @@ namespace Mango {
 
 	void Renderer::DrawQuad(const float3& pos, const float2& size, const float4& color)
 	{
-		InternalDrawQuad(pos, size, sData->WhiteTexture, color);
+		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+		InternalDrawQuad(transform, sData->WhiteTexture, color);
 	}
 
 	void Renderer::DrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture)
 	{
-		InternalDrawQuad(pos, size, texture, float4(1.0f, 1.0f, 1.0f, 1.0f));
+		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+		InternalDrawQuad(transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+
+	void Renderer::DrawQuad(const xmmatrix& transform, const float4& color)
+	{
+		InternalDrawQuad(transform, sData->WhiteTexture, color);
+	}
+
+	void Renderer::DrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture)
+	{
+		InternalDrawQuad(transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 
 }

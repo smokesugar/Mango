@@ -3,6 +3,7 @@
 
 #include "Entity.h"
 #include "Components.h"
+#include "Mango/Renderer/Renderer.h"
 
 namespace Mango {
 
@@ -26,6 +27,14 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt)
 	{
+		auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
+		for (auto& tuple : query) {
+			for (size_t i = 0; i < ECS_SIZE(tuple); i++) {
+				auto& spriteComp = std::get<1>(tuple)[i];
+				auto& transformComp = std::get<2>(tuple)[i];
+				Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
+			}
+		}
 	}
 
 }

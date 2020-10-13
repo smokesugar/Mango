@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mango/Core/Math.h"
+#include "Mango/Renderer/Camera.h"
 
 namespace Mango {
 	
@@ -20,6 +21,25 @@ namespace Mango {
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
 			: Tag(tag) {}
+	};
+
+	struct CameraComponent {
+		Ref<Mango::Camera> Camera;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
+		CameraComponent(const Ref<Mango::Camera>& cam)
+			: Camera(cam) {}
+	};
+
+	struct SpriteRendererComponent {
+		float4 Color;
+
+		SpriteRendererComponent() : Color(1.0f, 1.0f, 1.0f, 1.0f) {}
+		SpriteRendererComponent(const SpriteRendererComponent&) = default;
+		SpriteRendererComponent(const float4& color)
+			: Color(color)
+		{}
 	};
 
 }

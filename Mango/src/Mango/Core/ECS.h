@@ -10,15 +10,10 @@ namespace Mango { namespace ECS {
 	
 	using Entity = uint32_t;
 
-	static size_t _Hash() {
-		static size_t next = 0;
-		return next++;
-	}
-
 	template<typename T>
 	static size_t Hash() {
-		static const size_t id = _Hash();
-		return id;
+		std::string name = typeid(T).name();
+		return std::hash<std::string>{}(name);
 	}
 
 	// Component Arrays -----------------------------------------------------------------------------------------------
@@ -131,13 +126,13 @@ namespace Mango { namespace ECS {
 			return hashes;
 		}
 
-		size_t Size() {
-			return mMap.begin()->second->Size();
+		size_t Size() const {
+			return mMap.size() > 0 ? mMap.begin()->second->Size() : 0;
 		}
 
 		void InsertArray(size_t hash, _ComponentArray* array) {
 			MG_CORE_ASSERT(!ContainsArray(hash), "This archetype already contains this component type.");
-			mMap[hash].reset(array);
+			mMap[hash] = Ref<_ComponentArray>(array);
 		}
 
 		inline std::unordered_map<size_t, Ref<_ComponentArray>>& GetMap() {
@@ -174,7 +169,7 @@ namespace Mango { namespace ECS {
 				b = false;
 		}
 
-		inline bool ContainsArray(size_t hash) const { return mMap.find(hash) != mMap.end(); }
+		bool ContainsArray(size_t hash) const { return mMap.find(hash) != mMap.end(); }
 	private:
 		std::unordered_map<size_t, Ref<_ComponentArray>> mMap;
 	};
@@ -286,9 +281,9 @@ namespace Mango { namespace ECS {
 		decltype(auto) Query() {
 			std::vector<std::tuple<size_t, Types*...>> out;
 			for (auto& arch : mArchetypes) {
-				bool matching = true;
-				(DoesArchetypeContain<Types>(matching, &arch), ...);
-				if (!matching || arch.Size() == 0) continue;
+				size_t size = arch.Size();
+				bool matching = arch.HasTypes<Types...>() && arch.Size() != 0;
+				if (!matching) continue;
 				out.push_back({ arch.Size(), arch.Data<Types>()... });
 			}
 			return out;
@@ -301,12 +296,6 @@ namespace Mango { namespace ECS {
 		// -----------------------------------------------------------------------------------------------------------
 		
 	private:
-		template<typename T>
-		void DoesArchetypeContain(bool& b, Archetype* arch) {
-			if (!arch->HasTypes<T>())
-				b = false;
-		}
-
 		size_t FindArchetype(const std::unordered_set<size_t> signature, Archetype* excluding)
 		{
 			size_t index = mArchetypes.size();

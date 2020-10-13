@@ -2,8 +2,6 @@
 
 #include <imgui.h>
 
-#include "Panels/Dockspace.h"
-
 SandboxLayer::SandboxLayer()
 {
 	mScene = CreateRef<Scene>();
@@ -21,12 +19,12 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	Window& window = Application::Get().GetWindow();
 	auto buf = window.GetSwapChain().GetFramebuffer();
 
-	mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+	mFramebuffer->EnsureSize(window.GetWidth(), window.GetHeight());
 	
 	mFramebuffer->Bind();
-	mFramebuffer->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
+	mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
-	mCamera.SetAspectRatio(mViewportSize.x/mViewportSize.y);
+	mCamera.SetAspectRatio((float)window.GetWidth()/(float)window.GetHeight());
 
 	Renderer::BeginScene(mCamera, XMMatrixIdentity());
 
@@ -35,29 +33,11 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	float s = sinf(accum) * 0.5f + 0.5f;
 
 	Renderer::DrawQuad(float3(0.0f, 0.0f, 0.0f), float2(1.0f, 1.0f), mTexture);
-	Renderer::DrawQuad(float3(0.0f, 0.0f, -0.5f), float2(1.0f, 1.0f), mSquareColor);
+	Renderer::DrawQuad(float3(0.0f, 0.0f, -0.5f), float2(1.0f, 1.0f), float4(1.0f, 0.2f, 0.3f, 1.0f));
 
 	Renderer::EndScene();
 
 	mScene->OnUpdate(dt);
-}
 
-void SandboxLayer::OnImGuiRender()
-{
-	Dockspace::Begin();
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0.0f, 0.0f});
-	ImGui::Begin("Viewport");
-	ImVec2 size = ImGui::GetContentRegionAvail();
-	mViewportSize = *(float2*)&size;
-	ImGui::Image(mFramebuffer->GetTextureAttachment(), size);
-	ImGui::End();
-	ImGui::PopStyleVar();
-
-	ImGui::Begin("Properties");
-	ImGui::Text("Mango Engine");
-	ImGui::ColorEdit4("Square Color", ValuePtr(mSquareColor));
-	ImGui::End();
-
-	Dockspace::End();
+	Framebuffer::Blit(buf, mFramebuffer);
 }

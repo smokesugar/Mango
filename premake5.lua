@@ -5,7 +5,7 @@ workspace "Mango"
         "Release"
     }
 
-    startproject "Sandbox"
+    startproject "MangoEditor"
 
 Includes = {};
 Includes["spdlog"] = "Mango/vendor/spdlog/include"
@@ -83,6 +83,58 @@ project "Mango"
         optimize "On"
 
 project "Sandbox"
+    kind "WindowedApp"
+    location "%{prj.name}"
+    language "C++"
+    cppdialect "C++17"
+	staticruntime "On"
+	systemversion "latest"
+
+    targetdir "%{TargetDir}"
+    objdir "%{ObjDir}"
+
+    files {
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.cpp",
+        "%{prj.name}/src/Shaders/**.hlsl"
+    }
+
+    links {
+        "Mango",
+        "d3d11.lib",
+        "d3dcompiler.lib"
+    }
+
+    includedirs {
+        "Mango/src",
+        "%{Includes.spdlog}",
+        "%{Includes.ImGui}",
+        "%{Includes.stb_image}"
+    }
+
+    filter "files:**.hlsl"
+		shaderobjectfileoutput("assets/shaders/%{file.basename}"..".cso")
+		shadermodel "4.0"
+
+	filter "files:**_ps.hlsl"
+		shadertype "Pixel"
+
+	filter "files:**_vs.hlsl"
+        shadertype "Vertex"
+        
+
+    filter "configurations:Debug"
+        defines "MG_DEBUG"
+        symbols "On"
+
+    filter "configurations:Release"
+        defines {
+            "MG_RELEASE",
+            "NDEBUG"
+        }
+        optimize "On"
+
+project "MangoEditor"
     kind "WindowedApp"
     location "%{prj.name}"
     language "C++"
