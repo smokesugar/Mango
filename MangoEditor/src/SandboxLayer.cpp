@@ -35,7 +35,7 @@ namespace Mango {
 		mFramebuffer->Bind();
 		mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
-		mCamera.GetComponent<CameraComponent>().Camera->SetAspectRatio(mViewportSize.x / mViewportSize.y);
+		mScene->SetAspectRatio(mViewportSize.x / mViewportSize.y);
 
 		mScene->OnUpdate(dt);
 	}

@@ -43,6 +43,7 @@ namespace Mango {
 		if (mScene->mRegistry.Valid(mSelectedEntity))
 		{
 			Entity entity = Entity(mSelectedEntity, mScene);
+			static std::function<void()> deleteFn = []() {};
 
 			// Tag Component
 			{
@@ -82,8 +83,19 @@ namespace Mango {
 
 			// Camera Component
 			{
-				if (entity.HasComponent<CameraComponent>()) {
-					if (ImGui::TreeNodeEx(typeid(CameraComponent).name(), 0, "Camera")) {
+				if (entity.HasComponent<CameraComponent>())
+				{
+					bool open = ImGui::TreeNodeEx(typeid(CameraComponent).name(), 0, "Camera");
+
+					if (ImGui::IsItemClicked(1)) {
+						deleteFn = [&]() {
+							Entity ent(mSelectedEntity, mScene);
+							ent.RemoveComponent<CameraComponent>();
+						};
+						ImGui::OpenPopup("remove_component");
+					}
+
+					if (open) {
 						auto& cameraComp = entity.GetComponent<CameraComponent>();
 						ImGui::Columns(2);
 						ImGui::AlignTextToFramePadding();
@@ -107,8 +119,19 @@ namespace Mango {
 
 			// Sprite Renderer Component
 			{
-				if (entity.HasComponent<SpriteRendererComponent>()) {
-					if (ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite")) {
+				if (entity.HasComponent<SpriteRendererComponent>())
+				{
+					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite");
+
+					if (ImGui::IsItemClicked(1)) {
+						deleteFn = [&]() {
+							Entity ent(mSelectedEntity, mScene);
+							ent.RemoveComponent<SpriteRendererComponent>();
+						};
+						ImGui::OpenPopup("remove_component");
+					}
+
+					if (open) {
 						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
 						ImGui::Columns(2);
 						ImGui::AlignTextToFramePadding();
@@ -121,6 +144,39 @@ namespace Mango {
 						ImGui::TreePop();
 					}
 					ImGui::Separator();
+				}
+			}
+
+			// Add Component Button
+			{
+				if (ImGui::Button("Add"))
+					ImGui::OpenPopup("add_component");
+
+				if (ImGui::BeginPopup("add_component")) {
+					if (!entity.HasComponent<CameraComponent>()) {
+						if (ImGui::Button("Camera")) {
+							entity.AddComponent<CameraComponent>(CreateRef<OrthographicCamera>());
+							ImGui::CloseCurrentPopup();
+						}
+					}
+					if (!entity.HasComponent<SpriteRendererComponent>()) {
+						if (ImGui::Button("Sprite")) {
+							entity.AddComponent<SpriteRendererComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+					ImGui::EndPopup();
+				}
+			}
+
+			// Remove Component Popup
+			{
+				if (ImGui::BeginPopup("remove_component")) {
+					if (ImGui::Button("Remove")) {
+						deleteFn();
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::EndPopup();
 				}
 			}
 		}

@@ -36,6 +36,7 @@ namespace Mango {
 				auto& camComp = cameras[i];
 				if (camComp.Primary) {
 					auto& transComp = transforms[i];
+					camComp.Camera->SetAspectRatio(mAspectRatio);
 					currentCamera = camComp.Camera.get();
 					cameraTransform = &transComp.Transform;
 				}
