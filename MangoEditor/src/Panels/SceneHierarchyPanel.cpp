@@ -1,5 +1,7 @@
 #include "SceneHierarchyPanel.h"
 
+#include <queue>
+
 #include "Mango/Scene/Components.h"
 #include "Mango/Scene/Entity.h"
 
@@ -16,7 +18,11 @@ namespace Mango {
 	{
 		// Scene Hierarchy -------------------------------------------------------------------------------------------------------------
 
+		static ECS::Entity rightClickedEntity = ECS::Null;
+
 		ImGui::Begin("Scene Hierarchy");
+		if (ImGui::Button("Create Entity"))
+			mScene->Create();
 		auto query = mScene->mRegistry.QueryEntities<TagComponent>();
 		for (auto& [size, entities, tags] : query)
 		{
@@ -26,15 +32,33 @@ namespace Mango {
 				auto& tagComponent = tags[i];
 				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | (mSelectedEntity == id ? ImGuiTreeNodeFlags_Selected : 0);
 				bool open = ImGui::TreeNodeEx((void*)&tagComponent, flags, tagComponent.Tag.c_str());
+
 				if (ImGui::IsItemClicked())
 					mSelectedEntity = id;
-				if (open) {
+				if (ImGui::IsItemClicked(1)) {
+					ImGui::OpenPopup("delete_entity");
+					rightClickedEntity = id;
+				}
+
+				if (open)
+				{
 					ImGui::TreePop();
 				}
 			}
 		}
+		
+		if (ImGui::BeginPopup("delete_entity")) {
+			if (ImGui::Button("Delete")) {
+				if(mScene->mRegistry.Valid(rightClickedEntity))
+					mScene->mRegistry.Destroy(rightClickedEntity);
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0))
 			mSelectedEntity = ECS::Null;
+
 		ImGui::End();
 
 		// Properties ----------------------------------------------------------------------------------------------------------------
@@ -149,7 +173,7 @@ namespace Mango {
 
 			// Add Component Button
 			{
-				if (ImGui::Button("Add"))
+				if (ImGui::Button("Add Component"))
 					ImGui::OpenPopup("add_component");
 
 				if (ImGui::BeginPopup("add_component")) {

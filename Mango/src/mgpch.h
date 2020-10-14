@@ -9,6 +9,7 @@
 #include <utility>
 #include <unordered_map>
 #include <memory>
+#include <queue>
 
 #include <iostream>
 #include <sstream>
