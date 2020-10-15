@@ -16,7 +16,6 @@ namespace Mango {
 
 		SceneHierarchyPanel mSceneHierarchy;
 
-		Entity mCamera;
 		Ref<Framebuffer> mFramebuffer;
 		Ref<Texture2D> mTexture;
 

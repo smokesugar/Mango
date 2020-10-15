@@ -25,7 +25,7 @@ namespace Mango {
 				// Tag Component
 				{
 					std::string tag = entity.GetComponent<TagComponent>().Tag;
-					j[std::to_string(ID)]["components"]["tag"] = tag;
+					j["entities"][std::to_string(ID)]["components"]["tag"] = tag;
 				}
 
 				// Transform Component
@@ -33,7 +33,7 @@ namespace Mango {
 					float4x4 mat; XMStoreFloat4x4(&mat, entity.GetComponent<TransformComponent>().Transform);
 					std::vector<float> matData; matData.resize(16);
 					memcpy(matData.data(), ValuePtr(mat), sizeof(mat));
-					j[std::to_string(ID)]["components"]["transform"] = matData;
+					j["entities"][std::to_string(ID)]["components"]["transform"] = matData;
 				}
 
 				// Camera Component
@@ -41,10 +41,11 @@ namespace Mango {
 					if (entity.HasComponent<CameraComponent>()) {
 						auto& cam = entity.GetComponent<CameraComponent>();
 						if (cam.Camera->GetType() == Camera::Type::Orthographic) {
-							j[std::to_string(ID)]["components"]["camera"]["zoom"] = std::static_pointer_cast<OrthographicCamera>(cam.Camera)->GetZoom();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "orthographic";
+							j["entities"][std::to_string(ID)]["components"]["camera"]["zoom"] = std::static_pointer_cast<OrthographicCamera>(cam.Camera)->GetZoom();
 						}
-						j[std::to_string(ID)]["components"]["camera"]["aspectRatio"] = cam.Camera->GetAspectRatio();
-						j[std::to_string(ID)]["components"]["camera"]["primary"] = cam.Primary;
+						j["entities"][std::to_string(ID)]["components"]["camera"]["aspectRatio"] = cam.Camera->GetAspectRatio();
+						j["entities"][std::to_string(ID)]["components"]["camera"]["primary"] = cam.Primary;
 					}
 				}
 
@@ -52,21 +53,74 @@ namespace Mango {
 				{
 					if (entity.HasComponent<SpriteRendererComponent>()) {
 						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
-						j[std::to_string(ID)]["components"]["sprite"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w};
+						j["entities"][std::to_string(ID)]["components"]["sprite"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w};
 					}
 				}
 			}
 		}
 		
 		std::ofstream file(filename, std::ios::out);
-		MG_CORE_ASSERT(file.is_open(), "Failed to write to file '{0}'.", filename);
+		MG_CORE_ASSERT(file.is_open(), "Failed to write to scene file '{0}'.", filename);
 		file << j.dump(4);
 		file.close();
 	}
 
 	Ref<Scene> DataManager::DeserializeScene(const std::string& filename)
 	{
-		return Ref<Scene>();
+		auto scene = CreateRef<Scene>();
+
+		std::fstream file(filename);
+		MG_CORE_ASSERT(file.is_open(), "Failed to read from scene file '{0}'.", filename);
+		std::stringstream ss;
+		ss << file.rdbuf();
+		std::string scenestring = ss.str();
+		json j = json::parse(scenestring);
+
+		json& entities = j["entities"];
+		for (auto& e : entities)
+		{
+			json& components = e["components"];
+			Entity entity = scene->Create(components["tag"]);
+
+			// Transform
+			{
+				float4x4 transform;
+				std::vector<float> trans = components["transform"];
+				memcpy(&transform, trans.data(), sizeof(transform));
+				entity.GetComponent<TransformComponent>().Transform = XMLoadFloat4x4(&transform);
+			}
+
+			// Camera
+			{
+				if (components.find("camera") != components.end()) {
+					json camera = components["camera"];
+
+					if (camera["type"] == "orthographic")
+					{
+						float aspect = camera["aspectRatio"];
+						float zoom = camera["zoom"];
+						entity.AddComponent<CameraComponent>(CreateRef<OrthographicCamera>(aspect, zoom)).Primary = camera["primary"];
+					}
+					else
+					{
+						MG_CORE_ASSERT(false, "Invalid camera type.");
+					}
+				}
+			}
+
+			// Sprite
+			{
+				if (components.find("sprite") != components.end()) {
+					json sprite = components["sprite"];
+					std::vector<float> c = sprite["color"];
+					float4 color;
+					memcpy(&color, c.data(), sizeof(color));
+					entity.AddComponent<SpriteRendererComponent>(color);
+				}
+			}
+		}
+
+		return scene;
 	}
 
 }

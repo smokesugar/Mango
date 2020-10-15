@@ -18,12 +18,6 @@ namespace Mango {
 		mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
-
-		Entity entity = mScene->Create("Square");
-		entity.AddComponent<SpriteRendererComponent>(float4(0.2f, 0.3f, 1.0f, 1.0f));
-
-		mCamera = mScene->Create("Main Camera");
-		mCamera.AddComponent<CameraComponent>(Ref<Camera>(new OrthographicCamera())).Primary = true;
 	}
 
 	inline void SandboxLayer::OnUpdate(float dt) {
@@ -48,6 +42,14 @@ namespace Mango {
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("Open")) {
+					std::string path;
+					if (FileDialog::Open(path)) {
+						mScene = DataManager::DeserializeScene(path);
+						mSceneHierarchy.SetScene(mScene.get());
+					}
+				}
+
 				if (ImGui::MenuItem("Save As")) {
 					std::string path;
 					if (FileDialog::Save(path))

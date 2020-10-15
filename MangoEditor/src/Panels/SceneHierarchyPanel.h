@@ -8,7 +8,8 @@ namespace Mango {
 	public:
 		SceneHierarchyPanel();
 		
-		inline void SetScene(Scene* scene) { mScene = scene; }
+		inline void SetScene(Scene* scene) { mScene = scene; ResetSelectedEntity(); }
+		inline void ResetSelectedEntity() { mSelectedEntity = ECS::Null; }
 
 		void OnImGuiRender();
 	private:
