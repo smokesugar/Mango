@@ -298,7 +298,7 @@ namespace Mango { namespace ECS {
 		}
 
 		template<typename... Types>
-		auto QueryEntities() {
+		auto QueryE() {
 			std::vector<std::tuple<size_t, Entity*, Types*...>> out;
 			for (auto& arch : mArchetypes) {
 				size_t size = arch.Size();

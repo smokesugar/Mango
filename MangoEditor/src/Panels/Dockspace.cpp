@@ -1,7 +1,5 @@
 #include "Dockspace.h"
 
-#include "Mango/Core/Application.h"
-
 #include <imgui.h>
 
 namespace Mango {
@@ -54,20 +52,6 @@ namespace Mango {
 		{
 			MG_ASSERT(false, "ImGui docking is disabled!");
 		}
-
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Exit"))
-					Mango::Application::Get().Close();
-
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMenuBar();
-		}
-
 	}
 
 	void Dockspace::End()

@@ -36,7 +36,6 @@ namespace Mango {
 		mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
 		mScene->SetAspectRatio(mViewportSize.x / mViewportSize.y);
-
 		mScene->OnUpdate(dt);
 	}
 
@@ -44,6 +43,27 @@ namespace Mango {
 	{
 		Dockspace::Begin();
 
+		// Menu bar
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Save As")) {
+					std::string path;
+					if (FileDialog::Save(path))
+						DataManager::SerializeScene(mScene, path);
+				}
+
+				if (ImGui::MenuItem("Exit"))
+					Mango::Application::Get().Close();
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
+
+		// Viewport
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 		ImGui::Begin("Viewport");
 		ImVec2 size = ImGui::GetContentRegionAvail();
@@ -52,6 +72,7 @@ namespace Mango {
 		ImGui::End();
 		ImGui::PopStyleVar();
 
+		// Scene Hierarchy
 		mSceneHierarchy.OnImGuiRender();
 
 		Dockspace::End();

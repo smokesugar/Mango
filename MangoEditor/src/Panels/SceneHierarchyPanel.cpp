@@ -23,7 +23,7 @@ namespace Mango {
 		ImGui::Begin("Scene Hierarchy");
 		if (ImGui::Button("Create Entity"))
 			mScene->Create();
-		auto query = mScene->mRegistry.QueryEntities<TagComponent>();
+		auto query = mScene->GetRegistry().QueryE<TagComponent>();
 		for (auto& [size, entities, tags] : query)
 		{
 			for (size_t i = 0; i < size; i++)
@@ -31,7 +31,7 @@ namespace Mango {
 				auto id = entities[i];
 				auto& tagComponent = tags[i];
 				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | (mSelectedEntity == id ? ImGuiTreeNodeFlags_Selected : 0);
-				bool open = ImGui::TreeNodeEx((void*)&tagComponent, flags, tagComponent.Tag.c_str());
+				bool open = ImGui::TreeNodeEx((void*)(uint64_t)id, flags, tagComponent.Tag.c_str());
 
 				if (ImGui::IsItemClicked())
 					mSelectedEntity = id;
@@ -49,8 +49,8 @@ namespace Mango {
 		
 		if (ImGui::BeginPopup("delete_entity")) {
 			if (ImGui::Button("Delete")) {
-				if(mScene->mRegistry.Valid(rightClickedEntity))
-					mScene->mRegistry.Destroy(rightClickedEntity);
+				if(mScene->GetRegistry().Valid(rightClickedEntity))
+					mScene->GetRegistry().Destroy(rightClickedEntity);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
@@ -64,7 +64,7 @@ namespace Mango {
 		// Properties ----------------------------------------------------------------------------------------------------------------
 
 		ImGui::Begin("Properties");
-		if (mScene->mRegistry.Valid(mSelectedEntity))
+		if (mScene->GetRegistry().Valid(mSelectedEntity))
 		{
 			Entity entity = Entity(mSelectedEntity, mScene);
 			static std::function<void()> deleteFn = []() {};

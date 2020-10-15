@@ -1,11 +1,12 @@
 #pragma once
 
+#include "Mango/Scene/Scene.h"
+
 namespace Mango {
 
-	class Dockspace {
-	public:
-		static void Begin();
-		static void End();
-	};
+	namespace Dockspace {
+		void Begin();
+		void End();
+	}
 
 }

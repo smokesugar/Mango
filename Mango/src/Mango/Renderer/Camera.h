@@ -13,6 +13,7 @@ namespace Mango {
 		virtual ~Camera() {}
 		virtual xmmatrix GetProjectionMatrix() const = 0;
 		virtual void SetAspectRatio(float aspectRation) = 0;
+		virtual float GetAspectRatio() const = 0;
 		virtual Type GetType() const = 0;
 	};
 
@@ -22,6 +23,7 @@ namespace Mango {
 		OrthographicCamera(float aspectRatio, float zoom);
 		inline virtual xmmatrix GetProjectionMatrix() const override { return mProjectionMatrix; }
 		inline virtual void SetAspectRatio(float aspectRatio) override { mAspectRatio = aspectRatio; CalculateProjectionMatrix(); }
+		inline virtual float GetAspectRatio() const override { return mAspectRatio; }
 		inline virtual Type GetType() const override { return Type::Orthographic; }
 		inline void SetZoom(float zoom) { mZoom = zoom; CalculateProjectionMatrix(); }
 		inline float GetZoom() const { return mZoom; }

@@ -11,6 +11,7 @@ Includes = {};
 Includes["spdlog"] = "Mango/vendor/spdlog/include"
 Includes["ImGui"] = "Mango/vendor/ImGui"
 Includes["stb_image"] = "Mango/vendor/stb_image"
+Includes["json"] = "Mango/vendor/json/include"
 
 TargetDir = "bin/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
 ObjDir = "bin-int/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
@@ -61,7 +62,8 @@ project "Mango"
         "%{prj.name}/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
-        "%{Includes.stb_image}"
+        "%{Includes.stb_image}",
+        "%{Includes.json}"
     }
 
     links {
