@@ -98,7 +98,7 @@ project "Sandbox"
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/Shaders/**.hlsl"
+        "%{prj.name}/src/Shaders/**.hlsl",
     }
 
     links {
@@ -150,7 +150,9 @@ project "MangoEditor"
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/Shaders/**.hlsl"
+        "%{prj.name}/src/Shaders/**.hlsl",
+        "%{prj.name}/vendor/ImGuizmo/*.h",
+        "%{prj.name}/vendor/ImGuizmo/*.cpp",
     }
 
     links {
@@ -163,7 +165,8 @@ project "MangoEditor"
         "Mango/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
-        "%{Includes.stb_image}"
+        "%{Includes.stb_image}",
+        "%{prj.name}/vendor/ImGuizmo",
     }
 
     filter "files:**.hlsl"

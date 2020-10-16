@@ -1,13 +1,13 @@
 #include "Mango.h"
 #include "Mango/Core/EntryPoint.h"
-#include "SandboxLayer.h"
+#include "EditorLayer.h"
 
 namespace Mango {
 
 	class SandboxApp : public Application {
 	public:
 		SandboxApp() {
-			PushLayer(new SandboxLayer());
+			PushLayer(new EditorLayer());
 		}
 
 		~SandboxApp() {

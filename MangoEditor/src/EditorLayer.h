@@ -5,12 +5,14 @@
 
 namespace Mango {
 
-	class SandboxLayer : public Layer {
+	class EditorLayer : public Layer {
 	public:
-		SandboxLayer();
+		EditorLayer();
 
 		void OnUpdate(float dt);
 		void OnImGuiRender();
+	private:
+		void DrawGizmo();
 	private:
 		Ref<Scene> mScene;
 

@@ -93,7 +93,7 @@ namespace Mango {
 			// Camera
 			{
 				if (components.find("camera") != components.end()) {
-					json camera = components["camera"];
+					json& camera = components["camera"];
 
 					if (camera["type"] == "orthographic")
 					{
@@ -111,7 +111,7 @@ namespace Mango {
 			// Sprite
 			{
 				if (components.find("sprite") != components.end()) {
-					json sprite = components["sprite"];
+					json& sprite = components["sprite"];
 					std::vector<float> c = sprite["color"];
 					float4 color;
 					memcpy(&color, c.data(), sizeof(color));

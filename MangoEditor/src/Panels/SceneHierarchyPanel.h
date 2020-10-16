@@ -11,6 +11,8 @@ namespace Mango {
 		inline void SetScene(Scene* scene) { mScene = scene; ResetSelectedEntity(); }
 		inline void ResetSelectedEntity() { mSelectedEntity = ECS::Null; }
 
+		inline ECS::Entity GetSelectedEntity() const { return mSelectedEntity; }
+
 		void OnImGuiRender();
 	private:
 		Scene* mScene;
