@@ -2,20 +2,21 @@
 
 #include <utility>
 #include "BaseEvent.h"
+#include "Mango/Core/InputCodes.h"
 
 namespace Mango {
 	
 	class MouseButtonEvent : public Event {
 	public:
 		MouseButtonEvent(uint32_t button)
-			: mButton(button) {}
+			: mButton((MouseCode)button) {}
 		virtual ~MouseButtonEvent() {}
 
-		inline uint32_t GetButton() const { return mButton; }
+		inline MouseCode GetButton() const { return mButton; }
 
 		EVENT_SET_CATEGORY(EventCategory_Mouse | EventCategory_Input)
 	protected:
-		uint32_t mButton;
+		MouseCode mButton;
 	};
 
 	class MouseButtonDownEvent : public MouseButtonEvent {
@@ -25,7 +26,7 @@ namespace Mango {
 
 		virtual std::string ToString() const override {
 			std::stringstream ss;
-			ss << "MouseButtonDownEvent: " << mButton;
+			ss << "MouseButtonDownEvent: " << (uint16_t)mButton;
 			return ss.str();
 		}
 
@@ -39,7 +40,7 @@ namespace Mango {
 
 		virtual std::string ToString() const override {
 			std::stringstream ss;
-			ss << "MouseButtonUpEvent: " << mButton;
+			ss << "MouseButtonUpEvent: " << (uint16_t)mButton;
 			return ss.str();
 		}
 

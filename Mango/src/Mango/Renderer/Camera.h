@@ -35,4 +35,25 @@ namespace Mango {
 		xmmatrix mProjectionMatrix;
 	};
 
+	class PerspectiveCamera : public Camera {
+	public:
+		PerspectiveCamera();
+		PerspectiveCamera(float fovy, float aspectRatio, float nearPlane, float farPlane);
+		virtual xmmatrix GetProjectionMatrix() const override;
+		virtual void SetAspectRatio(float aspect) { mAspectRatio = aspect; }
+		virtual float GetAspectRatio() const { return mAspectRatio; }
+		inline virtual Type GetType() const { return Type::Perspective; }
+		inline float GetNearPlane() const { return mNearPlane; }
+		inline void SetNearPlane(float nearPlane) { mNearPlane = nearPlane; }
+		inline float GetFarPlane() const { return mFarPlane; }
+		inline void SetFarPlane(float farPlane) { mFarPlane = farPlane; }
+		inline float GetFOV() const { return mFOV; }
+		inline void SetFOV(float fov) { mFOV = fov; }
+	private:
+		float mFOV;
+		float mAspectRatio;
+		float mNearPlane;
+		float mFarPlane;
+	};
+
 }

@@ -29,4 +29,19 @@ namespace Mango {
 		);
 	}
 
+	PerspectiveCamera::PerspectiveCamera()
+		: mFOV(ToRadians(45.0f)), mAspectRatio(1.0f), mNearPlane(0.1f), mFarPlane(100.0f)
+	{
+	}
+
+	PerspectiveCamera::PerspectiveCamera(float fovy, float aspectRatio, float nearPlane, float farPlane)
+		: mFOV(fovy), mAspectRatio(aspectRatio), mNearPlane(nearPlane), mFarPlane(farPlane)
+	{
+	}
+
+	xmmatrix PerspectiveCamera::GetProjectionMatrix() const
+	{
+		return XMMatrixPerspectiveFovLH(mFOV, mAspectRatio, mNearPlane, mFarPlane);
+	}
+
 }

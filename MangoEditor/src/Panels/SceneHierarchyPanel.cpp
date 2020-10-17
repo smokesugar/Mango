@@ -119,19 +119,74 @@ namespace Mango {
 						ImGui::OpenPopup("remove_component");
 					}
 
-					if (open) {
+					if (open)
+					{
 						auto& cameraComp = entity.GetComponent<CameraComponent>();
+
+						bool orthographic = cameraComp.Camera->GetType() == Camera::Type::Orthographic;
+
 						ImGui::Columns(2);
 						ImGui::AlignTextToFramePadding();
-						ImGui::Text("Zoom");
+
+						ImGui::Text("Type");
+
+						if (!orthographic) {
+							ImGui::Text("FOV");
+							ImGui::Text("Near Plane");
+							ImGui::Text("Far Plane");
+						}
+						if (orthographic) {
+							ImGui::Text("Zoom");
+						}
+
 						ImGui::Text("Primary");
 						ImGui::NextColumn();
 						ImGui::PushItemWidth(-1.0f);
-						if (cameraComp.Camera->GetType() == Camera::Type::Orthographic) {
-							float zoom = std::static_pointer_cast<OrthographicCamera>(cameraComp.Camera)->GetZoom();
-							ImGui::DragFloat("##camera_zoom", &zoom, 0.1f, 0.001f, INFINITY);
-							std::static_pointer_cast<OrthographicCamera>(cameraComp.Camera)->SetZoom(Max(zoom, 0.001f));
+
+						const char* wantedType = orthographic ? "o" : "p";
+						if (ImGui::BeginCombo("##camera_type", orthographic ? "Orthographic" : "Perspective"))
+						{
+							if (ImGui::Selectable("Orthographic", orthographic)) {
+								wantedType = "o";
+							}
+							if (ImGui::Selectable("Perspective", !orthographic)) {
+								wantedType = "p";
+							}
+
+							ImGui::EndCombo();
 						}
+						if (wantedType == "o" && !orthographic) {
+							cameraComp.Camera = CreateRef<OrthographicCamera>();
+							orthographic = true;
+						}
+						if (wantedType == "p" && orthographic) {
+							cameraComp.Camera = CreateRef<PerspectiveCamera>();
+							orthographic = false;
+						}
+
+						if (!orthographic) {
+							auto cam = std::static_pointer_cast<PerspectiveCamera>(cameraComp.Camera);
+
+							float fov = ToDegrees(cam->GetFOV());
+							ImGui::DragFloat("##camera_fov", &fov, 1.0f, 10.0f, 120.0f);
+							cam->SetFOV(ToRadians(fov));
+
+							float nearPlane = cam->GetNearPlane();
+							ImGui::InputFloat("##camera_near", &nearPlane);
+							cam->SetNearPlane(nearPlane);
+
+							float farPlane = cam->GetFarPlane();
+							ImGui::InputFloat("##camera_far", &farPlane);
+							cam->SetFarPlane(farPlane);
+
+						}
+						if (orthographic) {
+							auto cam = std::static_pointer_cast<OrthographicCamera>(cameraComp.Camera);
+							float zoom = cam->GetZoom();
+							ImGui::DragFloat("##camera_zoom", &zoom, 0.1f, 0.001f, INFINITY);
+							cam->SetZoom(Max(zoom, 0.001f));
+						}
+
 						ImGui::Checkbox("##camera_primary", &cameraComp.Primary);
 						ImGui::PopItemWidth();
 						ImGui::Columns(1);
@@ -179,7 +234,7 @@ namespace Mango {
 				if (ImGui::BeginPopup("add_component")) {
 					if (!entity.HasComponent<CameraComponent>()) {
 						if (ImGui::Button("Camera")) {
-							entity.AddComponent<CameraComponent>(CreateRef<OrthographicCamera>());
+							entity.AddComponent<CameraComponent>(CreateRef<PerspectiveCamera>());
 							ImGui::CloseCurrentPopup();
 						}
 					}

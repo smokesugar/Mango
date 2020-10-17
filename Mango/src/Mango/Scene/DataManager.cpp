@@ -44,6 +44,12 @@ namespace Mango {
 							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "orthographic";
 							j["entities"][std::to_string(ID)]["components"]["camera"]["zoom"] = std::static_pointer_cast<OrthographicCamera>(cam.Camera)->GetZoom();
 						}
+						else if (cam.Camera->GetType() == Camera::Type::Perspective) {
+							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "perspective";
+							j["entities"][std::to_string(ID)]["components"]["camera"]["fov"] = std::static_pointer_cast<PerspectiveCamera>(cam.Camera)->GetFOV();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["nearPlane"] = std::static_pointer_cast<PerspectiveCamera>(cam.Camera)->GetNearPlane();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["farPlane"] = std::static_pointer_cast<PerspectiveCamera>(cam.Camera)->GetFarPlane();
+						}
 						j["entities"][std::to_string(ID)]["components"]["camera"]["aspectRatio"] = cam.Camera->GetAspectRatio();
 						j["entities"][std::to_string(ID)]["components"]["camera"]["primary"] = cam.Primary;
 					}
@@ -92,7 +98,8 @@ namespace Mango {
 
 			// Camera
 			{
-				if (components.find("camera") != components.end()) {
+				if (components.find("camera") != components.end())
+				{
 					json& camera = components["camera"];
 
 					if (camera["type"] == "orthographic")
@@ -101,9 +108,14 @@ namespace Mango {
 						float zoom = camera["zoom"];
 						entity.AddComponent<CameraComponent>(CreateRef<OrthographicCamera>(aspect, zoom)).Primary = camera["primary"];
 					}
-					else
+					else if(camera["type"] == "perspective")
 					{
-						MG_CORE_ASSERT(false, "Invalid camera type.");
+						float aspect = camera["aspectRatio"];
+						float fov = camera["fov"];
+						float nearPlane = camera["nearPlane"];
+						float farPlane = camera["farPlane"];
+
+						entity.AddComponent<CameraComponent>(CreateRef<PerspectiveCamera>(fov, aspect, nearPlane, farPlane)).Primary = camera["primary"];
 					}
 				}
 			}

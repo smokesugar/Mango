@@ -2,21 +2,22 @@
 
 #include <utility>
 #include "BaseEvent.h"
+#include "Mango/Core/InputCodes.h"
 
 namespace Mango {
 	
 	class KeyEvent : public Event {
 	public:
 		KeyEvent(uint32_t keycode)
-			: mKeycode(keycode) {}
+			: mKeycode((KeyCode)keycode) {}
 
 		virtual ~KeyEvent() {}
 
-		inline uint32_t GetKeycode() const { return mKeycode; }
+		inline KeyCode GetKeycode() const { return mKeycode; }
 
 		EVENT_SET_CATEGORY(EventCategory_Keyboard | EventCategory_Input)
 	protected:
-		uint32_t mKeycode;
+		KeyCode mKeycode;
 	};
 
 	class KeyDownEvent : public KeyEvent {
@@ -26,7 +27,7 @@ namespace Mango {
 
 		virtual std::string ToString() const override {
 			std::stringstream ss;
-			ss << "KeyDownEvent: " << mKeycode;
+			ss << "KeyDownEvent: " << (uint16_t)mKeycode;
 			return ss.str();
 		}
 
@@ -40,7 +41,7 @@ namespace Mango {
 
 		virtual std::string ToString() const override {
 			std::stringstream ss;
-			ss << "KeyUpEvent: " << mKeycode;
+			ss << "KeyUpEvent: " << (uint16_t)mKeycode;
 			return ss.str();
 		}
 
