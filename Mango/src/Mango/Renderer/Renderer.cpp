@@ -20,6 +20,8 @@ namespace Mango {
 		Ref<Shader> TextureShader;
 		Ref<Texture2D> WhiteTexture;
 		Scope<SamplerState> Sampler;
+
+		std::queue<std::tuple<xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
 	};
 
 	static RendererData* sData;
@@ -73,47 +75,49 @@ namespace Mango {
 	{
 		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * camera.GetProjectionMatrix();
 		sData->GlobalUniforms->SetData(viewProjection);
-		sData->GlobalUniforms->VSBind(0);
+	}
+
+	static void InternalDrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
+		texture->Bind(0);
+		sData->IndividualUniforms->SetData<IndividualData>({ transform, color });
+		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
 	void Renderer::EndScene()
 	{
-	}
-
-	static void InternalDrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
-		
-
-		texture->Bind(0);
-		sData->Sampler->Bind(0);
-
-		sData->IndividualUniforms->SetData<IndividualData>({ transform, color });
+		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
-
 		sData->TextureShader->Bind();
 		sData->Quad->Bind();
-		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
+		sData->Sampler->Bind(0);
+
+		while (!sData->RenderQueue2D.empty()) {
+			auto& tuple = sData->RenderQueue2D.front();
+			InternalDrawQuad(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+			sData->RenderQueue2D.pop();
+		}
 	}
 
 	void Renderer::DrawQuad(const float3& pos, const float2& size, const float4& color)
 	{
 		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
-		InternalDrawQuad(transform, sData->WhiteTexture, color);
+		sData->RenderQueue2D.push({transform, sData->WhiteTexture, color});
 	}
 
 	void Renderer::DrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture)
 	{
 		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
-		InternalDrawQuad(transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f));
+		sData->RenderQueue2D.push({ transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 	}
 
 	void Renderer::DrawQuad(const xmmatrix& transform, const float4& color)
 	{
-		InternalDrawQuad(transform, sData->WhiteTexture, color);
+		sData->RenderQueue2D.push({ transform, sData->WhiteTexture, color });
 	}
 
 	void Renderer::DrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture)
 	{
-		InternalDrawQuad(transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f));
+		sData->RenderQueue2D.push({ transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 	}
 
 }
