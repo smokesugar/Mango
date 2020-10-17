@@ -7,7 +7,8 @@ namespace Mango {
 	EditorLayer::EditorLayer()
 	{
 		mScene = CreateRef<Scene>();
-		mSceneHierarchy.SetScene(mScene.get());
+
+		mSceneHierarchyPanel.SetScene(mScene.get());
 
 		FramebufferProperties props;
 		props.Width = Application::Get().GetWindow().GetWidth();
@@ -49,7 +50,7 @@ namespace Mango {
 					std::string path;
 					if (FileDialog::Open(path)) {
 						mScene = DataManager::DeserializeScene(path);
-						mSceneHierarchy.SetScene(mScene.get());
+						mSceneHierarchyPanel.SetScene(mScene.get());
 					}
 				}
 
@@ -78,8 +79,7 @@ namespace Mango {
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-		// Scene Hierarchy
-		mSceneHierarchy.OnImGuiRender();
+		mSceneHierarchyPanel.OnImGuiRender();
 
 		Dockspace::End();
 	}

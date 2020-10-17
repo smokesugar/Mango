@@ -2,6 +2,7 @@
 
 #include "Mango/Core/Math.h"
 #include "Mango/Renderer/Camera.h"
+#include "Mango/Renderer/Texture.h"
 
 namespace Mango {
 	
@@ -34,12 +35,17 @@ namespace Mango {
 	};
 
 	struct SpriteRendererComponent {
+		bool UsesTexture;
 		float4 Color;
+		alignas(16) Ref<Texture2D> Texture;
 
-		SpriteRendererComponent() : Color(1.0f, 1.0f, 1.0f, 1.0f) {}
-		SpriteRendererComponent(const SpriteRendererComponent&) = default;
+		SpriteRendererComponent() : Color(1.0f, 1.0f, 1.0f, 1.0f), UsesTexture(false) {}
+		SpriteRendererComponent(const SpriteRendererComponent& other) = default;
 		SpriteRendererComponent(const float4& color)
-			: Color(color)
+			: Color(color), UsesTexture(false)
+		{}
+		SpriteRendererComponent(const Ref<Texture2D>& texture)
+			: Texture(texture), Color(0.0f, 0.0f, 0.0f, 1.0f), UsesTexture(true)
 		{}
 	};
 

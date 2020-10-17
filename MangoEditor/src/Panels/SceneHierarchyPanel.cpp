@@ -2,6 +2,7 @@
 
 #include <queue>
 
+#include "Mango/Core/FileDialog.h"
 #include "Mango/Scene/Components.h"
 #include "Mango/Scene/Entity.h"
 
@@ -200,7 +201,7 @@ namespace Mango {
 			{
 				if (entity.HasComponent<SpriteRendererComponent>())
 				{
-					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite");
+					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite Renderer");
 
 					if (ImGui::IsItemClicked(1)) {
 						deleteFn = [&]() {
@@ -214,10 +215,47 @@ namespace Mango {
 						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
 						ImGui::Columns(2);
 						ImGui::AlignTextToFramePadding();
-						ImGui::Text("Color");
+
+						ImGui::Text("Type");
+						if (sprite.UsesTexture)
+							ImGui::Text("Texture");
+						else
+							ImGui::Text("Color");
+
 						ImGui::NextColumn();
 						ImGui::PushItemWidth(-1.0f);
-						ImGui::ColorEdit4("##sprite_color", ValuePtr(sprite.Color));
+
+						const char* wanted = sprite.UsesTexture ? "t" : "c";
+						if (ImGui::BeginCombo("##sprite_type", sprite.UsesTexture ? "Texture" : "Color")) {
+							if (ImGui::Selectable("Texture", sprite.UsesTexture))
+								wanted = "t";
+							if (ImGui::Selectable("Color", !sprite.UsesTexture))
+								wanted = "c";
+							ImGui::EndCombo();
+						}
+						if (wanted == "c" && sprite.UsesTexture)
+							sprite = SpriteRendererComponent(float4(1.0f, 1.0f, 1.0f, 1.0f));
+						if (wanted == "t" && !sprite.UsesTexture)
+							sprite = SpriteRendererComponent(Ref<Texture2D>());
+
+						if (sprite.UsesTexture) {
+							char path[64];
+							memset(path, 0, sizeof(path));
+							ImGui::PopItemWidth();
+							ImGui::InputText("##sprite_texture_path", path, sizeof(path), ImGuiInputTextFlags_ReadOnly);
+							ImGui::SameLine();
+							if (ImGui::Button("..."))
+							{
+								std::string path;
+								if (FileDialog::Open(path)) {
+									sprite.Texture = mScene->GetTextureLibrary().Get(path);
+								}
+							}
+							ImGui::PushItemWidth(-1.0f);
+						}
+						else
+							ImGui::ColorEdit4("##sprite_color", ValuePtr(sprite.Color));
+
 						ImGui::PopItemWidth();
 						ImGui::Columns(1);
 						ImGui::TreePop();
@@ -239,7 +277,7 @@ namespace Mango {
 						}
 					}
 					if (!entity.HasComponent<SpriteRendererComponent>()) {
-						if (ImGui::Button("Sprite")) {
+						if (ImGui::Button("Sprite Renderer")) {
 							entity.AddComponent<SpriteRendererComponent>();
 							ImGui::CloseCurrentPopup();
 						}

@@ -51,7 +51,11 @@ namespace Mango {
 				for (size_t i = 0; i < size; i++) {
 					auto& spriteComp = sprites[i];
 					auto& transformComp = transforms[i];
-					Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
+
+					if (spriteComp.UsesTexture && spriteComp.Texture) {
+						Renderer::DrawQuad(transformComp.Transform, spriteComp.Texture);
+					} else
+						Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
 				}
 			}
 			

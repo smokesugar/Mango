@@ -25,7 +25,7 @@ namespace Mango {
 	}
 
 	DirectXTexture2D::DirectXTexture2D(const std::string& filePath)
-		: mWidth(0), mHeight(0)
+		: mWidth(0), mHeight(0), mPath(filePath)
 	{
 		int width, height;
 		unsigned char* data = stbi_load(filePath.c_str(), &width, &height, nullptr, 4);

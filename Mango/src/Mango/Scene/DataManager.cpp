@@ -57,9 +57,14 @@ namespace Mango {
 
 				// Sprite Renderer
 				{
-					if (entity.HasComponent<SpriteRendererComponent>()) {
+					if (entity.HasComponent<SpriteRendererComponent>())
+					{
 						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
-						j["entities"][std::to_string(ID)]["components"]["sprite"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w};
+						j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["usesTexture"] = sprite.UsesTexture;
+						if(sprite.UsesTexture)
+							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["texturePath"] = sprite.Texture ? sprite.Texture->GetPath() : "";
+						else
+							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w };
 					}
 				}
 			}
@@ -122,12 +127,21 @@ namespace Mango {
 
 			// Sprite
 			{
-				if (components.find("sprite") != components.end()) {
-					json& sprite = components["sprite"];
-					std::vector<float> c = sprite["color"];
-					float4 color;
-					memcpy(&color, c.data(), sizeof(color));
-					entity.AddComponent<SpriteRendererComponent>(color);
+				if (components.find("spriteRenderer") != components.end()) {
+					json& sprite = components["spriteRenderer"];
+					bool usesTexture = sprite["usesTexture"];
+					if (usesTexture) {
+						std::string path = sprite["texturePath"];
+						entity.AddComponent<SpriteRendererComponent>(scene->GetTextureLibrary().Get(path));
+					}
+					else
+					{
+						std::vector<float> c = sprite["color"];
+						float4 color;
+						memcpy(&color, c.data(), sizeof(color));
+						entity.AddComponent<SpriteRendererComponent>(color);
+					}
+					
 				}
 			}
 		}

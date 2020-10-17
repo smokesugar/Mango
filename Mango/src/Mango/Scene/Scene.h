@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mango/Core/ECS.h"
+#include "Mango/Renderer/Texture.h"
 
 namespace Mango {
 
@@ -16,9 +17,12 @@ namespace Mango {
 		inline void SetAspectRatio(float aspect) { mAspectRatio = aspect; }
 
 		inline ECS::Registry& GetRegistry() { return mRegistry; }
+		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
 	private:
 		float mAspectRatio = 1.0f;
 		ECS::Registry mRegistry;
+
+		class TextureLibrary mTextureLibrary;
 	};
 
 }

@@ -1,0 +1,94 @@
+{
+    "entities": {
+        "0": {
+            "components": {
+                "camera": {
+                    "aspectRatio": 1.0884450674057007,
+                    "farPlane": 100.0,
+                    "fov": 0.7853981852531433,
+                    "nearPlane": 0.10000000149011612,
+                    "primary": true,
+                    "type": "perspective"
+                },
+                "tag": "Camera",
+                "transform": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    -2.309999942779541,
+                    1.0
+                ]
+            }
+        },
+        "1": {
+            "components": {
+                "spriteRenderer": {
+                    "texturePath": "assets\\textures\\Mango.png",
+                    "usesTexture": true
+                },
+                "tag": "Textured Square",
+                "transform": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.4699999988079071,
+                    0.0,
+                    0.0,
+                    1.0
+                ]
+            }
+        },
+        "2": {
+            "components": {
+                "spriteRenderer": {
+                    "color": [
+                        1.0,
+                        0.45588237047195435,
+                        0.45588237047195435,
+                        1.0
+                    ],
+                    "usesTexture": false
+                },
+                "tag": "Square",
+                "transform": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    -0.6600000262260437,
+                    0.0,
+                    0.0,
+                    1.0
+                ]
+            }
+        }
+    }
+}
