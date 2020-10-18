@@ -4,7 +4,7 @@ Mango is a work in progress Game Engine. Future plans include an editor, scripti
 
 ## Current Features
 
-![Epic Image](https://github.com/smokesugar/Mango/raw/main/resources/Showcase.PNG)
+![Epic Image](https://github.com/smokesugar/Mango/blob/main/resources/Showcase.PNG)
 
 - Entity Component System
 - 2D Rendering
