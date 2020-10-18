@@ -71,11 +71,12 @@ namespace Mango {
 				{
 					if (entity.HasComponent<MeshComponent>())
 					{
-						auto& mesh = entity.GetComponent<MeshComponent>().Mesh;
-						if (mesh.Type == MeshType::Empty) {
+						auto& comp = entity.GetComponent<MeshComponent>();
+						auto& mesh = comp.Mesh;
+						if (comp.Type == MeshType::Empty) {
 							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "empty";
 						}
-						else if (mesh.Type == MeshType::Cube) {
+						else if (comp.Type == MeshType::Cube) {
 							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "cube";
 						}
 					}
@@ -164,7 +165,7 @@ namespace Mango {
 						entity.AddComponent<MeshComponent>();
 					}
 					else if (mesh["type"] == "cube") {
-						entity.AddComponent<MeshComponent>(Mesh::CreateCube());
+						entity.AddComponent<MeshComponent>(Mesh::CreateCube(), MeshType::Cube);
 					}
 				}
 			}

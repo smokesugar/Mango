@@ -15,8 +15,20 @@ namespace Mango {
 
 		void OnImGuiRender();
 	private:
+		template<typename T>
+		void SetDeleteTypeOnRightClick() {
+			if (ImGui::IsItemClicked(1)) {
+				mCompDeleteFunction = [&]() {
+					Entity ent(mSelectedEntity, mScene);
+					ent.RemoveComponent<T>();
+				};
+				ImGui::OpenPopup("remove_component");
+			}
+		}
+	private:
 		Scene* mScene;
 		ECS::Entity mSelectedEntity = ECS::Null;
+		std::function<void()> mCompDeleteFunction;
 	};
 
 }

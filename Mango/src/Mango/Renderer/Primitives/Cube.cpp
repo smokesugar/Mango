@@ -55,7 +55,7 @@ namespace Mango {
 		Node node;
 		node.Submeshes.push_back(CreateRef<VertexArray>(vb, Ref<IndexBuffer>()));
 
-		return Mesh(node, MeshType::Cube);
+		return Mesh(node);
 	}
 
 }

@@ -50,13 +50,18 @@ namespace Mango {
 		{}
 	};
 
+	enum class MeshType {
+		Empty, Cube
+	};
+
 	struct MeshComponent {
 		Mango::Mesh Mesh;
+		MeshType Type = MeshType::Empty;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const Mango::Mesh& mesh)
-			: Mesh(mesh)
+		MeshComponent(const Mango::Mesh& mesh, MeshType type)
+			: Mesh(mesh), Type(type)
 		{}
 	};
 

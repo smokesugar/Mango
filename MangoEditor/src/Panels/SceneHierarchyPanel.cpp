@@ -68,7 +68,6 @@ namespace Mango {
 		if (mScene->GetRegistry().Valid(mSelectedEntity))
 		{
 			Entity entity = Entity(mSelectedEntity, mScene);
-			static std::function<void()> deleteFn = []() {};
 
 			// Tag Component
 			{
@@ -111,14 +110,7 @@ namespace Mango {
 				if (entity.HasComponent<CameraComponent>())
 				{
 					bool open = ImGui::TreeNodeEx(typeid(CameraComponent).name(), 0, "Camera");
-
-					if (ImGui::IsItemClicked(1)) {
-						deleteFn = [&]() {
-							Entity ent(mSelectedEntity, mScene);
-							ent.RemoveComponent<CameraComponent>();
-						};
-						ImGui::OpenPopup("remove_component");
-					}
+					SetDeleteTypeOnRightClick<CameraComponent>();
 
 					if (open)
 					{
@@ -202,14 +194,7 @@ namespace Mango {
 				if (entity.HasComponent<SpriteRendererComponent>())
 				{
 					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite Renderer");
-
-					if (ImGui::IsItemClicked(1)) {
-						deleteFn = [&]() {
-							Entity ent(mSelectedEntity, mScene);
-							ent.RemoveComponent<SpriteRendererComponent>();
-						};
-						ImGui::OpenPopup("remove_component");
-					}
+					SetDeleteTypeOnRightClick<SpriteRendererComponent>();
 
 					if (open) {
 						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
@@ -266,35 +251,38 @@ namespace Mango {
 
 			// Mesh Component
 			{
-				if (entity.HasComponent<MeshComponent>()) {
+				if (entity.HasComponent<MeshComponent>())
+				{
 					bool open = ImGui::TreeNodeEx(typeid(MeshComponent).name(), 0, "Mesh");
+					SetDeleteTypeOnRightClick<MeshComponent>();
 
-					if (ImGui::IsItemClicked(1)) {
-						deleteFn = [&]() {
-							Entity ent(mSelectedEntity, mScene);
-							ent.RemoveComponent<MeshComponent>();
-						};
-						ImGui::OpenPopup("remove_component");
-					}
-
-					Mesh& mesh = entity.GetComponent<MeshComponent>().Mesh;
-
-					const char* wanted = "Empty";
-
-					if (mesh.Type == MeshType::Cube) wanted = "Cube";
+					auto& comp = entity.GetComponent<MeshComponent>();
+					Mesh& mesh = comp.Mesh;
 					
-					if (open) {
-						if (ImGui::BeginCombo("Type", wanted)) {
+					if (open)
+					{
+						ImGui::Columns(2);
+						ImGui::AlignTextToFramePadding();
+						ImGui::Text("Type");
+
+						ImGui::NextColumn();
+						ImGui::PushItemWidth(-1.0f);
+
+						const char* wanted = "Empty";
+						if (comp.Type == MeshType::Cube) wanted = "Cube";
+
+						if (ImGui::BeginCombo("##mesh_type", wanted)) {
 							if (ImGui::Selectable("Cube", wanted == "Cube"))
 								wanted = "Cube";
 							ImGui::EndCombo();
 						}
-						if (wanted == "Cube" && mesh.Type != MeshType::Cube)
-							mesh = Mesh::CreateCube();
+						if (wanted == "Cube" && comp.Type != MeshType::Cube)
+							comp = MeshComponent(Mesh::CreateCube(), MeshType::Cube);
 
+						ImGui::Columns(1);
+						ImGui::PopItemWidth();
 						ImGui::TreePop();
 					}
-					
 					ImGui::Separator();
 				}
 			}
@@ -331,7 +319,7 @@ namespace Mango {
 			{
 				if (ImGui::BeginPopup("remove_component")) {
 					if (ImGui::Button("Remove")) {
-						deleteFn();
+						mCompDeleteFunction();
 						ImGui::CloseCurrentPopup();
 					}
 					ImGui::EndPopup();

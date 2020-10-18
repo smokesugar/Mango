@@ -18,20 +18,12 @@ namespace Mango {
 		Node(const Node& other) = default;
 	};
 
-	enum class MeshType {
-		Empty, Cube
-	};
-
 	struct Mesh {
 		Node RootNode;
-		MeshType Type;
 
-		Mesh()
-			: Type(MeshType::Empty)
-		{}
-
-		Mesh(const Node& rootNode, MeshType type)
-			: RootNode(rootNode), Type(type)
+		Mesh() = default;
+		Mesh(const Node& rootNode)
+			: RootNode(rootNode)
 		{}
 
 		static Mesh CreateCube();
