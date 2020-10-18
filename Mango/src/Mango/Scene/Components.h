@@ -8,7 +8,7 @@
 namespace Mango {
 	
 	struct TransformComponent {
-		xmmatrix Transform;
+		xmmatrix Transform = XMMatrixIdentity();
 
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
