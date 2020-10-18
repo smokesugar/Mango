@@ -36,15 +36,14 @@ namespace Mango {
 				auto& camComp = cameras[i];
 				if (camComp.Primary) {
 					auto& transComp = transforms[i];
-					camComp.Camera->SetAspectRatio(mAspectRatio);
-					currentCamera = camComp.Camera.get();
+					currentCamera = &camComp.Camera;
 					cameraTransform = &transComp.Transform;
 				}
 			}
 		}
 
 		if (currentCamera) {
-			Renderer::BeginScene(*currentCamera, *cameraTransform);
+			Renderer::BeginScene(currentCamera->GetProjectionMatrix(mAspectRatio), *cameraTransform);
 
 			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
 			for (auto& [size, sprites, transforms] : query) {
@@ -58,7 +57,17 @@ namespace Mango {
 						Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
 				}
 			}
-			
+
+			auto query1 = mRegistry.Query<MeshComponent, TransformComponent>();
+			for (auto& [size, meshes, transforms] : query1) {
+				for (size_t i = 0; i < size; i++) {
+					auto& meshComp = meshes[i];
+					auto& transformComp = transforms[i];
+
+					Renderer::SubmitMesh(meshComp.Mesh, transformComp.Transform);
+				}
+			}
+
 			Renderer::EndScene();
 		}
 	}

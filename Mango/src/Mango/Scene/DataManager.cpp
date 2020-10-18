@@ -40,17 +40,16 @@ namespace Mango {
 				{
 					if (entity.HasComponent<CameraComponent>()) {
 						auto& cam = entity.GetComponent<CameraComponent>();
-						if (cam.Camera->GetType() == Camera::Type::Orthographic) {
+						if (cam.Camera.GetType() == Camera::Type::Orthographic) {
 							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "orthographic";
-							j["entities"][std::to_string(ID)]["components"]["camera"]["zoom"] = std::static_pointer_cast<OrthographicCamera>(cam.Camera)->GetZoom();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["size"] = cam.Camera.GetOSize();
 						}
-						else if (cam.Camera->GetType() == Camera::Type::Perspective) {
+						else if (cam.Camera.GetType() == Camera::Type::Perspective) {
 							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "perspective";
-							j["entities"][std::to_string(ID)]["components"]["camera"]["fov"] = std::static_pointer_cast<PerspectiveCamera>(cam.Camera)->GetFOV();
-							j["entities"][std::to_string(ID)]["components"]["camera"]["nearPlane"] = std::static_pointer_cast<PerspectiveCamera>(cam.Camera)->GetNearPlane();
-							j["entities"][std::to_string(ID)]["components"]["camera"]["farPlane"] = std::static_pointer_cast<PerspectiveCamera>(cam.Camera)->GetFarPlane();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["fov"] = cam.Camera.GetPFOV();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["nearPlane"] = cam.Camera.GetPNear();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["farPlane"] = cam.Camera.GetPFar();
 						}
-						j["entities"][std::to_string(ID)]["components"]["camera"]["aspectRatio"] = cam.Camera->GetAspectRatio();
 						j["entities"][std::to_string(ID)]["components"]["camera"]["primary"] = cam.Primary;
 					}
 				}
@@ -65,6 +64,20 @@ namespace Mango {
 							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["texturePath"] = sprite.Texture ? sprite.Texture->GetPath() : "";
 						else
 							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w };
+					}
+				}
+
+				// Mesh
+				{
+					if (entity.HasComponent<MeshComponent>())
+					{
+						auto& mesh = entity.GetComponent<MeshComponent>().Mesh;
+						if (mesh.Type == MeshType::Empty) {
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "empty";
+						}
+						else if (mesh.Type == MeshType::Cube) {
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "cube";
+						}
 					}
 				}
 			}
@@ -109,18 +122,16 @@ namespace Mango {
 
 					if (camera["type"] == "orthographic")
 					{
-						float aspect = camera["aspectRatio"];
-						float zoom = camera["zoom"];
-						entity.AddComponent<CameraComponent>(CreateRef<OrthographicCamera>(aspect, zoom)).Primary = camera["primary"];
+						float size = camera["size"];
+						entity.AddComponent<CameraComponent>(Camera::CreateOrthographic(size)).Primary = camera["primary"];
 					}
 					else if(camera["type"] == "perspective")
 					{
-						float aspect = camera["aspectRatio"];
 						float fov = camera["fov"];
 						float nearPlane = camera["nearPlane"];
 						float farPlane = camera["farPlane"];
 
-						entity.AddComponent<CameraComponent>(CreateRef<PerspectiveCamera>(fov, aspect, nearPlane, farPlane)).Primary = camera["primary"];
+						entity.AddComponent<CameraComponent>(Camera::CreatePerspective(fov, nearPlane, farPlane)).Primary = camera["primary"];
 					}
 				}
 			}
@@ -142,6 +153,19 @@ namespace Mango {
 						entity.AddComponent<SpriteRendererComponent>(color);
 					}
 					
+				}
+			}
+
+			// Mesh
+			{
+				if (components.find("mesh") != components.end()) {
+					json& mesh = components["mesh"];
+					if (mesh["type"] == "empty") {
+						entity.AddComponent<MeshComponent>();
+					}
+					else if (mesh["type"] == "cube") {
+						entity.AddComponent<MeshComponent>(Mesh::CreateCube());
+					}
 				}
 			}
 		}

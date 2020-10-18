@@ -124,7 +124,7 @@ namespace Mango {
 					{
 						auto& cameraComp = entity.GetComponent<CameraComponent>();
 
-						bool orthographic = cameraComp.Camera->GetType() == Camera::Type::Orthographic;
+						bool orthographic = cameraComp.Camera.GetType() == Camera::Type::Orthographic;
 
 						ImGui::Columns(2);
 						ImGui::AlignTextToFramePadding();
@@ -137,7 +137,7 @@ namespace Mango {
 							ImGui::Text("Far Plane");
 						}
 						if (orthographic) {
-							ImGui::Text("Zoom");
+							ImGui::Text("Size");
 						}
 
 						ImGui::Text("Primary");
@@ -157,35 +157,35 @@ namespace Mango {
 							ImGui::EndCombo();
 						}
 						if (wantedType == "o" && !orthographic) {
-							cameraComp.Camera = CreateRef<OrthographicCamera>();
+							cameraComp.Camera = Camera::CreateOrthographic(2.5f);
 							orthographic = true;
 						}
 						if (wantedType == "p" && orthographic) {
-							cameraComp.Camera = CreateRef<PerspectiveCamera>();
+							cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f);
 							orthographic = false;
 						}
 
 						if (!orthographic) {
-							auto cam = std::static_pointer_cast<PerspectiveCamera>(cameraComp.Camera);
+							auto& cam = cameraComp.Camera;
 
-							float fov = ToDegrees(cam->GetFOV());
+							float fov = ToDegrees(cam.GetPFOV());
 							ImGui::DragFloat("##camera_fov", &fov, 1.0f, 10.0f, 120.0f);
-							cam->SetFOV(ToRadians(fov));
+							cam.SetPFOV(ToRadians(fov));
 
-							float nearPlane = cam->GetNearPlane();
+							float nearPlane = cam.GetPNear();
 							ImGui::InputFloat("##camera_near", &nearPlane);
-							cam->SetNearPlane(nearPlane);
+							cam.SetPNear(nearPlane);
 
-							float farPlane = cam->GetFarPlane();
+							float farPlane = cam.GetPFar();
 							ImGui::InputFloat("##camera_far", &farPlane);
-							cam->SetFarPlane(farPlane);
+							cam.SetPFar(farPlane);
 
 						}
 						if (orthographic) {
-							auto cam = std::static_pointer_cast<OrthographicCamera>(cameraComp.Camera);
-							float zoom = cam->GetZoom();
-							ImGui::DragFloat("##camera_zoom", &zoom, 0.1f, 0.001f, INFINITY);
-							cam->SetZoom(Max(zoom, 0.001f));
+							auto& cam = cameraComp.Camera;
+							float size = cam.GetOSize();
+							ImGui::DragFloat("##camera_size", &size, 0.1f, 0.001f, INFINITY);
+							cam.SetOSize(Max(size, 0.001f));
 						}
 
 						ImGui::Checkbox("##camera_primary", &cameraComp.Primary);
@@ -264,6 +264,41 @@ namespace Mango {
 				}
 			}
 
+			// Mesh Component
+			{
+				if (entity.HasComponent<MeshComponent>()) {
+					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Mesh");
+
+					if (ImGui::IsItemClicked(1)) {
+						deleteFn = [&]() {
+							Entity ent(mSelectedEntity, mScene);
+							ent.RemoveComponent<MeshComponent>();
+						};
+						ImGui::OpenPopup("remove_component");
+					}
+
+					Mesh& mesh = entity.GetComponent<MeshComponent>().Mesh;
+
+					const char* wanted = "Empty";
+
+					if (mesh.Type == MeshType::Cube) wanted = "Cube";
+					
+					if (open) {
+						if (ImGui::BeginCombo("Type", wanted)) {
+							if (ImGui::Selectable("Cube", wanted == "Cube"))
+								wanted = "Cube";
+							ImGui::EndCombo();
+						}
+						if (wanted == "Cube" && mesh.Type != MeshType::Cube)
+							mesh = Mesh::CreateCube();
+
+						ImGui::TreePop();
+					}
+					
+					ImGui::Separator();
+				}
+			}
+
 			// Add Component Button
 			{
 				if (ImGui::Button("Add Component"))
@@ -272,13 +307,19 @@ namespace Mango {
 				if (ImGui::BeginPopup("add_component")) {
 					if (!entity.HasComponent<CameraComponent>()) {
 						if (ImGui::Button("Camera")) {
-							entity.AddComponent<CameraComponent>(CreateRef<PerspectiveCamera>());
+							entity.AddComponent<CameraComponent>(Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f));
 							ImGui::CloseCurrentPopup();
 						}
 					}
 					if (!entity.HasComponent<SpriteRendererComponent>()) {
 						if (ImGui::Button("Sprite Renderer")) {
 							entity.AddComponent<SpriteRendererComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+					if (!entity.HasComponent<MeshComponent>()) {
+						if (ImGui::Button("Mesh")) {
+							entity.AddComponent<MeshComponent>();
 							ImGui::CloseCurrentPopup();
 						}
 					}

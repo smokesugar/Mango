@@ -10,50 +10,30 @@ namespace Mango {
 			Orthographic, Perspective
 		};
 	public:
-		virtual ~Camera() {}
-		virtual xmmatrix GetProjectionMatrix() const = 0;
-		virtual void SetAspectRatio(float aspectRation) = 0;
-		virtual float GetAspectRatio() const = 0;
-		virtual Type GetType() const = 0;
-	};
+		Camera(Type type, float pfov, float pnear, float pfar, float osize);
+		xmmatrix GetProjectionMatrix(float aspect);
+		inline Type GetType() const { return mType; }
 
-	class OrthographicCamera : public Camera {
-	public:
-		OrthographicCamera();
-		OrthographicCamera(float aspectRatio, float zoom);
-		inline virtual xmmatrix GetProjectionMatrix() const override { return mProjectionMatrix; }
-		inline virtual void SetAspectRatio(float aspectRatio) override { mAspectRatio = aspectRatio; CalculateProjectionMatrix(); }
-		inline virtual float GetAspectRatio() const override { return mAspectRatio; }
-		inline virtual Type GetType() const override { return Type::Orthographic; }
-		inline void SetZoom(float zoom) { mZoom = zoom; CalculateProjectionMatrix(); }
-		inline float GetZoom() const { return mZoom; }
-	private:
-		void CalculateProjectionMatrix();
-	private:
-		float mAspectRatio;
-		float mZoom;
-		xmmatrix mProjectionMatrix;
-	};
+		inline float GetPFOV() const { return mPFOV; }
+		inline float GetPNear() const { return mPNear; }
+		inline float GetPFar() const { return mPFar; }
+		inline float GetOSize() const { return mOSize; }
 
-	class PerspectiveCamera : public Camera {
-	public:
-		PerspectiveCamera();
-		PerspectiveCamera(float fovy, float aspectRatio, float nearPlane, float farPlane);
-		virtual xmmatrix GetProjectionMatrix() const override;
-		virtual void SetAspectRatio(float aspect) { mAspectRatio = aspect; }
-		virtual float GetAspectRatio() const { return mAspectRatio; }
-		inline virtual Type GetType() const { return Type::Perspective; }
-		inline float GetNearPlane() const { return mNearPlane; }
-		inline void SetNearPlane(float nearPlane) { mNearPlane = nearPlane; }
-		inline float GetFarPlane() const { return mFarPlane; }
-		inline void SetFarPlane(float farPlane) { mFarPlane = farPlane; }
-		inline float GetFOV() const { return mFOV; }
-		inline void SetFOV(float fov) { mFOV = fov; }
+		inline void SetPFOV(float pfov) { mPFOV = pfov; }
+		inline void SetPNear(float pnear) { mPNear = pnear; }
+		inline void SetPFar(float pfar) { mPFar = pfar; }
+		inline void SetOSize(float osize) { mOSize = osize; }
+
+		static Camera CreateOrthographic(float size);
+		static Camera CreatePerspective(float fov, float nearPlane, float farPlane);
 	private:
-		float mFOV;
-		float mAspectRatio;
-		float mNearPlane;
-		float mFarPlane;
+		Type mType;
+
+		float mPFOV;
+		float mPNear;
+		float mPFar;
+		
+		float mOSize;
 	};
 
 }

@@ -3,45 +3,27 @@
 
 namespace Mango {
 
-	OrthographicCamera::OrthographicCamera()
-		: mAspectRatio(1.0f), mZoom(2.5f)
-	{
-		CalculateProjectionMatrix();
-	}
-
-	OrthographicCamera::OrthographicCamera(float aspectRatio, float zoom)
-		: mAspectRatio(aspectRatio), mZoom(zoom)
-	{
-		CalculateProjectionMatrix();
-	}
-
-	void OrthographicCamera::CalculateProjectionMatrix()
-	{
-		float left = -mAspectRatio * mZoom * 0.5f;
-		float right = mAspectRatio * mZoom * 0.5f;
-		float bottom = -mZoom * 0.5f;
-		float top = mZoom * 0.5f;
-
-		mProjectionMatrix = XMMatrixOrthographicOffCenterLH(
-			left, right,
-			bottom, top,
-			-1.0f, 1.0f
-		);
-	}
-
-	PerspectiveCamera::PerspectiveCamera()
-		: mFOV(ToRadians(45.0f)), mAspectRatio(1.0f), mNearPlane(0.1f), mFarPlane(100.0f)
+	Camera::Camera(Type type, float pfov, float pnear, float pfar, float osize)
+		: mType(type), mPFOV(pfov), mPNear(pnear), mPFar(pfar), mOSize(osize)
 	{
 	}
 
-	PerspectiveCamera::PerspectiveCamera(float fovy, float aspectRatio, float nearPlane, float farPlane)
-		: mFOV(fovy), mAspectRatio(aspectRatio), mNearPlane(nearPlane), mFarPlane(farPlane)
+	xmmatrix Camera::GetProjectionMatrix(float aspect)
 	{
+		if (mType == Type::Orthographic)
+			return XMMatrixOrthographicOffCenterLH(aspect * -mOSize / 2, aspect * mOSize / 2, -mOSize / 2, mOSize / 2, -1.0f, 1.0f);
+		else
+			return XMMatrixPerspectiveFovLH(mPFOV, aspect, mPNear, mPFar);
 	}
 
-	xmmatrix PerspectiveCamera::GetProjectionMatrix() const
+	Camera Camera::CreateOrthographic(float size)
 	{
-		return XMMatrixPerspectiveFovLH(mFOV, mAspectRatio, mNearPlane, mFarPlane);
+		return Camera(Type::Orthographic, 0.0f, 0.0f, 0.0f, size);
+	}
+
+	Camera Camera::CreatePerspective(float fov, float nearPlane, float farPlane)
+	{
+		return Camera(Type::Perspective, fov, nearPlane, farPlane, 0.0f);
 	}
 
 }

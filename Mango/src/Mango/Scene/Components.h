@@ -3,6 +3,7 @@
 #include "Mango/Core/Math.h"
 #include "Mango/Renderer/Camera.h"
 #include "Mango/Renderer/Texture.h"
+#include "Mango/Renderer/Mesh.h"
 
 namespace Mango {
 	
@@ -25,19 +26,19 @@ namespace Mango {
 	};
 
 	struct CameraComponent {
-		Ref<Mango::Camera> Camera;
+		Mango::Camera Camera;
 		bool Primary = false;
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
-		CameraComponent(const Ref<Mango::Camera>& cam)
+		CameraComponent(const Mango::Camera& cam)
 			: Camera(cam) {}
 	};
 
 	struct SpriteRendererComponent {
 		bool UsesTexture;
 		float4 Color;
-		alignas(16) Ref<Texture2D> Texture;
+		Ref<Texture2D> Texture;
 
 		SpriteRendererComponent() : Color(1.0f, 1.0f, 1.0f, 1.0f), UsesTexture(false) {}
 		SpriteRendererComponent(const SpriteRendererComponent& other) = default;
@@ -46,6 +47,16 @@ namespace Mango {
 		{}
 		SpriteRendererComponent(const Ref<Texture2D>& texture)
 			: Texture(texture), Color(0.0f, 0.0f, 0.0f, 1.0f), UsesTexture(true)
+		{}
+	};
+
+	struct MeshComponent {
+		Mango::Mesh Mesh;
+
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent&) = default;
+		MeshComponent(const Mango::Mesh& mesh)
+			: Mesh(mesh)
 		{}
 	};
 

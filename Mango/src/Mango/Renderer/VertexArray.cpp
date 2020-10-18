@@ -7,9 +7,14 @@ namespace Mango {
 	{
 		MG_CORE_ASSERT(vb, "Vertex Buffer was nullptr.");
 
-		mDrawCount = ib ? ib->GetDrawCount() : vb->GetDrawCount();
 		mBuffers.push_back(vb);
-		mBuffers.push_back(ib);
+		if (ib) {
+			mDrawCount = ib->GetDrawCount();
+			mBuffers.push_back(ib);
+		}
+		else {
+			mDrawCount = vb->GetDrawCount();
+		}
 	}
 
 	void VertexArray::Bind() const

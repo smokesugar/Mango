@@ -16,12 +16,16 @@ namespace Mango {
 	struct RendererData {
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
+
 		Ref<VertexArray> Quad;
-		Ref<Shader> TextureShader;
 		Ref<Texture2D> WhiteTexture;
 		Scope<SamplerState> Sampler;
 
+		Ref<Shader> SpriteShader;
+		Ref<Shader> MeshShader;
+
 		std::queue<std::tuple<xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
+		std::queue<std::pair<const Mesh*, xmmatrix>> RenderQueue3D;
 	};
 
 	static RendererData* sData;
@@ -34,7 +38,8 @@ namespace Mango {
 
 		// Shaders -----------------------------------------------------------------------------------
 
-		sData->TextureShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
+		sData->SpriteShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
+		sData->MeshShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer3D_vs.cso", "assets/shaders/Renderer3D_ps.cso"));
 
 		// Textures ----------------------------------------------------------------------------------
 
@@ -71,9 +76,9 @@ namespace Mango {
 		delete sData;
 	}
 
-	void Renderer::BeginScene(Camera& camera, const xmmatrix& transform)
+	void Renderer::BeginScene(const xmmatrix& projection, const xmmatrix& transform)
 	{
-		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * camera.GetProjectionMatrix();
+		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * projection;
 		sData->GlobalUniforms->SetData(viewProjection);
 	}
 
@@ -83,14 +88,38 @@ namespace Mango {
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
+	static void InternalRenderNode(const Node* node, const xmmatrix& parentTransform) {
+		xmmatrix transform = node->Transform * parentTransform;
+		sData->IndividualUniforms->SetData<IndividualData>({ transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+
+		for (auto va : node->Submeshes) {
+			va->Bind();
+			if (va->IsIndexed())
+				RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
+			else
+				RenderCommand::Draw(va->GetDrawCount(), 0);
+		}
+
+		for (auto& node : node->Children) {
+			InternalRenderNode(&node, transform);
+		}
+	}
+
 	void Renderer::EndScene()
 	{
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
-		sData->TextureShader->Bind();
-		sData->Quad->Bind();
-		sData->Sampler->Bind(0);
 
+		sData->MeshShader->Bind();
+		while (!sData->RenderQueue3D.empty()) {
+			auto& [mesh, transform] = sData->RenderQueue3D.front();
+			InternalRenderNode(&mesh->RootNode, transform);
+			sData->RenderQueue3D.pop();
+		}
+
+		sData->SpriteShader->Bind();
+		sData->Sampler->Bind(0);
+		sData->Quad->Bind();
 		while (!sData->RenderQueue2D.empty()) {
 			auto& tuple = sData->RenderQueue2D.front();
 			InternalDrawQuad(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
@@ -118,6 +147,11 @@ namespace Mango {
 	void Renderer::DrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture)
 	{
 		sData->RenderQueue2D.push({ transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+	}
+
+	void Renderer::SubmitMesh(const Mesh& mesh, const xmmatrix& transform)
+	{
+		sData->RenderQueue3D.push({ &mesh, transform });
 	}
 
 }
