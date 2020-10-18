@@ -267,7 +267,7 @@ namespace Mango {
 			// Mesh Component
 			{
 				if (entity.HasComponent<MeshComponent>()) {
-					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Mesh");
+					bool open = ImGui::TreeNodeEx(typeid(MeshComponent).name(), 0, "Mesh");
 
 					if (ImGui::IsItemClicked(1)) {
 						deleteFn = [&]() {
