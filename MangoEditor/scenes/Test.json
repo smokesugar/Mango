@@ -3,12 +3,9 @@
         "0": {
             "components": {
                 "camera": {
-                    "aspectRatio": 1.0884450674057007,
-                    "farPlane": 100.0,
-                    "fov": 0.7853981852531433,
-                    "nearPlane": 0.10000000149011612,
                     "primary": true,
-                    "type": "perspective"
+                    "size": 2.5,
+                    "type": "orthographic"
                 },
                 "tag": "Camera",
                 "transform": [
@@ -24,9 +21,9 @@
                     0.0,
                     1.0,
                     0.0,
+                    0.05000000074505806,
                     0.0,
                     0.0,
-                    -2.309999942779541,
                     1.0
                 ]
             }
@@ -34,10 +31,15 @@
         "1": {
             "components": {
                 "spriteRenderer": {
-                    "texturePath": "assets\\textures\\Mango.png",
-                    "usesTexture": true
+                    "color": [
+                        1.0,
+                        0.23529410362243652,
+                        0.23529410362243652,
+                        1.0
+                    ],
+                    "usesTexture": false
                 },
-                "tag": "Textured Square",
+                "tag": "Red Quad",
                 "transform": [
                     1.0,
                     0.0,
@@ -51,7 +53,7 @@
                     0.0,
                     1.0,
                     0.0,
-                    0.4699999988079071,
+                    -0.6200000047683716,
                     0.0,
                     0.0,
                     1.0
@@ -61,15 +63,10 @@
         "2": {
             "components": {
                 "spriteRenderer": {
-                    "color": [
-                        1.0,
-                        0.45588237047195435,
-                        0.45588237047195435,
-                        1.0
-                    ],
-                    "usesTexture": false
+                    "texturePath": "assets\\textures\\Chicken.jpg",
+                    "usesTexture": true
                 },
-                "tag": "Square",
+                "tag": "Textured Quad",
                 "transform": [
                     1.0,
                     0.0,
@@ -83,7 +80,7 @@
                     0.0,
                     1.0,
                     0.0,
-                    -0.6600000262260437,
+                    0.6499999761581421,
                     0.0,
                     0.0,
                     1.0
