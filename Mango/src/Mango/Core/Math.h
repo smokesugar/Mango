@@ -7,6 +7,7 @@ using namespace DirectX;
 #define ValuePtr(x) (float*)&x
 
 #define PI 3.14159265359f
+#define TAU 6.28318530718f
 
 namespace Mango {
 	

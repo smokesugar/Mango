@@ -79,6 +79,9 @@ namespace Mango {
 						else if (comp.Type == MeshType::Cube) {
 							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "cube";
 						}
+						else if (comp.Type == MeshType::Sphere) {
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "sphere";
+						}
 					}
 				}
 			}
@@ -170,6 +173,9 @@ namespace Mango {
 					}
 					else if (mesh["type"] == "cube") {
 						entity.AddComponent<MeshComponent>(Mesh::CreateCube(), MeshType::Cube);
+					}
+					else if (mesh["type"] == "sphere") {
+						entity.AddComponent<MeshComponent>(Mesh::CreateSphere(), MeshType::Sphere);
 					}
 				}
 			}
