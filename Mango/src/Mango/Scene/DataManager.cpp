@@ -30,10 +30,10 @@ namespace Mango {
 
 				// Transform Component
 				{
-					float4x4 mat; XMStoreFloat4x4(&mat, entity.GetComponent<TransformComponent>().Transform);
-					std::vector<float> matData; matData.resize(16);
-					memcpy(matData.data(), ValuePtr(mat), sizeof(mat));
-					j["entities"][std::to_string(ID)]["components"]["transform"] = matData;
+					auto& transform = entity.GetComponent<TransformComponent>();
+					j["entities"][std::to_string(ID)]["components"]["transform"]["translation"] = { transform.Translation.x, transform.Translation.y, transform.Translation.z };
+					j["entities"][std::to_string(ID)]["components"]["transform"]["rotation"] = { transform.Rotation.x, transform.Rotation.y, transform.Rotation.z };
+					j["entities"][std::to_string(ID)]["components"]["transform"]["scale"] = { transform.Scale.x, transform.Scale.y, transform.Scale.z };
 				}
 
 				// Camera Component
@@ -109,10 +109,14 @@ namespace Mango {
 
 			// Transform
 			{
-				float4x4 transform;
-				std::vector<float> trans = components["transform"];
-				memcpy(&transform, trans.data(), sizeof(transform));
-				entity.GetComponent<TransformComponent>().Transform = XMLoadFloat4x4(&transform);
+				std::vector<float> translationArray = components["transform"]["translation"];
+				float3 translation = *(float3*)(translationArray.data());
+				std::vector<float> rotationArray = components["transform"]["rotation"];
+				float3 rotation = *(float3*)(rotationArray.data());
+				std::vector<float> scaleArray = components["transform"]["scale"];
+				float3 scale = *(float3*)(scaleArray.data());
+
+				entity.GetComponent<TransformComponent>() = TransformComponent(translation, rotation, scale);
 			}
 
 			// Camera

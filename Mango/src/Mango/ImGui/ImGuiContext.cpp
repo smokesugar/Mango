@@ -23,6 +23,8 @@ namespace Mango {
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
+		ImFont* font = io.Fonts->AddFontFromFileTTF("engine/res/fonts/OpenSans-Regular.ttf", 15.0f);
+
 		RendererAPI_Init();
 		WindowAPI_Init();
 	}

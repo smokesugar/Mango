@@ -8,12 +8,26 @@
 namespace Mango {
 	
 	struct TransformComponent {
-		xmmatrix Transform = XMMatrixIdentity();
+		float3 Translation;
+		float3 Rotation;
+		float3 Scale;
 
-		TransformComponent() = default;
+		TransformComponent()
+			: Translation(0.0f, 0.0f, 0.0f),
+			Rotation(0.0f, 0.0f, 0.0f),
+			Scale(1.0f, 1.0f, 1.0f)
+		{}
 		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const xmmatrix& mat)
-			: Transform(mat) {}
+		TransformComponent(const float3& translation, const float3& rotation, const float3& scale)
+			: Translation(translation), Rotation(rotation), Scale(scale) {}
+
+		inline xmmatrix GetTransform() {
+			return RecomposeMatrix(Translation, Rotation, Scale);
+		}
+
+		inline void SetTransform(const xmmatrix& mat) {
+			DecomposeMatrix(&Translation, &Rotation, &Scale, mat);
+		}
 	};
 
 	struct TagComponent {

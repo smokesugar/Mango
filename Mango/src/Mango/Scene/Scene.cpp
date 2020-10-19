@@ -20,7 +20,7 @@ namespace Mango {
 	Entity Scene::Create(const std::string& name)
 	{
 		Entity entity(mRegistry.Create(), this);
-		entity.AddComponent<TransformComponent>(XMMatrixIdentity());
+		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<TagComponent>(name);
 		return entity;
 	}
@@ -28,7 +28,7 @@ namespace Mango {
 	void Scene::OnUpdate(float dt)
 	{
 		Camera* currentCamera = nullptr;
-		xmmatrix* cameraTransform = nullptr;
+		xmmatrix cameraTransform;
 		auto camQuery = mRegistry.Query<CameraComponent, TransformComponent>();
 		for (auto& [size, cameras, transforms] : camQuery) {
 			for (size_t i = 0; i < size; i++) {
@@ -37,13 +37,13 @@ namespace Mango {
 				if (camComp.Primary) {
 					auto& transComp = transforms[i];
 					currentCamera = &camComp.Camera;
-					cameraTransform = &transComp.Transform;
+					cameraTransform = transComp.GetTransform();
 				}
 			}
 		}
 
 		if (currentCamera) {
-			Renderer::BeginScene(currentCamera->GetProjectionMatrix(mAspectRatio), *cameraTransform);
+			Renderer::BeginScene(currentCamera->GetProjectionMatrix(mAspectRatio), cameraTransform);
 
 			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
 			for (auto& [size, sprites, transforms] : query) {
@@ -52,9 +52,9 @@ namespace Mango {
 					auto& transformComp = transforms[i];
 
 					if (spriteComp.UsesTexture && spriteComp.Texture) {
-						Renderer::DrawQuad(transformComp.Transform, spriteComp.Texture);
+						Renderer::DrawQuad(transformComp.GetTransform(), spriteComp.Texture);
 					} else
-						Renderer::DrawQuad(transformComp.Transform, spriteComp.Color);
+						Renderer::DrawQuad(transformComp.GetTransform(), spriteComp.Color);
 				}
 			}
 
@@ -62,9 +62,9 @@ namespace Mango {
 			for (auto& [size, meshes, transforms] : query1) {
 				for (size_t i = 0; i < size; i++) {
 					auto& meshComp = meshes[i];
-					auto& transformComp = transforms[i];
+					auto& transform = transforms[i];
 
-					Renderer::SubmitMesh(meshComp.Mesh, transformComp.Transform);
+					Renderer::SubmitMesh(meshComp.Mesh, transform.GetTransform());
 				}
 			}
 
