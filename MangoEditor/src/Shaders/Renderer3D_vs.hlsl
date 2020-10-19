@@ -1,10 +1,10 @@
 
 cbuffer GlobalUniforms : register(b0) {
-	row_major matrix viewProjection;
+	matrix viewProjection;
 };
 
 cbuffer IndividualUniforms : register(b1) {
-	row_major matrix model;
+	matrix model;
 	float4 color;
 }
 
@@ -17,9 +17,9 @@ struct VSOut {
 
 VSOut main(float3 pos : Position, float3 normal : Normal, float2 uv : TexCoord) {
 	VSOut vso;
-	vso.pos = mul(float4(pos, 1.0f), model).xyz;
-	vso.normal = mul(normal, (float3x3)model);
+	vso.pos = mul(model, float4(pos, 1.0f)).xyz;
+	vso.normal = mul((float3x3)model, normal);
 	vso.uv = uv;
-	vso.svpos = mul(float4(vso.pos, 1.0f), viewProjection);
+	vso.svpos = mul(viewProjection, float4(vso.pos, 1.0f));
 	return vso;
 }

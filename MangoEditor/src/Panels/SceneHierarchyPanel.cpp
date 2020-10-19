@@ -223,6 +223,8 @@ namespace Mango {
 						if (sprite.UsesTexture) {
 							char path[64];
 							memset(path, 0, sizeof(path));
+							if (sprite.Texture)
+								memcpy(path, sprite.Texture->GetPath().c_str(), Min(sizeof(path), sprite.Texture->GetPath().size()));
 							ImGui::PopItemWidth();
 							ImGui::InputText("##sprite_texture_path", path, sizeof(path), ImGuiInputTextFlags_ReadOnly);
 							ImGui::SameLine();

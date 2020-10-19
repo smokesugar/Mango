@@ -4,6 +4,8 @@
 #include "Mango/Core/Math.h"
 
 namespace Mango {
+
+	// Code straight up stolen from https://github.com/JoeyDeVries/Cell/blob/56726959fa85b4c087f9e87cc67d504db32ea41e/cell/mesh/sphere.cpp
 	
 	Mesh Mesh::CreateSphere(uint32_t xSegments, uint32_t ySegments)
 	{
