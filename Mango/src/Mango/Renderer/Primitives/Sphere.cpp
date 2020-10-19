@@ -20,9 +20,15 @@ namespace Mango {
 				float yPos = std::cos(ySegment * PI);
 				float zPos = std::sin(xSegment * TAU) * std::sin(ySegment * PI);
 
-				vertices.push_back(xPos/2.0f);
-				vertices.push_back(yPos/2.0f);
-				vertices.push_back(zPos/2.0f);
+				float len = sqrtf(xPos*xPos + yPos*yPos + zPos*zPos);
+
+				xPos /= len;
+				yPos /= len;
+				zPos /= len;
+
+				vertices.push_back(xPos / 2.0f);
+				vertices.push_back(yPos / 2.0f);
+				vertices.push_back(zPos / 2.0f);
 
 				vertices.push_back(xPos);
 				vertices.push_back(yPos);
@@ -36,7 +42,7 @@ namespace Mango {
 		std::vector<uint16_t> indices;
 		for (uint16_t y = 0; y < ySegments; ++y)
 		{
-			for (int x = 0; x < xSegments; ++x)
+			for (uint16_t x = 0; x < xSegments; ++x)
 			{
 				indices.push_back((y + 1) * (xSegments + 1) + x);
 				indices.push_back(y * (xSegments + 1) + x);

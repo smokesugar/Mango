@@ -27,7 +27,7 @@ namespace Mango {
 		{}
 
 		static Mesh CreateCube();
-		static Mesh CreateSphere(uint32_t xSegments = 16, uint32_t ySegments = 32);
+		static Mesh CreateSphere(uint32_t xSegments = 32, uint32_t ySegments = 16);
 	};
 
 }
