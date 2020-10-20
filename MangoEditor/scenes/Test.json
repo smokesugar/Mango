@@ -1,31 +1,6 @@
 {
-    "entities": {
-        "0": {
-            "components": {
-                "mesh": {
-                    "type": "cube"
-                },
-                "tag": "Cube",
-                "transform": {
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "translation": [
-                        0.8899999856948853,
-                        0.4300000071525574,
-                        0.0
-                    ]
-                }
-            }
-        },
-        "1": {
+    "entities": [
+        {
             "components": {
                 "camera": {
                     "farPlane": 100.0,
@@ -49,18 +24,18 @@
                     "translation": [
                         0.0,
                         0.0,
-                        -3.069999933242798
+                        -4.309999942779541
                     ]
                 }
             }
         },
-        "2": {
+        {
             "components": {
                 "spriteRenderer": {
                     "texturePath": "assets\\textures\\Chicken.jpg",
                     "usesTexture": true
                 },
-                "tag": "Square",
+                "tag": "Sprite",
                 "transform": {
                     "rotation": [
                         0.0,
@@ -73,14 +48,39 @@
                         1.0
                     ],
                     "translation": [
-                        0.1899999976158142,
+                        0.0,
                         0.0,
                         0.0
                     ]
                 }
             }
         },
-        "3": {
+        {
+            "components": {
+                "mesh": {
+                    "type": "cube"
+                },
+                "tag": "Cube",
+                "transform": {
+                    "rotation": [
+                        17.100000381469727,
+                        39.29999923706055,
+                        0.0
+                    ],
+                    "scale": [
+                        0.75,
+                        0.75,
+                        0.75
+                    ],
+                    "translation": [
+                        1.0499999523162842,
+                        0.8600000143051147,
+                        0.0
+                    ]
+                }
+            }
+        },
+        {
             "components": {
                 "mesh": {
                     "type": "sphere"
@@ -98,12 +98,37 @@
                         1.0
                     ],
                     "translation": [
-                        -0.30000001192092896,
-                        0.4000000059604645,
+                        -1.1299999952316284,
+                        -0.14000000059604645,
+                        0.0
+                    ]
+                }
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "type": "capsule"
+                },
+                "tag": "Capsule",
+                "transform": {
+                    "rotation": [
+                        38.400001525878906,
+                        0.0,
+                        90.0
+                    ],
+                    "scale": [
+                        0.75,
+                        0.75,
+                        0.75
+                    ],
+                    "translation": [
+                        0.33000001311302185,
+                        -1.1399999856948853,
                         0.0
                     ]
                 }
             }
         }
-    }
+    ]
 }

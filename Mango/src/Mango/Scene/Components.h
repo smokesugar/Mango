@@ -65,7 +65,7 @@ namespace Mango {
 	};
 
 	enum class MeshType {
-		Empty, Cube, Sphere
+		Empty, Cube, Sphere, Capsule
 	};
 
 	struct MeshComponent {

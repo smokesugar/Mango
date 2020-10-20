@@ -270,18 +270,23 @@ namespace Mango {
 						const char* wanted = "Empty";
 						if (comp.Type == MeshType::Cube) wanted = "Cube";
 						if (comp.Type == MeshType::Sphere) wanted = "Sphere";
+						if (comp.Type == MeshType::Capsule) wanted = "Capsule";
 
 						if (ImGui::BeginCombo("##mesh_type", wanted)) {
 							if (ImGui::Selectable("Cube", wanted == "Cube"))
 								wanted = "Cube";
 							if (ImGui::Selectable("Sphere", wanted == "Sphere"))
 								wanted = "Sphere";
+							if (ImGui::Selectable("Capsule", wanted == "Capsule"))
+								wanted = "Capsule";
 							ImGui::EndCombo();
 						}
 						if (wanted == "Cube" && comp.Type != MeshType::Cube)
 							comp = MeshComponent(Mesh::CreateCube(), MeshType::Cube);
 						if (wanted == "Sphere" && comp.Type != MeshType::Sphere)
 							comp = MeshComponent(Mesh::CreateSphere(), MeshType::Sphere);
+						if (wanted == "Capsule" && comp.Type != MeshType::Capsule)
+							comp = MeshComponent(Mesh::CreateCapsule(), MeshType::Capsule);
 
 						ImGui::Columns(1);
 						ImGui::PopItemWidth();

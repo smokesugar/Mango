@@ -20,6 +20,12 @@ namespace Mango {
 	using xmmatrix = DirectX::XMMATRIX;
 
 	template<typename T>
+	T Lerp(T a, T b, T f)
+	{
+		return a + f * (b - a);
+	}
+
+	template<typename T>
 	static T Max(T a, T b) {
 		return a > b ? a : b;
 	}
