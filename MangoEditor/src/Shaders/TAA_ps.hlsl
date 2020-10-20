@@ -34,10 +34,11 @@ float4 main(VSOut vso) : SV_Target{
 		nmax = max(nmax, neighbourhood[i]);
 	}
 
-	float3 histSample = clamp(lastFrame.Sample(sampler0, vso.uv).xyz, nmin, nmax);
+    float3 histSample = lastFrame.Sample(sampler0, vso.uv).xyz;
+    histSample = clamp(histSample, nmin, nmax);
 	float3 curSample = neighbourhood[4];
 
-	float blend = 0.5f;
+	float blend = 0.05f;
 
 	float3 c = lerp(histSample, curSample, float3(blend, blend, blend));
 	return float4(c, 1.0f);

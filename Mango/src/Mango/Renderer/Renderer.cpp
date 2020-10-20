@@ -6,6 +6,8 @@
 #include "RenderCommand.h"
 #include "Shader.h"
 
+#include "Halton.h"
+
 namespace Mango {
 
 	struct IndividualData {
@@ -88,14 +90,17 @@ namespace Mango {
 		static size_t frame = 0;
 		frame++;
 
-		if (frame >= 100)
+		if (frame >= 10000)
 			frame = 0;
 
-		float mult = frame % 2 == 0 ? 1.0f : -1.0f;
-		mult *= sData->TAAEnabled ? 1.0f : 0.0f;
-		float xJit = 0.5f / (float)width * mult;
-		float yJit = 0.5f / (float)height * mult;
-		xmmatrix jitterMatrix = XMMatrixTranslation(xJit, yJit, 0.0f);
+		float4 halt = GetHaltonSequence(frame);
+
+		float xOffset = (halt.x * 2.0f - 1.0f);
+		float yOffset = (halt.y * 2.0f - 1.0f);
+
+		float xJit = xOffset / (float)width;
+		float yJit = yOffset / (float)height;
+		xmmatrix jitterMatrix = sData->TAAEnabled ? XMMatrixTranslation(xJit, yJit, 0.0f) : XMMatrixIdentity();
 
 		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * projection * jitterMatrix;
 		sData->GlobalUniforms->SetData(viewProjection);

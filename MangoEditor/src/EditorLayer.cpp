@@ -29,30 +29,25 @@ namespace Mango {
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
-		Window& window = Application::Get().GetWindow();
-		auto buf = window.GetSwapChain().GetFramebuffer();
-
-		auto temp = mFrontBuffer;
-		mFrontBuffer = mBackBuffer;
-		mBackBuffer = temp;
+		std::swap(mFrontBuffer, mBackBuffer);
 
 		Texture::Unbind(0);
 		Texture::Unbind(1);
-		mFrontBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+		mFramebuffer3->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		mBackBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 
-		mFrontBuffer->Bind();
-		mFrontBuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+		mFramebuffer3->Bind();
+		mFramebuffer3->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
 		mScene->SetScreenDimensions((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		mScene->OnUpdate(dt);
 
 		// TAA
-		mFramebuffer3->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-		mFramebuffer3->Bind();
-		mFramebuffer3->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+		mFrontBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+		mFrontBuffer->Bind();
+		mFrontBuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
 
-		mFrontBuffer->BindAsTexture(0);
+		mFramebuffer3->BindAsTexture(0);
 		mBackBuffer->BindAsTexture(1);
 		mSamplerState->Bind(0);
 		mTAAShader->Bind();
@@ -107,7 +102,7 @@ namespace Mango {
 		mViewportFocused = ImGui::IsWindowFocused();
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		mViewportSize = *(float2*)&size;
-		ImGui::Image(Renderer::TAAEnabled() ? mFramebuffer3->GetTextureAttachment() : mFrontBuffer->GetTextureAttachment(), size);
+		ImGui::Image(mFrontBuffer->GetTextureAttachment(), size);
 		ImGui::End();
 		ImGui::PopStyleVar();
 
