@@ -24,6 +24,8 @@ namespace Mango {
 		Ref<Shader> SpriteShader;
 		Ref<Shader> MeshShader;
 
+		bool TAAEnabled = true;
+
 		std::queue<std::tuple<xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
 		std::queue<std::pair<const Mesh*, xmmatrix>> RenderQueue3D;
 	};
@@ -56,10 +58,10 @@ namespace Mango {
 		// Quad --------------------------------------------------------------------------------------
 
 		float vertices[] = {
-		  0.5f,  0.5f, 0.0f,   1.0f, 0.0f,
-		  0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
-		 -0.5f, -0.5f, 0.0f,   0.0f, 1.0f,
-		 -0.5f,  0.5f, 0.0f,   0.0f, 0.0f
+			  1.0f,  1.0f, 0.0f,   1.0f, 0.0f,
+			  1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
+			 -1.0f, -1.0f, 0.0f,   0.0f, 1.0f,
+			 -1.0f,  1.0f, 0.0f,   0.0f, 0.0f
 		};
 		uint16_t indices[] = {
 			0, 1, 3,
@@ -76,15 +78,33 @@ namespace Mango {
 		delete sData;
 	}
 
-	void Renderer::BeginScene(const xmmatrix& projection, const xmmatrix& transform)
+	bool& Renderer::TAAEnabled()
 	{
-		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * projection;
+		return sData->TAAEnabled;
+	}
+
+	void Renderer::BeginScene(const xmmatrix& projection, const xmmatrix& transform, uint32_t width, uint32_t height)
+	{
+		static size_t frame = 0;
+		frame++;
+
+		if (frame >= 100)
+			frame = 0;
+
+		float mult = frame % 2 == 0 ? 1.0f : -1.0f;
+		mult *= sData->TAAEnabled ? 1.0f : 0.0f;
+		float xJit = 0.5f / (float)width * mult;
+		float yJit = 0.5f / (float)height * mult;
+		xmmatrix jitterMatrix = XMMatrixTranslation(xJit, yJit, 0.0f);
+
+		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * projection * jitterMatrix;
 		sData->GlobalUniforms->SetData(viewProjection);
 	}
 
 	static void InternalDrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
 		texture->Bind(0);
-		sData->IndividualUniforms->SetData<IndividualData>({ transform, color });
+		xmmatrix halfScale = XMMatrixScaling(0.5f, 0.5f, 1.0f) * transform;
+		sData->IndividualUniforms->SetData<IndividualData>({ halfScale, color });
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
@@ -147,6 +167,12 @@ namespace Mango {
 	void Renderer::DrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture)
 	{
 		sData->RenderQueue2D.push({ transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+	}
+
+	void Renderer::DrawScreenQuad()
+	{
+		sData->Quad->Bind();
+		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
 	void Renderer::SubmitMesh(const Mesh& mesh, const xmmatrix& transform)

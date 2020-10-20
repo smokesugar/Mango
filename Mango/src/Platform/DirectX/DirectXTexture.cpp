@@ -18,6 +18,12 @@ namespace Mango {
 		return new DirectXTexture2D(data, width, height);
 	}
 
+	void Texture::Unbind(size_t slot) {
+		auto& context = RetrieveContext();
+		ID3D11ShaderResourceView* pp[] = { nullptr };
+		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, pp));
+	}
+
 	DirectXTexture2D::DirectXTexture2D(void* data, uint32_t width, uint32_t height)
 		: mWidth(width), mHeight(height)
 	{

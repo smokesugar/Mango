@@ -15,6 +15,8 @@ namespace Mango {
 		virtual uint32_t GetHeight() const = 0;
 
 		virtual void Bind(size_t slot) const = 0;
+		static void Unbind(size_t slot);
+
 	};
 
 	class Texture2D : public Texture {

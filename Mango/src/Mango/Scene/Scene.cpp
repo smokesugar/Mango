@@ -43,7 +43,8 @@ namespace Mango {
 		}
 
 		if (currentCamera) {
-			Renderer::BeginScene(currentCamera->GetProjectionMatrix(mAspectRatio), cameraTransform);
+			float aspect = (float)mScreenWidth / (float)mScreenHeight;
+			Renderer::BeginScene(currentCamera->GetProjectionMatrix(aspect), cameraTransform, mScreenWidth, mScreenHeight);
 
 			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
 			for (auto& [size, sprites, transforms] : query) {

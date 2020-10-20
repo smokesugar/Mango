@@ -73,6 +73,12 @@ namespace Mango {
 			Resize(width, height);
 	}
 
+	void DirectXFramebuffer::BindAsTexture(size_t slot) const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
+	}
+
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> DirectXFramebuffer::CreateTexture()
 	{
 		D3D11_TEXTURE2D_DESC desc = {};

@@ -14,12 +14,13 @@ namespace Mango {
 		class Entity Create(const std::string& name = "Unnamed Entity");
 
 		void OnUpdate(float dt);
-		inline void SetAspectRatio(float aspect) { mAspectRatio = aspect; }
+		inline void SetScreenDimensions(uint32_t width, uint32_t height) { mScreenWidth = width; mScreenHeight = height; }
 
 		inline ECS::Registry& GetRegistry() { return mRegistry; }
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
 	private:
-		float mAspectRatio = 1.0f;
+		uint32_t mScreenWidth;
+		uint32_t mScreenHeight;
 		ECS::Registry mRegistry;
 
 		class TextureLibrary mTextureLibrary;

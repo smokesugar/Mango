@@ -22,6 +22,7 @@ namespace Mango {
 		virtual uint32_t GetHeight() const override { return mProps.Height; }
 
 		virtual void* GetTextureAttachment() const override { return mSRV.Get(); }
+		virtual void BindAsTexture(size_t slot) const override;
 
 		inline ID3D11RenderTargetView* GetRenderTargetView() { return mRTV.Get(); }
 	private:

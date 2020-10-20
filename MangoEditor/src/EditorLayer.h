@@ -20,7 +20,16 @@ namespace Mango {
 
 		SceneHierarchyPanel mSceneHierarchyPanel;
 
-		Ref<Framebuffer> mFramebuffer;
+		Ref<Framebuffer> mFramebuffer1;
+		Ref<Framebuffer> mFramebuffer2;
+		Ref<Framebuffer> mFramebuffer3;
+
+		Ref<Shader> mTAAShader;
+		Scope<SamplerState> mSamplerState;
+
+		Framebuffer* mBackBuffer;
+		Framebuffer* mFrontBuffer;
+
 		Ref<Texture2D> mTexture;
 
 		float2 mViewportSize = { 800.0f, 600.0f };

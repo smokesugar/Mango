@@ -14,7 +14,16 @@ namespace Mango {
 		props.Width = Application::Get().GetWindow().GetWidth();
 		props.Height = Application::Get().GetWindow().GetHeight();
 		props.Depth = true;
-		mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
+		mFramebuffer1 = Ref<Framebuffer>(Framebuffer::Create(props));
+		mFramebuffer2 = Ref<Framebuffer>(Framebuffer::Create(props));
+		mFramebuffer3 = Ref<Framebuffer>(Framebuffer::Create(props));
+
+		mFrontBuffer = mFramebuffer1.get();
+		mBackBuffer = mFramebuffer2.get();
+
+		mSamplerState = Scope<SamplerState>(SamplerState::Create());
+		
+		mTAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
 
 		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 	}
@@ -23,13 +32,31 @@ namespace Mango {
 		Window& window = Application::Get().GetWindow();
 		auto buf = window.GetSwapChain().GetFramebuffer();
 
-		mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+		auto temp = mFrontBuffer;
+		mFrontBuffer = mBackBuffer;
+		mBackBuffer = temp;
 
-		mFramebuffer->Bind();
-		mFramebuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+		Texture::Unbind(0);
+		Texture::Unbind(1);
+		mFrontBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+		mBackBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 
-		mScene->SetAspectRatio(mViewportSize.x / mViewportSize.y);
+		mFrontBuffer->Bind();
+		mFrontBuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+
+		mScene->SetScreenDimensions((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		mScene->OnUpdate(dt);
+
+		// TAA
+		mFramebuffer3->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+		mFramebuffer3->Bind();
+		mFramebuffer3->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+
+		mFrontBuffer->BindAsTexture(0);
+		mBackBuffer->BindAsTexture(1);
+		mSamplerState->Bind(0);
+		mTAAShader->Bind();
+		Renderer::DrawScreenQuad();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -40,6 +67,11 @@ namespace Mango {
 	void EditorLayer::OnImGuiRender()
 	{
 		Dockspace::Begin();
+
+		ImGui::Begin("Temp Panel");
+		bool& b = Renderer::TAAEnabled();
+		ImGui::Checkbox("TAA", &b);
+		ImGui::End();
 
 		// Menu bar
 		if (ImGui::BeginMenuBar())
@@ -75,7 +107,7 @@ namespace Mango {
 		mViewportFocused = ImGui::IsWindowFocused();
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		mViewportSize = *(float2*)&size;
-		ImGui::Image(mFramebuffer->GetTextureAttachment(), size);
+		ImGui::Image(Renderer::TAAEnabled() ? mFramebuffer3->GetTextureAttachment() : mFrontBuffer->GetTextureAttachment(), size);
 		ImGui::End();
 		ImGui::PopStyleVar();
 
