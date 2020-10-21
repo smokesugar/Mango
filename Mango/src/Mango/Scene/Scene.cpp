@@ -25,7 +25,7 @@ namespace Mango {
 		return entity;
 	}
 
-	void Scene::OnUpdate(float dt)
+	void Scene::OnUpdate(float dt, const Ref<Framebuffer>& rendertarget)
 	{
 		Camera* currentCamera = nullptr;
 		xmmatrix cameraTransform;
@@ -43,8 +43,8 @@ namespace Mango {
 		}
 
 		if (currentCamera) {
-			float aspect = (float)mScreenWidth / (float)mScreenHeight;
-			Renderer::BeginScene(currentCamera->GetProjectionMatrix(aspect), cameraTransform, mScreenWidth, mScreenHeight);
+			float aspect = (float)rendertarget->GetWidth() / (float)rendertarget->GetHeight();
+			Renderer::BeginScene(currentCamera->GetProjectionMatrix(aspect), cameraTransform, rendertarget->GetWidth(), rendertarget->GetHeight());
 
 			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
 			for (auto& [size, sprites, transforms] : query) {
@@ -69,7 +69,7 @@ namespace Mango {
 				}
 			}
 
-			Renderer::EndScene();
+			Renderer::EndScene(rendertarget);
 		}
 	}
 

@@ -25,6 +25,10 @@ namespace Mango {
 
 		Ref<Shader> SpriteShader;
 		Ref<Shader> MeshShader;
+		Ref<Shader> TAAShader;
+
+		Ref<Framebuffer> PreviousFrame;
+		Ref<Framebuffer> ImmediateTarget;
 
 		bool TAAEnabled = true;
 
@@ -44,6 +48,18 @@ namespace Mango {
 
 		sData->SpriteShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
 		sData->MeshShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer3D_vs.cso", "assets/shaders/Renderer3D_ps.cso"));
+		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
+
+		// Framebuffers ------------------------------------------------------------------------------
+
+		FramebufferProperties props;
+		props.Width = 800;
+		props.Height = 600;
+		props.Depth = true;
+
+		sData->ImmediateTarget = Ref<Framebuffer>(Framebuffer::Create(props));
+		props.Depth = false;
+		sData->PreviousFrame = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		// Textures ----------------------------------------------------------------------------------
 
@@ -130,8 +146,17 @@ namespace Mango {
 		}
 	}
 
-	void Renderer::EndScene()
+	void Renderer::EndScene(const Ref<Framebuffer>& target)
 	{
+		// Render Scene --------------------------------------------------------------------------------
+		
+		sData->ImmediateTarget->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->PreviousFrame->EnsureSize(target->GetWidth(), target->GetHeight());
+
+		Texture::Unbind(0);
+		sData->ImmediateTarget->Bind();
+		sData->ImmediateTarget->Clear(RENDERER_CLEAR_COLOR);
+
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
 
@@ -150,6 +175,18 @@ namespace Mango {
 			InternalDrawQuad(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
 			sData->RenderQueue2D.pop();
 		}
+
+		// Temporal Anti-aliasing --------------------------------------------------------------------
+
+		target->Bind();
+		sData->ImmediateTarget->BindAsTexture(0);
+		sData->PreviousFrame->BindAsTexture(1);
+		sData->TAAShader->Bind();
+		DrawScreenQuad();
+
+		Framebuffer::Blit(sData->PreviousFrame, target);
+
+		// -------------------------------------------------------------------------------------------
 	}
 
 	void Renderer::DrawQuad(const float3& pos, const float2& size, const float4& color)

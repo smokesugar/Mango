@@ -63,6 +63,8 @@ namespace Mango {
 		mProps.Width = width;
 		mProps.Height = height;
 
+		MG_CORE_INFO("Resizing da framebuffer.");
+
 		auto texture = CreateTexture();
 		CreateViews(texture.Get());
 	}

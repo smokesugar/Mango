@@ -20,15 +20,7 @@ namespace Mango {
 
 		SceneHierarchyPanel mSceneHierarchyPanel;
 
-		Ref<Framebuffer> mFramebuffer1;
-		Ref<Framebuffer> mFramebuffer2;
-		Ref<Framebuffer> mFramebuffer3;
-
-		Ref<Shader> mTAAShader;
-		Scope<SamplerState> mSamplerState;
-
-		Framebuffer* mBackBuffer;
-		Framebuffer* mFrontBuffer;
+		Ref<Framebuffer> mFramebuffer;
 
 		Ref<Texture2D> mTexture;
 

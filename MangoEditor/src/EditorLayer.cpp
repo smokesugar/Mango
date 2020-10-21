@@ -13,45 +13,16 @@ namespace Mango {
 		FramebufferProperties props;
 		props.Width = Application::Get().GetWindow().GetWidth();
 		props.Height = Application::Get().GetWindow().GetHeight();
-		props.Depth = true;
-		mFramebuffer1 = Ref<Framebuffer>(Framebuffer::Create(props));
-		mFramebuffer2 = Ref<Framebuffer>(Framebuffer::Create(props));
-		mFramebuffer3 = Ref<Framebuffer>(Framebuffer::Create(props));
-
-		mFrontBuffer = mFramebuffer1.get();
-		mBackBuffer = mFramebuffer2.get();
-
-		mSamplerState = Scope<SamplerState>(SamplerState::Create());
-		
-		mTAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
+		props.Depth = false;
+		mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
-		std::swap(mFrontBuffer, mBackBuffer);
-
-		Texture::Unbind(0);
-		Texture::Unbind(1);
-		mFramebuffer3->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-		mBackBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-
-		mFramebuffer3->Bind();
-		mFramebuffer3->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
-
-		mScene->SetScreenDimensions((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-		mScene->OnUpdate(dt);
-
-		// TAA
-		mFrontBuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-		mFrontBuffer->Bind();
-		mFrontBuffer->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
-
-		mFramebuffer3->BindAsTexture(0);
-		mBackBuffer->BindAsTexture(1);
-		mSamplerState->Bind(0);
-		mTAAShader->Bind();
-		Renderer::DrawScreenQuad();
+		mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+		mFramebuffer->Clear(RENDERER_CLEAR_COLOR);
+		mScene->OnUpdate(dt, mFramebuffer);
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -102,7 +73,7 @@ namespace Mango {
 		mViewportFocused = ImGui::IsWindowFocused();
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		mViewportSize = *(float2*)&size;
-		ImGui::Image(mFrontBuffer->GetTextureAttachment(), size);
+		ImGui::Image(mFramebuffer->GetTextureAttachment(), size);
 		ImGui::End();
 		ImGui::PopStyleVar();
 

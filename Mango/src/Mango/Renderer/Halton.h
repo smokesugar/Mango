@@ -4,11 +4,11 @@
 
 #include <vector>
 
-// Stolen from https://github.com/turanszkij/WickedEngine/blob/be79d4c0979ff3020766eb0097b8ed46e56b47ad/WickedEngine/wiMath.cpp
+// Straight up stolen from https://github.com/turanszkij/WickedEngine/blob/be79d4c0979ff3020766eb0097b8ed46e56b47ad/WickedEngine/wiMath.cpp
 
 namespace Mango {
 	
-	static const float4& GetHaltonSequence(int idx)
+	static const float4& GetHaltonSequence(size_t idx)
 	{
 		static const float4 HALTON[] = {
 			float4(0.5000000000f, 0.3333333333f, 0.2000000000f, 0.1428571429f),
