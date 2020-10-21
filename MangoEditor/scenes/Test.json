@@ -129,6 +129,58 @@
                     ]
                 }
             }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "assets\\models\\monkey.obj",
+                    "type": "model"
+                },
+                "tag": "Monkey",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        0.5,
+                        0.5,
+                        0.5
+                    ],
+                    "translation": [
+                        -0.699999988079071,
+                        0.6200000047683716,
+                        0.0
+                    ]
+                }
+            }
+        },
+        {
+            "components": {
+                "mesh": {
+                    "path": "",
+                    "type": "model"
+                },
+                "tag": "Empty Model",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
         }
     ]
 }

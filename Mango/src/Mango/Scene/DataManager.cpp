@@ -85,6 +85,10 @@ namespace Mango {
 						else if (comp.Type == MeshType::Capsule) {
 							j["entities"][ID]["components"]["mesh"]["type"] = "capsule";
 						}
+						else if (comp.Type == MeshType::Model) {
+							j["entities"][ID]["components"]["mesh"]["type"] = "model";
+							j["entities"][ID]["components"]["mesh"]["path"] = comp.Path;
+						}
 					}
 				}
 			}
@@ -182,6 +186,10 @@ namespace Mango {
 					}
 					else if (mesh["type"] == "capsule") {
 						entity.AddComponent<MeshComponent>(Mesh::CreateCapsule(), MeshType::Capsule);
+					}
+					else if (mesh["type"] == "model") {
+						std::string path = mesh["path"];
+						entity.AddComponent<MeshComponent>(path.empty() ? Mesh() : Mesh::CreateModel(path), MeshType::Model).Path = path;
 					}
 				}
 			}

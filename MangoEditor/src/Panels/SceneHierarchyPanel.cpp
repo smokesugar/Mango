@@ -264,6 +264,9 @@ namespace Mango {
 						ImGui::AlignTextToFramePadding();
 						ImGui::Text("Type");
 
+						if (comp.Type == MeshType::Model)
+							ImGui::Text("Path");
+
 						ImGui::NextColumn();
 						ImGui::PushItemWidth(-1.0f);
 
@@ -271,6 +274,7 @@ namespace Mango {
 						if (comp.Type == MeshType::Cube) wanted = "Cube";
 						if (comp.Type == MeshType::Sphere) wanted = "Sphere";
 						if (comp.Type == MeshType::Capsule) wanted = "Capsule";
+						if (comp.Type == MeshType::Model) wanted = "Model";
 
 						if (ImGui::BeginCombo("##mesh_type", wanted)) {
 							if (ImGui::Selectable("Cube", wanted == "Cube"))
@@ -279,6 +283,8 @@ namespace Mango {
 								wanted = "Sphere";
 							if (ImGui::Selectable("Capsule", wanted == "Capsule"))
 								wanted = "Capsule";
+							if (ImGui::Selectable("Model", wanted == "Model"))
+								wanted = "Model";
 							ImGui::EndCombo();
 						}
 						if (wanted == "Cube" && comp.Type != MeshType::Cube)
@@ -287,6 +293,25 @@ namespace Mango {
 							comp = MeshComponent(Mesh::CreateSphere(), MeshType::Sphere);
 						if (wanted == "Capsule" && comp.Type != MeshType::Capsule)
 							comp = MeshComponent(Mesh::CreateCapsule(), MeshType::Capsule);
+						if (wanted == "Model" && comp.Type != MeshType::Model)
+							comp = MeshComponent(Mesh(), MeshType::Model);
+
+						if (comp.Type == MeshType::Model) {
+							char buf[64];
+							memset(buf, 0, sizeof(buf));
+							memcpy(buf, comp.Path.c_str(), Min(comp.Path.size(), sizeof(buf)));
+							ImGui::PopItemWidth();
+							ImGui::InputText("##sprite_texture_path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+							ImGui::SameLine();
+							if (ImGui::Button("...")) {
+								std::string path;
+								if (FileDialog::Open(path)) {
+									comp = MeshComponent(Mesh::CreateModel(path), MeshType::Model);
+									comp.Path = path;
+								}
+							}
+							ImGui::PushItemWidth(-1.0f);
+						}
 
 						ImGui::Columns(1);
 						ImGui::PopItemWidth();

@@ -63,12 +63,12 @@ project "Mango"
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
         "%{Includes.stb_image}",
-        "%{Includes.json}"
+        "%{Includes.json}",
+        "Mango/vendor/assimp/include"
     }
 
     links {
         "dxguid.lib",
-        "dxgi.lib",
         "ImGui"
     }
 
@@ -101,10 +101,16 @@ project "Sandbox"
         "%{prj.name}/src/Shaders/**.hlsl",
     }
 
+    libdirs {
+        "Mango/vendor/assimp/bin"
+    }
+
     links {
         "Mango",
         "d3d11.lib",
-        "d3dcompiler.lib"
+        "dxgi.lib",
+        "d3dcompiler.lib",
+        "assimp.lib"
     }
 
     includedirs {
@@ -154,11 +160,17 @@ project "MangoEditor"
         "%{prj.name}/vendor/ImGuizmo/*.h",
         "%{prj.name}/vendor/ImGuizmo/*.cpp",
     }
+    
+    libdirs {
+        "Mango/vendor/assimp/bin"
+    }
 
     links {
         "Mango",
         "d3d11.lib",
-        "d3dcompiler.lib"
+        "dxgi.lib",
+        "d3dcompiler.lib",
+        "assimp.lib"
     }
 
     includedirs {
@@ -216,10 +228,16 @@ project "Tests"
         "Tests/vendor/catch2"
     }
 
+    libdirs {
+        "Mango/vendor/assimp/bin"
+    }
+
     links {
         "Mango",
         "d3d11.lib",
-        "d3dcompiler.lib"
+        "dxgi.lib",
+        "d3dcompiler.lib",
+        "assimp.lib"
     }
 
     filter "files:**.hlsl"

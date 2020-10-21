@@ -65,12 +65,13 @@ namespace Mango {
 	};
 
 	enum class MeshType {
-		Empty, Cube, Sphere, Capsule
+		Empty, Cube, Sphere, Capsule, Model
 	};
 
 	struct MeshComponent {
 		Mango::Mesh Mesh;
 		MeshType Type = MeshType::Empty;
+		std::string Path = "";
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
