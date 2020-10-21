@@ -7,3 +7,6 @@
 [submodule "MangoEditor/vendor/ImGuizmo"]
 	path = MangoEditor/vendor/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo
+[submodule "Mango/vendor/assimp"]
+	path = Mango/vendor/assimp
+	url = https://github.com/assimp/assimp
