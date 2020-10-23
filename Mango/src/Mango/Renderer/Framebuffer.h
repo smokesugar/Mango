@@ -28,6 +28,7 @@ namespace Mango {
 		static void Blit(const Ref<Framebuffer>& dst, const Ref<Framebuffer>& src);
 
 		static Framebuffer* Create(const FramebufferProperties& props);
+		static void BindMultiple(const std::vector<Ref<Framebuffer>>& framebuffers);
 	};
 
 }

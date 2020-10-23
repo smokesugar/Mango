@@ -21,6 +21,7 @@ namespace Mango {
 	{
 		Entity entity(mRegistry.Create(), this);
 		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<PreviousFrameTransformComponent>();
 		entity.AddComponent<TagComponent>(name);
 		return entity;
 	}
@@ -46,26 +47,28 @@ namespace Mango {
 			float aspect = (float)rendertarget->GetWidth() / (float)rendertarget->GetHeight();
 			Renderer::BeginScene(currentCamera->GetProjectionMatrix(aspect), cameraTransform, rendertarget->GetWidth(), rendertarget->GetHeight());
 
-			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent>();
-			for (auto& [size, sprites, transforms] : query) {
+			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent, PreviousFrameTransformComponent>();
+			for (auto& [size, sprites, transforms, previousTransforms] : query) {
 				for (size_t i = 0; i < size; i++) {
 					auto& spriteComp = sprites[i];
-					auto& transformComp = transforms[i];
+					auto transform = transforms[i].GetTransform();
+					auto prevTransform = &previousTransforms[i].Transform;
 
 					if (spriteComp.UsesTexture && spriteComp.Texture) {
-						Renderer::DrawQuad(transformComp.GetTransform(), spriteComp.Texture);
+						Renderer::DrawQuad(prevTransform, transform, spriteComp.Texture);
 					} else
-						Renderer::DrawQuad(transformComp.GetTransform(), spriteComp.Color);
+						Renderer::DrawQuad(prevTransform, transform, spriteComp.Color);
 				}
 			}
 
-			auto query1 = mRegistry.Query<MeshComponent, TransformComponent>();
-			for (auto& [size, meshes, transforms] : query1) {
+			auto query1 = mRegistry.Query<MeshComponent, TransformComponent, PreviousFrameTransformComponent>();
+			for (auto& [size, meshes, transforms, previousTransforms] : query1) {
 				for (size_t i = 0; i < size; i++) {
 					auto& meshComp = meshes[i];
-					auto& transform = transforms[i];
+					auto transform = transforms[i].GetTransform();
+					auto prevTransform = &previousTransforms[i].Transform;
 
-					Renderer::SubmitMesh(meshComp.Mesh, transform.GetTransform());
+					Renderer::SubmitMesh(meshComp.Mesh, prevTransform, transform);
 				}
 			}
 

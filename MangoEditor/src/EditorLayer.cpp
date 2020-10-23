@@ -20,6 +20,7 @@ namespace Mango {
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
+		mFPS = 1.0f / dt;
 		mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		mFramebuffer->Clear(RENDERER_CLEAR_COLOR);
 		mScene->OnUpdate(dt, mFramebuffer);
@@ -36,6 +37,7 @@ namespace Mango {
 
 		ImGui::Begin("Temp Panel");
 		bool& b = Renderer::TAAEnabled();
+		ImGui::Text("FPS: %f", mFPS);
 		ImGui::Checkbox("TAA", &b);
 		ImGui::End();
 

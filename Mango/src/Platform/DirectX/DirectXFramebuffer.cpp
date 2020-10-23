@@ -32,6 +32,35 @@ namespace Mango {
 		CreateViews(resource);
 	}
 
+	void Framebuffer::BindMultiple(const std::vector<Ref<Framebuffer>>& framebuffers) {
+		std::vector<ID3D11RenderTargetView*> rtvs;
+		ID3D11DepthStencilView* dsv = nullptr;
+
+		uint32_t width, height;
+
+		for (auto& framebuffer : framebuffers) {
+			auto dxframebuffer = std::static_pointer_cast<DirectXFramebuffer>(framebuffer);
+			rtvs.push_back(dxframebuffer->GetRenderTargetView());
+			width = framebuffer->GetWidth();
+			height = framebuffer->GetHeight();
+			if (!dsv && dxframebuffer->mProps.Depth)
+				dsv = dxframebuffer->mDSV.Get();
+		}
+
+		auto& context = RetrieveContext();
+
+		D3D11_VIEWPORT vp;
+		vp.TopLeftX = 0.0f;
+		vp.TopLeftY = 0.0f;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.Width = (float)width;
+		vp.Height = (float)height;
+
+		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
+		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets((uint32_t)rtvs.size(), rtvs.data(), dsv?dsv:nullptr));
+	}
+
 	void DirectXFramebuffer::Bind()
 	{
 		auto& context = RetrieveContext();
@@ -86,7 +115,7 @@ namespace Mango {
 		desc.Height = mProps.Height;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		desc.SampleDesc = {1, 0};
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;

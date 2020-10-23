@@ -10,18 +10,26 @@
 
 namespace Mango {
 
-	struct IndividualData {
+	struct GlobalUniforms {
+		xmmatrix PreviousViewProjection;
 		xmmatrix ViewProjection;
+	};
+
+	struct IndividualData {
+		xmmatrix PreviousTransform;
+		xmmatrix Transform;
 		float4 color;
 	};
 
 	struct RendererData {
+		xmmatrix PreviousView = XMMatrixIdentity();
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
 
 		Ref<VertexArray> Quad;
 		Ref<Texture2D> WhiteTexture;
 		Scope<SamplerState> Sampler;
+		Scope<SamplerState> SamplerPoint;
 
 		Ref<Shader> SpriteShader;
 		Ref<Shader> MeshShader;
@@ -29,11 +37,12 @@ namespace Mango {
 
 		Ref<Framebuffer> PreviousFrame;
 		Ref<Framebuffer> ImmediateTarget;
+		Ref<Framebuffer> VelocityBuffer;
 
 		bool TAAEnabled = true;
 
-		std::queue<std::tuple<xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
-		std::queue<std::pair<const Mesh*, xmmatrix>> RenderQueue3D;
+		std::queue<std::tuple<xmmatrix*, xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
+		std::queue<std::tuple<const Mesh*, xmmatrix*, xmmatrix>> RenderQueue3D;
 	};
 
 	static RendererData* sData;
@@ -60,17 +69,19 @@ namespace Mango {
 		sData->ImmediateTarget = Ref<Framebuffer>(Framebuffer::Create(props));
 		props.Depth = false;
 		sData->PreviousFrame = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->VelocityBuffer = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		// Textures ----------------------------------------------------------------------------------
 
 		sData->Sampler = Scope<SamplerState>(SamplerState::Create());
+		sData->SamplerPoint = Scope<SamplerState>(SamplerState::Create(SamplerState::Mode::Point));
 
 		uint32_t color = 0xffffffff;
 		sData->WhiteTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
 
 		// Uniform Buffers ---------------------------------------------------------------------------
 
-		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<xmmatrix>());
+		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<GlobalUniforms>());
 		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<IndividualData>());
 
 		// Quad --------------------------------------------------------------------------------------
@@ -116,22 +127,28 @@ namespace Mango {
 
 		float xJit = xOffset / (float)width;
 		float yJit = yOffset / (float)height;
+
 		xmmatrix jitterMatrix = sData->TAAEnabled ? XMMatrixTranslation(xJit, yJit, 0.0f) : XMMatrixIdentity();
 
-		xmmatrix viewProjection = XMMatrixInverse(nullptr, transform) * projection * jitterMatrix;
-		sData->GlobalUniforms->SetData(viewProjection);
+		xmmatrix view = XMMatrixInverse(nullptr, transform);
+		xmmatrix viewProjection = view * projection * jitterMatrix;
+		sData->GlobalUniforms->SetData<GlobalUniforms>({ sData->PreviousView * projection, viewProjection });
+
+		sData->PreviousView = view;
 	}
 
-	static void InternalDrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
+	static void InternalDrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
 		texture->Bind(0);
 		xmmatrix halfScale = XMMatrixScaling(0.5f, 0.5f, 1.0f) * transform;
-		sData->IndividualUniforms->SetData<IndividualData>({ halfScale, color });
+		xmmatrix halfScalePrev = XMMatrixScaling(0.5f, 0.5f, 1.0f) * previousTransform;
+		sData->IndividualUniforms->SetData<IndividualData>({ halfScalePrev, halfScale, color });
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
-	static void InternalRenderNode(const Node* node, const xmmatrix& parentTransform) {
+	static void InternalRenderNode(const Node* node, const xmmatrix& previousTransform, const xmmatrix& parentTransform) {
 		xmmatrix transform = node->Transform * parentTransform;
-		sData->IndividualUniforms->SetData<IndividualData>({ transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+		xmmatrix prevT = node->Transform * previousTransform;
+		sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 
 		for (auto va : node->Submeshes) {
 			va->Bind();
@@ -142,7 +159,7 @@ namespace Mango {
 		}
 
 		for (auto& node : node->Children) {
-			InternalRenderNode(&node, transform);
+			InternalRenderNode(&node, prevT, transform);
 		}
 	}
 
@@ -152,18 +169,24 @@ namespace Mango {
 		
 		sData->ImmediateTarget->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->PreviousFrame->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->VelocityBuffer->EnsureSize(target->GetWidth(), target->GetHeight());
 
 		Texture::Unbind(0);
-		sData->ImmediateTarget->Bind();
+		Texture::Unbind(1);
+		Texture::Unbind(2);
+		Texture::Unbind(3);
+		Framebuffer::BindMultiple({sData->ImmediateTarget, sData->VelocityBuffer});
 		sData->ImmediateTarget->Clear(RENDERER_CLEAR_COLOR);
+		sData->VelocityBuffer->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
 
 		sData->MeshShader->Bind();
 		while (!sData->RenderQueue3D.empty()) {
-			auto& [mesh, transform] = sData->RenderQueue3D.front();
-			InternalRenderNode(&mesh->RootNode, transform);
+			auto& [mesh, previousTransform, transform] = sData->RenderQueue3D.front();
+			InternalRenderNode(&mesh->RootNode, *previousTransform, transform);
+			*previousTransform = transform;
 			sData->RenderQueue3D.pop();
 		}
 
@@ -171,16 +194,19 @@ namespace Mango {
 		sData->Sampler->Bind(0);
 		sData->Quad->Bind();
 		while (!sData->RenderQueue2D.empty()) {
-			auto& tuple = sData->RenderQueue2D.front();
-			InternalDrawQuad(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+			auto& [prevTransform, transform, texture, color] = sData->RenderQueue2D.front();
+			InternalDrawQuad(*prevTransform, transform, texture, color);
+			*prevTransform = transform;
 			sData->RenderQueue2D.pop();
 		}
 
 		// Temporal Anti-aliasing --------------------------------------------------------------------
 
 		target->Bind();
+		sData->SamplerPoint->Bind(0);
 		sData->ImmediateTarget->BindAsTexture(0);
 		sData->PreviousFrame->BindAsTexture(1);
+		sData->VelocityBuffer->BindAsTexture(2);
 		sData->TAAShader->Bind();
 		DrawScreenQuad();
 
@@ -189,26 +215,14 @@ namespace Mango {
 		// -------------------------------------------------------------------------------------------
 	}
 
-	void Renderer::DrawQuad(const float3& pos, const float2& size, const float4& color)
+	void Renderer::DrawQuad(xmmatrix* previousFrameTransform, const xmmatrix& transform, const float4& color)
 	{
-		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
-		sData->RenderQueue2D.push({transform, sData->WhiteTexture, color});
+		sData->RenderQueue2D.push({ previousFrameTransform, transform, sData->WhiteTexture, color });
 	}
 
-	void Renderer::DrawQuad(const float3& pos, const float2& size, const Ref<Texture2D>& texture)
+	void Renderer::DrawQuad(xmmatrix* previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture)
 	{
-		xmmatrix transform = XMMatrixScaling(size.x, size.y, 1.0f) * XMMatrixTranslation(pos.x, pos.y, pos.z);
-		sData->RenderQueue2D.push({ transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
-	}
-
-	void Renderer::DrawQuad(const xmmatrix& transform, const float4& color)
-	{
-		sData->RenderQueue2D.push({ transform, sData->WhiteTexture, color });
-	}
-
-	void Renderer::DrawQuad(const xmmatrix& transform, const Ref<Texture2D>& texture)
-	{
-		sData->RenderQueue2D.push({ transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+		sData->RenderQueue2D.push({ previousFrameTransform, transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 	}
 
 	void Renderer::DrawScreenQuad()
@@ -217,9 +231,9 @@ namespace Mango {
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
-	void Renderer::SubmitMesh(const Mesh& mesh, const xmmatrix& transform)
+	void Renderer::SubmitMesh(const Mesh& mesh, xmmatrix* previousFrameTransform, const xmmatrix& transform)
 	{
-		sData->RenderQueue3D.push({ &mesh, transform });
+		sData->RenderQueue3D.push({ &mesh, previousFrameTransform, transform });
 	}
 
 }
