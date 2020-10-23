@@ -49,7 +49,7 @@ namespace Mango {
 				if (ImGui::MenuItem("Open")) {
 					std::string path;
 					if (FileDialog::Open(path)) {
-						mScene = DataManager::DeserializeScene(path);
+						mScene = Serializer::DeserializeScene(path);
 						mSceneHierarchyPanel.SetScene(mScene.get());
 					}
 				}
@@ -57,7 +57,7 @@ namespace Mango {
 				if (ImGui::MenuItem("Save As")) {
 					std::string path;
 					if (FileDialog::Save(path))
-						DataManager::SerializeScene(mScene, path);
+						Serializer::SerializeScene(mScene, path);
 				}
 
 				if (ImGui::MenuItem("Exit"))

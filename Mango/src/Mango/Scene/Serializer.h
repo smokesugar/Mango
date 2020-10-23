@@ -4,7 +4,7 @@
 
 namespace Mango {
 
-	namespace DataManager {
+	namespace Serializer {
 		void SerializeScene(const Ref<Scene>& scene, const std::string& filename);
 		Ref<Scene> DeserializeScene(const std::string& filename);
 	}

@@ -41,8 +41,8 @@ namespace Mango {
 
 		bool TAAEnabled = true;
 
-		std::queue<std::tuple<xmmatrix*, xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
-		std::queue<std::tuple<const Mesh*, xmmatrix*, xmmatrix>> RenderQueue3D;
+		std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
+		std::queue<std::tuple<const Mesh*, xmmatrix, xmmatrix>> RenderQueue3D;
 	};
 
 	static RendererData* sData;
@@ -185,8 +185,7 @@ namespace Mango {
 		sData->MeshShader->Bind();
 		while (!sData->RenderQueue3D.empty()) {
 			auto& [mesh, previousTransform, transform] = sData->RenderQueue3D.front();
-			InternalRenderNode(&mesh->RootNode, *previousTransform, transform);
-			*previousTransform = transform;
+			InternalRenderNode(&mesh->RootNode, previousTransform, transform);
 			sData->RenderQueue3D.pop();
 		}
 
@@ -195,8 +194,7 @@ namespace Mango {
 		sData->Quad->Bind();
 		while (!sData->RenderQueue2D.empty()) {
 			auto& [prevTransform, transform, texture, color] = sData->RenderQueue2D.front();
-			InternalDrawQuad(*prevTransform, transform, texture, color);
-			*prevTransform = transform;
+			InternalDrawQuad(prevTransform, transform, texture, color);
 			sData->RenderQueue2D.pop();
 		}
 
@@ -215,12 +213,12 @@ namespace Mango {
 		// -------------------------------------------------------------------------------------------
 	}
 
-	void Renderer::DrawQuad(xmmatrix* previousFrameTransform, const xmmatrix& transform, const float4& color)
+	void Renderer::DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const float4& color)
 	{
 		sData->RenderQueue2D.push({ previousFrameTransform, transform, sData->WhiteTexture, color });
 	}
 
-	void Renderer::DrawQuad(xmmatrix* previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture)
+	void Renderer::DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture)
 	{
 		sData->RenderQueue2D.push({ previousFrameTransform, transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 	}
@@ -231,7 +229,7 @@ namespace Mango {
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
-	void Renderer::SubmitMesh(const Mesh& mesh, xmmatrix* previousFrameTransform, const xmmatrix& transform)
+	void Renderer::SubmitMesh(const Mesh& mesh, const xmmatrix& previousFrameTransform, const xmmatrix& transform)
 	{
 		sData->RenderQueue3D.push({ &mesh, previousFrameTransform, transform });
 	}

@@ -14,9 +14,9 @@ namespace Mango {
 	struct PreviousFrameTransformComponent {
 		xmmatrix Transform;
 
+		PreviousFrameTransformComponent(const PreviousFrameTransformComponent&) = default;
 		PreviousFrameTransformComponent(const xmmatrix& transform = XMMatrixIdentity())
 			: Transform(transform) {}
-		PreviousFrameTransformComponent(const PreviousFrameTransformComponent&) = default;
 	};
 
 	namespace Renderer {
@@ -28,12 +28,12 @@ namespace Mango {
 		void BeginScene(const xmmatrix& projection, const xmmatrix& transform, uint32_t width, uint32_t height);
 		void EndScene(const Ref<Framebuffer>& target);
 
-		void DrawQuad(xmmatrix* previousFrameTransform, const xmmatrix& transform, const float4& color);
-		void DrawQuad(xmmatrix* previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture);
+		void DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const float4& color);
+		void DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture);
 
 		void DrawScreenQuad();
 
-		void SubmitMesh(const Mesh& mesh, xmmatrix* previousFrameTransform, const xmmatrix& transform);
+		void SubmitMesh(const Mesh& mesh, const xmmatrix& previousFrameTransform, const xmmatrix& transform);
 	}
 
 }

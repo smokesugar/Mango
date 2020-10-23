@@ -168,7 +168,6 @@ namespace Mango {
 							float farPlane = cam.GetPFar();
 							ImGui::InputFloat("##camera_far", &farPlane);
 							cam.SetPFar(farPlane);
-
 						}
 						if (orthographic) {
 							auto& cam = cameraComp.Camera;

@@ -1,5 +1,5 @@
 #include "mgpch.h"
-#include "DataManager.h"
+#include "Serializer.h"
 
 #include "Components.h"
 #include "Entity.h"
@@ -9,7 +9,7 @@ using namespace nlohmann;
 
 namespace Mango {
 
-	void DataManager::SerializeScene(const Ref<Scene>& scene, const std::string& filename)
+	void Serializer::SerializeScene(const Ref<Scene>& scene, const std::string& filename)
 	{
 		json j;
 
@@ -100,7 +100,7 @@ namespace Mango {
 		file.close();
 	}
 
-	Ref<Scene> DataManager::DeserializeScene(const std::string& filename)
+	Ref<Scene> Serializer::DeserializeScene(const std::string& filename)
 	{
 		auto scene = CreateRef<Scene>();
 

@@ -52,12 +52,14 @@ namespace Mango {
 				for (size_t i = 0; i < size; i++) {
 					auto& spriteComp = sprites[i];
 					auto transform = transforms[i].GetTransform();
-					auto prevTransform = &previousTransforms[i].Transform;
+					auto& prevTransform = previousTransforms[i].Transform;
 
 					if (spriteComp.UsesTexture && spriteComp.Texture) {
 						Renderer::DrawQuad(prevTransform, transform, spriteComp.Texture);
 					} else
 						Renderer::DrawQuad(prevTransform, transform, spriteComp.Color);
+
+					prevTransform = transform;
 				}
 			}
 
@@ -66,9 +68,11 @@ namespace Mango {
 				for (size_t i = 0; i < size; i++) {
 					auto& meshComp = meshes[i];
 					auto transform = transforms[i].GetTransform();
-					auto prevTransform = &previousTransforms[i].Transform;
+					auto& prevTransform = previousTransforms[i].Transform;
 
 					Renderer::SubmitMesh(meshComp.Mesh, prevTransform, transform);
+
+					prevTransform = transform;
 				}
 			}
 
