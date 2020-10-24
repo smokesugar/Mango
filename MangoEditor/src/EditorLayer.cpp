@@ -48,7 +48,7 @@ namespace Mango {
 			{
 				if (ImGui::MenuItem("Open")) {
 					std::string path;
-					if (FileDialog::Open(path)) {
+					if (FileDialog::Open(path, L"Mango Scene\0*.json;*.mango\0All\0*.*\0")) {
 						mScene = Serializer::DeserializeScene(path);
 						mSceneHierarchyPanel.SetScene(mScene.get());
 					}
@@ -56,7 +56,7 @@ namespace Mango {
 
 				if (ImGui::MenuItem("Save As")) {
 					std::string path;
-					if (FileDialog::Save(path))
+					if (FileDialog::Save(path, L"Mango Scene\0*.json;*.mango\0All\0*.*\0"))
 						Serializer::SerializeScene(mScene, path);
 				}
 

@@ -236,7 +236,7 @@ namespace Mango {
 							if (ImGui::Button("..."))
 							{
 								std::string path;
-								if (FileDialog::Open(path)) {
+								if (FileDialog::Open(path, L"Image File\0*.jpg;*.png;*.bmp\0All\0*.*\0")) {
 									sprite.Texture = mScene->GetTextureLibrary().Get(path);
 								}
 							}
@@ -310,7 +310,7 @@ namespace Mango {
 							ImGui::SameLine();
 							if (ImGui::Button("...")) {
 								std::string path;
-								if (FileDialog::Open(path)) {
+								if (FileDialog::Open(path, L"3D Model\0*.obj;*.fbx;*.gltf\0All\0*.*\0")) {
 									comp = MeshComponent(Mesh::CreateModel(path), MeshType::Model);
 									comp.Path = path;
 								}
