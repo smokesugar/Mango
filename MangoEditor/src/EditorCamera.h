@@ -34,5 +34,4 @@ namespace Mango {
 		xmvector mUp;
 		xmvector mRight;
 	};
-
 }

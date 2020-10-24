@@ -25,14 +25,15 @@ namespace Mango {
 
 	bool EditorCamera::OnRawMouseMove(RawMouseMoveEvent& e)
 	{
-		if (mMode == MovementMode::Translation)
+		switch (mMode)
 		{
+		case MovementMode::Translation: {
 			float sensitivity = XMVectorGetX(XMVector3Length(mOffset)) * 0.001f;
 			mFocus += mRight * sensitivity * e.GetDeltaX();
 			mFocus += mUp * sensitivity * e.GetDeltaY();
+			break;
 		}
-		else if (mMode == MovementMode::Rotation)
-		{
+		case MovementMode::Rotation: {
 			float sensitivity = 0.01f;
 
 			xmmatrix yaw = XMMatrixRotationAxis({ 0.0f, 1.0f, 0.0f }, e.GetDeltaX() * sensitivity);
@@ -45,6 +46,8 @@ namespace Mango {
 			xmmatrix pitch = XMMatrixRotationAxis(mRight, -e.GetDeltaY() * sensitivity);
 			mOffset = XMVector4Transform(mOffset, pitch);
 			mUp = XMVector4Transform(mUp, pitch);
+			break;
+		}
 		}
 
 		return false;
@@ -67,8 +70,7 @@ namespace Mango {
 
 	bool EditorCamera::OnMouseScroll(MouseScrollEvent& e)
 	{
-		if(mAcceptingInput)
-			mOffset -= e.GetDelta() * mOffset * 0.05;
+		mOffset -= e.GetDelta() * mOffset * 0.05f * (float)mAcceptingInput;
 		return false;
 	}
 
