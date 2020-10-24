@@ -8,7 +8,7 @@ namespace Mango {
 	public:
 		Entity()
 			:
-			mHandle(std::numeric_limits<uint32_t>::max()),
+			mHandle(ECS::Null),
 			mScene(nullptr)
 		{}
 
@@ -52,6 +52,8 @@ namespace Mango {
 		bool operator!=(const Entity& other) const {
 			return !(*this == other);
 		}
+
+		inline ECS::Entity GetID() const { return mHandle; }
 
 	private:
 		ECS::Entity mHandle;

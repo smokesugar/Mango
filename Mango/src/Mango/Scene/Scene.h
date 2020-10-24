@@ -15,12 +15,15 @@ namespace Mango {
 		class Entity Create(const std::string& name = "Unnamed Entity");
 
 		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget);
+
+		void SetActiveCamera(const class Entity& entity);
+		class Entity GetActiveCameraEntity();
 		
 		inline ECS::Registry& GetRegistry() { return mRegistry; }
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
-
+	private:
 		ECS::Registry mRegistry;
-
+		ECS::Entity mActiveCameraEntity;
 		class TextureLibrary mTextureLibrary;
 	};
 

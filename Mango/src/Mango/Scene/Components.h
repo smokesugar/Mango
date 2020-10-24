@@ -21,7 +21,7 @@ namespace Mango {
 		TransformComponent(const float3& translation, const float3& rotation, const float3& scale)
 			: Translation(translation), Rotation(rotation), Scale(scale) {}
 
-		inline xmmatrix GetTransform() {
+		inline xmmatrix GetMatrix() {
 			return RecomposeMatrix(Translation, Rotation, Scale);
 		}
 
@@ -41,7 +41,6 @@ namespace Mango {
 
 	struct CameraComponent {
 		Mango::Camera Camera;
-		bool Primary = false;
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;

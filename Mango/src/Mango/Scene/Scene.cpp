@@ -28,30 +28,21 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt, const Ref<Framebuffer>& rendertarget)
 	{
-		Camera* currentCamera = nullptr;
-		xmmatrix cameraTransform;
-		auto camQuery = mRegistry.Query<CameraComponent, TransformComponent>();
-		for (auto& [size, cameras, transforms] : camQuery) {
-			for (size_t i = 0; i < size; i++) {
-				if (currentCamera) continue;
-				auto& camComp = cameras[i];
-				if (camComp.Primary) {
-					auto& transComp = transforms[i];
-					currentCamera = &camComp.Camera;
-					cameraTransform = transComp.GetTransform();
-				}
-			}
-		}
+		Entity activeCamera(mActiveCameraEntity, this);
 
-		if (currentCamera) {
+		if (activeCamera.IsValid()) {
 			float aspect = (float)rendertarget->GetWidth() / (float)rendertarget->GetHeight();
-			Renderer::BeginScene(currentCamera->GetProjectionMatrix(aspect), cameraTransform, rendertarget->GetWidth(), rendertarget->GetHeight());
+
+			auto& camera = activeCamera.GetComponent<CameraComponent>().Camera;
+			auto cameraTransform = activeCamera.GetComponent<TransformComponent>().GetMatrix();
+
+			Renderer::BeginScene(camera.GetProjectionMatrix(aspect), cameraTransform, rendertarget->GetWidth(), rendertarget->GetHeight());
 
 			auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent, PreviousFrameTransformComponent>();
 			for (auto& [size, sprites, transforms, previousTransforms] : query) {
 				for (size_t i = 0; i < size; i++) {
 					auto& spriteComp = sprites[i];
-					auto transform = transforms[i].GetTransform();
+					auto transform = transforms[i].GetMatrix();
 					auto& prevTransform = previousTransforms[i].Transform;
 
 					if (spriteComp.UsesTexture && spriteComp.Texture) {
@@ -67,7 +58,7 @@ namespace Mango {
 			for (auto& [size, meshes, transforms, previousTransforms] : query1) {
 				for (size_t i = 0; i < size; i++) {
 					auto& meshComp = meshes[i];
-					auto transform = transforms[i].GetTransform();
+					auto transform = transforms[i].GetMatrix();
 					auto& prevTransform = previousTransforms[i].Transform;
 
 					Renderer::SubmitMesh(meshComp.Mesh, prevTransform, transform);
@@ -78,6 +69,16 @@ namespace Mango {
 
 			Renderer::EndScene(rendertarget);
 		}
+	}
+
+	void Scene::SetActiveCamera(const Entity& entity)
+	{
+		mActiveCameraEntity = entity.GetID();
+	}
+
+	Entity Scene::GetActiveCameraEntity()
+	{
+		return Entity(mActiveCameraEntity, this);
 	}
 
 }

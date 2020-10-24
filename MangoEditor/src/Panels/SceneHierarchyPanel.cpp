@@ -129,7 +129,7 @@ namespace Mango {
 							ImGui::Text("Size");
 						}
 
-						ImGui::Text("Primary");
+						ImGui::Text("Enabled");
 						ImGui::NextColumn();
 						ImGui::PushItemWidth(-1.0f);
 
@@ -176,7 +176,13 @@ namespace Mango {
 							cam.SetOSize(Max(size, 0.001f));
 						}
 
-						ImGui::Checkbox("##camera_primary", &cameraComp.Primary);
+						bool enabled = entity == mScene->GetActiveCameraEntity();
+						if (ImGui::Checkbox("##camera_enabled", &enabled)) {
+							if (enabled)
+								mScene->SetActiveCamera(entity);
+							else
+								mScene->SetActiveCamera(Entity());
+						}
 						ImGui::PopItemWidth();
 						ImGui::Columns(1);
 						ImGui::TreePop();

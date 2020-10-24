@@ -15,6 +15,9 @@ namespace Mango {
 
 		auto& reg = scene->GetRegistry();
 		auto query = reg.QueryE<>();
+
+		j["activeCamera"] = (uint32_t)scene->GetActiveCameraEntity().GetID();
+
 		for (const auto& [size, entities] : query)
 		{
 			for (size_t i = 0; i < size; i++)
@@ -25,15 +28,15 @@ namespace Mango {
 				// Tag Component
 				{
 					std::string tag = entity.GetComponent<TagComponent>().Tag;
-					j["entities"][ID]["components"]["tag"] = tag;
+					j["entities"][std::to_string(ID)]["components"]["tag"] = tag;
 				}
 
 				// Transform Component
 				{
 					auto& transform = entity.GetComponent<TransformComponent>();
-					j["entities"][ID]["components"]["transform"]["translation"] = { transform.Translation.x, transform.Translation.y, transform.Translation.z };
-					j["entities"][ID]["components"]["transform"]["rotation"] = { transform.Rotation.x, transform.Rotation.y, transform.Rotation.z };
-					j["entities"][ID]["components"]["transform"]["scale"] = { transform.Scale.x, transform.Scale.y, transform.Scale.z };
+					j["entities"][std::to_string(ID)]["components"]["transform"]["translation"] = { transform.Translation.x, transform.Translation.y, transform.Translation.z };
+					j["entities"][std::to_string(ID)]["components"]["transform"]["rotation"] = { transform.Rotation.x, transform.Rotation.y, transform.Rotation.z };
+					j["entities"][std::to_string(ID)]["components"]["transform"]["scale"] = { transform.Scale.x, transform.Scale.y, transform.Scale.z };
 				}
 
 				// Camera Component
@@ -41,16 +44,15 @@ namespace Mango {
 					if (entity.HasComponent<CameraComponent>()) {
 						auto& cam = entity.GetComponent<CameraComponent>();
 						if (cam.Camera.GetType() == Camera::Type::Orthographic) {
-							j["entities"][ID]["components"]["camera"]["type"] = "orthographic";
-							j["entities"][ID]["components"]["camera"]["size"] = cam.Camera.GetOSize();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "orthographic";
+							j["entities"][std::to_string(ID)]["components"]["camera"]["size"] = cam.Camera.GetOSize();
 						}
 						else if (cam.Camera.GetType() == Camera::Type::Perspective) {
-							j["entities"][ID]["components"]["camera"]["type"] = "perspective";
-							j["entities"][ID]["components"]["camera"]["fov"] = cam.Camera.GetPFOV();
-							j["entities"][ID]["components"]["camera"]["nearPlane"] = cam.Camera.GetPNear();
-							j["entities"][ID]["components"]["camera"]["farPlane"] = cam.Camera.GetPFar();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "perspective";
+							j["entities"][std::to_string(ID)]["components"]["camera"]["fov"] = cam.Camera.GetPFOV();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["nearPlane"] = cam.Camera.GetPNear();
+							j["entities"][std::to_string(ID)]["components"]["camera"]["farPlane"] = cam.Camera.GetPFar();
 						}
-						j["entities"][ID]["components"]["camera"]["primary"] = cam.Primary;
 					}
 				}
 
@@ -59,11 +61,11 @@ namespace Mango {
 					if (entity.HasComponent<SpriteRendererComponent>())
 					{
 						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
-						j["entities"][ID]["components"]["spriteRenderer"]["usesTexture"] = sprite.UsesTexture;
+						j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["usesTexture"] = sprite.UsesTexture;
 						if(sprite.UsesTexture)
-							j["entities"][ID]["components"]["spriteRenderer"]["texturePath"] = sprite.Texture ? sprite.Texture->GetPath() : "";
+							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["texturePath"] = sprite.Texture ? sprite.Texture->GetPath() : "";
 						else
-							j["entities"][ID]["components"]["spriteRenderer"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w };
+							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w };
 					}
 				}
 
@@ -74,20 +76,20 @@ namespace Mango {
 						auto& comp = entity.GetComponent<MeshComponent>();
 						auto& mesh = comp.Mesh;
 						if (comp.Type == MeshType::Empty) {
-							j["entities"][ID]["components"]["mesh"]["type"] = "empty";
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "empty";
 						}
 						else if (comp.Type == MeshType::Cube) {
-							j["entities"][ID]["components"]["mesh"]["type"] = "cube";
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "cube";
 						}
 						else if (comp.Type == MeshType::Sphere) {
-							j["entities"][ID]["components"]["mesh"]["type"] = "sphere";
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "sphere";
 						}
 						else if (comp.Type == MeshType::Capsule) {
-							j["entities"][ID]["components"]["mesh"]["type"] = "capsule";
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "capsule";
 						}
 						else if (comp.Type == MeshType::Model) {
-							j["entities"][ID]["components"]["mesh"]["type"] = "model";
-							j["entities"][ID]["components"]["mesh"]["path"] = comp.Path;
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "model";
+							j["entities"][std::to_string(ID)]["components"]["mesh"]["path"] = comp.Path;
 						}
 					}
 				}
@@ -111,8 +113,10 @@ namespace Mango {
 		std::string scenestring = ss.str();
 		json j = json::parse(scenestring);
 
+		ECS::Entity activeCamera = j["activeCamera"];
+
 		json& entities = j["entities"];
-		for (auto& e : entities)
+		for (auto& [id, e] : entities.items())
 		{
 			json& components = e["components"];
 			Entity entity = scene->Create(components["tag"]);
@@ -135,10 +139,14 @@ namespace Mango {
 				{
 					json& camera = components["camera"];
 
+					if (std::stoi(id) == activeCamera)
+						scene->SetActiveCamera(entity);
+
+
 					if (camera["type"] == "orthographic")
 					{
 						float size = camera["size"];
-						entity.AddComponent<CameraComponent>(Camera::CreateOrthographic(size)).Primary = camera["primary"];
+						entity.AddComponent<CameraComponent>(Camera::CreateOrthographic(size));
 					}
 					else if(camera["type"] == "perspective")
 					{
@@ -146,7 +154,7 @@ namespace Mango {
 						float nearPlane = camera["nearPlane"];
 						float farPlane = camera["farPlane"];
 
-						entity.AddComponent<CameraComponent>(Camera::CreatePerspective(fov, nearPlane, farPlane)).Primary = camera["primary"];
+						entity.AddComponent<CameraComponent>(Camera::CreatePerspective(fov, nearPlane, farPlane));
 					}
 				}
 			}
