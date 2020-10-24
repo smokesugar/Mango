@@ -12,7 +12,7 @@ namespace Mango {
 	enum class EventType {
 		None = 0,
 		WindowClose, WindowResize,
-		MouseMove, MouseButtonDown, MouseButtonUp, MouseScroll,
+		MouseMove, RawMouseMove, MouseButtonDown, MouseButtonUp, MouseScroll,
 		KeyDown, KeyUp
 	};
 

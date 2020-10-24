@@ -8,6 +8,13 @@
 #include "Mango/Core/Application.h"
 #include "Mango/ImGui/ImGuiContext.h"
 
+#ifndef HID_USAGE_PAGE_GENERIC
+#define HID_USAGE_PAGE_GENERIC ((unsigned short) 0x01)
+#endif
+#ifndef HID_USAGE_GENERIC_MOUSE
+#define HID_USAGE_GENERIC_MOUSE ((unsigned short) 0x02)
+#endif
+
 namespace Mango {
 
 	void ImGuiContext::WindowAPI_Init() {
@@ -161,7 +168,20 @@ namespace Mango {
 
 			break;
 		}
+		case WM_INPUT: {
+			// Raw Mouse Move
+			uint32_t size = sizeof(RAWINPUT);
+			static RAWINPUT raw[sizeof(RAWINPUT)];
+			GetRawInputData((HRAWINPUT)lparam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
+			if (raw->header.dwType == RIM_TYPEMOUSE) {
+				float deltaX = (float)raw->data.mouse.lLastX;
+				float deltaY = (float)raw->data.mouse.lLastY;
 
+				RawMouseMoveEvent e(deltaX, deltaY);
+				mEventCallback(e);
+			}
+			break;
+		}
 		}
 
 		return DefWindowProc(mHandle, msg, wparam, lparam);
@@ -187,12 +207,16 @@ namespace Mango {
 		AdjustWindowRectEx(&wr, WS_OVERLAPPEDWINDOW, FALSE, 0);
 
 		mHandle = CreateWindowEx(0, window_class, WidenString(mTitle).c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr, hInstance, this);
-
 		MG_CORE_ASSERT(mHandle, "Failed to create window: {0}", Translate(GetLastError()));
-
 		ShowWindow(mHandle, SW_SHOWDEFAULT);
-
 		UnregisterClass(window_class, hInstance);
+
+		RAWINPUTDEVICE rid[1];
+		rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+		rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+		rid[0].dwFlags = RIDEV_INPUTSINK;
+		rid[0].hwndTarget = mHandle;
+		RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
 
 		MG_CORE_INFO("Created a window: {0} ({1}, {2})", mTitle, mWidth, mHeight);
 	}

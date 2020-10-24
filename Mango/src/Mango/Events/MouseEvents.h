@@ -68,6 +68,28 @@ namespace Mango {
 		float mXPos, mYPos;
 	};
 
+	class RawMouseMoveEvent : public Event {
+	public:
+		RawMouseMoveEvent(float deltaX, float deltaY)
+			: mDeltaX(deltaX), mDeltaY(deltaY)
+		{}
+
+		virtual std::string ToString() const override {
+			std::stringstream ss;
+			ss << "RawMouseMoveEvent: " << mDeltaX << ", " << mDeltaY;
+			return ss.str();
+		}
+
+		inline float GetDeltaX() const { return mDeltaX; }
+		inline float GetDeltaY() const { return mDeltaY; }
+		inline std::pair<float, float> GetDelta() const { return {mDeltaX, mDeltaY}; }
+
+		EVENT_SET_CATEGORY(EventCategory_Mouse | EventCategory_Input)
+		EVENT_SET_TYPE(RawMouseMove)
+	private:
+		float mDeltaX, mDeltaY;
+	};
+
 	class MouseScrollEvent : public Event {
 	public:
 		MouseScrollEvent(float delta)

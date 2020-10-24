@@ -23,12 +23,15 @@ namespace Mango {
 		mFPS = 1.0f / dt;
 		mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		mFramebuffer->Clear(RENDERER_CLEAR_COLOR);
-		mScene->OnUpdate(dt, mFramebuffer);
+		if(mScenePlaying)
+			mScene->OnUpdate(dt, mFramebuffer);
+		else
+			mScene->OnUpdate(dt, mFramebuffer, mEditorCamera.GetProjectionMatrix(mViewportSize.x/mViewportSize.y), mEditorCamera.GetTransform());
 	}
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		EventDispatcher dispatcher(e);
+		mEditorCamera.OnEvent(e);
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -39,6 +42,7 @@ namespace Mango {
 		bool& b = Renderer::TAAEnabled();
 		ImGui::Text("FPS: %f", mFPS);
 		ImGui::Checkbox("TAA", &b);
+		ImGui::Checkbox("Scene Playing", &mScenePlaying);
 		ImGui::End();
 
 		// Menu bar
@@ -76,6 +80,7 @@ namespace Mango {
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		mViewportSize = *(float2*)&size;
 		ImGui::Image(mFramebuffer->GetTextureAttachment(), size);
+		mEditorCamera.SetAcceptingInput(ImGui::IsWindowHovered());
 		ImGui::End();
 		ImGui::PopStyleVar();
 

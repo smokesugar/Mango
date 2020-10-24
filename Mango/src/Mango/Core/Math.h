@@ -67,9 +67,9 @@ namespace Mango {
 		float4x4 mat;
 		XMStoreFloat4x4(&mat, matrix);
 
-		float sx = sqrtf(pow(mat.m[0][0], 2) + pow(mat.m[0][1], 2) + pow(mat.m[0][2], 2));
-		float sy = sqrtf(pow(mat.m[1][0], 2) + pow(mat.m[1][1], 2) + pow(mat.m[1][2], 2));
-		float sz = sqrtf(pow(mat.m[2][0], 2) + pow(mat.m[2][1], 2) + pow(mat.m[2][2], 2));
+		float sx = sqrtf(powf(mat.m[0][0], 2.0f) + powf(mat.m[0][1], 2.0f) + powf(mat.m[0][2], 2.0f));
+		float sy = sqrtf(powf(mat.m[1][0], 2.0f) + powf(mat.m[1][1], 2.0f) + powf(mat.m[1][2], 2.0f));
+		float sz = sqrtf(powf(mat.m[2][0], 2.0f) + powf(mat.m[2][1], 2.0f) + powf(mat.m[2][2], 2.0f));
 
 		mat.m[0][0] /= sx;
 		mat.m[0][1] /= sx;

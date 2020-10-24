@@ -5,7 +5,7 @@
 #include "Mango/Core/Log.h"
 #include "Mango/Core/ECS.h"
 #include "Mango/Core/FileDialog.h"
-#include "Mango/Core/InputCodes.h"
+#include "Mango/Core/Input.h"
 
 #include "Mango/Renderer/Renderer.h"
 #include "Mango/Renderer/RenderCommand.h"

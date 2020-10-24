@@ -15,6 +15,7 @@ namespace Mango {
 		class Entity Create(const std::string& name = "Unnamed Entity");
 
 		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget);
+		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
 
 		void SetActiveCamera(const class Entity& entity);
 		class Entity GetActiveCameraEntity();
