@@ -1,7 +1,6 @@
 #include "mgpch.h"
 #include "Scene.h"
 
-#include "Entity.h"
 #include "Components.h"
 #include "Mango/Renderer/Renderer.h"
 
@@ -17,22 +16,21 @@ namespace Mango {
 
 	}
 
-	Entity Scene::Create(const std::string& name)
+	ECS::Entity Scene::Create(const std::string& name)
 	{
-		Entity entity(mRegistry.Create(), this);
-		entity.AddComponent<TransformComponent>();
-		entity.AddComponent<PreviousFrameTransformComponent>();
-		entity.AddComponent<TagComponent>(name);
+		auto entity = mRegistry.Create();
+		mRegistry.Emplace<TransformComponent>(entity);
+		mRegistry.Emplace<PreviousFrameTransformComponent>(entity);
+		mRegistry.Emplace<TagComponent>(entity, name);;
 		return entity;
 	}
 
 	void Scene::OnUpdate(float dt, const Ref<Framebuffer>& rendertarget)
 	{
-		Entity activeCamera(mActiveCameraEntity, this);
-		if (activeCamera.IsValid())
+		if (mRegistry.Valid(mActiveCameraEntity))
 		{
-			auto transform = activeCamera.GetComponent<TransformComponent>().GetMatrix();
-			auto& camera = activeCamera.GetComponent<CameraComponent>().Camera;
+			auto transform = mRegistry.Get<TransformComponent>(mActiveCameraEntity).GetMatrix();
+			auto& camera = mRegistry.Get<CameraComponent>(mActiveCameraEntity).Camera;
 			float aspect = (float)rendertarget->GetWidth() / (float)rendertarget->GetHeight();
 			OnUpdate(dt, rendertarget, camera.GetProjectionMatrix(((float)rendertarget->GetWidth() / (float)rendertarget->GetHeight())), transform);
 		}
@@ -75,14 +73,14 @@ namespace Mango {
 		Renderer::EndScene(rendertarget);
 	}
 
-	void Scene::SetActiveCamera(const Entity& entity)
+	void Scene::SetActiveCamera(ECS::Entity entity)
 	{
-		mActiveCameraEntity = entity.GetID();
+		mActiveCameraEntity = entity;
 	}
 
-	Entity Scene::GetActiveCameraEntity()
+	ECS::Entity Scene::GetActiveCameraEntity()
 	{
-		return Entity(mActiveCameraEntity, this);
+		return mActiveCameraEntity;
 	}
 
 }

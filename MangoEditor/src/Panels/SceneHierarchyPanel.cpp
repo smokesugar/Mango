@@ -4,7 +4,6 @@
 
 #include "Mango/Core/FileDialog.h"
 #include "Mango/Scene/Components.h"
-#include "Mango/Scene/Entity.h"
 
 #include <imgui.h>
 
@@ -19,12 +18,14 @@ namespace Mango {
 	{
 		// Scene Hierarchy -------------------------------------------------------------------------------------------------------------
 
+		auto& reg = mScene->GetRegistry();
+
 		static ECS::Entity rightClickedEntity = ECS::Null;
 
 		ImGui::Begin("Scene Hierarchy");
 		if (ImGui::Button("Create Entity"))
 			mScene->Create();
-		auto query = mScene->GetRegistry().QueryE<TagComponent>();
+		auto query = reg.QueryE<TagComponent>();
 		for (auto& [size, entities, tags] : query)
 		{
 			for (size_t i = 0; i < size; i++)
@@ -50,8 +51,8 @@ namespace Mango {
 		
 		if (ImGui::BeginPopup("delete_entity")) {
 			if (ImGui::Button("Delete")) {
-				if(mScene->GetRegistry().Valid(rightClickedEntity))
-					mScene->GetRegistry().Destroy(rightClickedEntity);
+				if(reg.Valid(rightClickedEntity))
+					reg.Destroy(rightClickedEntity);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
@@ -65,13 +66,11 @@ namespace Mango {
 		// Properties ----------------------------------------------------------------------------------------------------------------
 
 		ImGui::Begin("Properties");
-		if (mScene->GetRegistry().Valid(mSelectedEntity))
+		if (reg.Valid(mSelectedEntity))
 		{
-			Entity entity = Entity(mSelectedEntity, mScene);
-
 			// Tag Component
 			{
-				std::string& tag = entity.GetComponent<TagComponent>().Tag;
+				std::string& tag = reg.Get<TagComponent>(mSelectedEntity).Tag;
 				char buf[64];
 				memset(buf, 0, sizeof(buf));
 				memcpy(buf, tag.c_str(), tag.size());
@@ -90,7 +89,7 @@ namespace Mango {
 					ImGui::Text("Scale");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1.0f);
-					auto& transform = entity.GetComponent<TransformComponent>();
+					auto& transform = reg.Get<TransformComponent>(mSelectedEntity);
 					ImGui::DragFloat3("##transform_position", ValuePtr(transform.Translation), 0.01f);
 					ImGui::DragFloat3("##transform_rotation", ValuePtr(transform.Rotation), 0.1f);
 					ImGui::DragFloat3("##transform_scale", ValuePtr(transform.Scale), 0.01f, 0.001f, INFINITY);
@@ -104,14 +103,14 @@ namespace Mango {
 
 			// Camera Component
 			{
-				if (entity.HasComponent<CameraComponent>())
+				if (reg.Has<CameraComponent>(mSelectedEntity))
 				{
 					bool open = ImGui::TreeNodeEx(typeid(CameraComponent).name(), 0, "Camera");
 					SetDeleteTypeOnRightClick<CameraComponent>();
 
 					if (open)
 					{
-						auto& cameraComp = entity.GetComponent<CameraComponent>();
+						auto& cameraComp = reg.Get<CameraComponent>(mSelectedEntity);
 
 						bool orthographic = cameraComp.Camera.GetType() == Camera::Type::Orthographic;
 
@@ -176,12 +175,12 @@ namespace Mango {
 							cam.SetOSize(Max(size, 0.001f));
 						}
 
-						bool enabled = entity == mScene->GetActiveCameraEntity();
+						bool enabled = mSelectedEntity == mScene->GetActiveCameraEntity();
 						if (ImGui::Checkbox("##camera_enabled", &enabled)) {
 							if (enabled)
-								mScene->SetActiveCamera(entity);
+								mScene->SetActiveCamera(mSelectedEntity);
 							else
-								mScene->SetActiveCamera(Entity());
+								mScene->SetActiveCamera(ECS::Null);
 						}
 						ImGui::PopItemWidth();
 						ImGui::Columns(1);
@@ -193,13 +192,13 @@ namespace Mango {
 
 			// Sprite Renderer Component
 			{
-				if (entity.HasComponent<SpriteRendererComponent>())
+				if (reg.Has<SpriteRendererComponent>(mSelectedEntity))
 				{
 					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite Renderer");
 					SetDeleteTypeOnRightClick<SpriteRendererComponent>();
 
 					if (open) {
-						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
+						auto& sprite = reg.Get<SpriteRendererComponent>(mSelectedEntity);
 						ImGui::Columns(2);
 						ImGui::AlignTextToFramePadding();
 
@@ -255,12 +254,12 @@ namespace Mango {
 
 			// Mesh Component
 			{
-				if (entity.HasComponent<MeshComponent>())
+				if (reg.Has<MeshComponent>(mSelectedEntity))
 				{
 					bool open = ImGui::TreeNodeEx(typeid(MeshComponent).name(), 0, "Mesh");
 					SetDeleteTypeOnRightClick<MeshComponent>();
 
-					auto& comp = entity.GetComponent<MeshComponent>();
+					auto& comp = reg.Get<MeshComponent>(mSelectedEntity);
 					Mesh& mesh = comp.Mesh;
 					
 					if (open)
@@ -332,21 +331,21 @@ namespace Mango {
 					ImGui::OpenPopup("add_component");
 
 				if (ImGui::BeginPopup("add_component")) {
-					if (!entity.HasComponent<CameraComponent>()) {
+					if (!reg.Has<CameraComponent>(mSelectedEntity)) {
 						if (ImGui::Button("Camera")) {
-							entity.AddComponent<CameraComponent>(Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f));
+							reg.Emplace<CameraComponent>(mSelectedEntity, Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f));
 							ImGui::CloseCurrentPopup();
 						}
 					}
-					if (!entity.HasComponent<SpriteRendererComponent>()) {
+					if (!reg.Has<SpriteRendererComponent>(mSelectedEntity)) {
 						if (ImGui::Button("Sprite Renderer")) {
-							entity.AddComponent<SpriteRendererComponent>();
+							reg.Emplace<SpriteRendererComponent>(mSelectedEntity);
 							ImGui::CloseCurrentPopup();
 						}
 					}
-					if (!entity.HasComponent<MeshComponent>()) {
+					if (!reg.Has<MeshComponent>(mSelectedEntity)) {
 						if (ImGui::Button("Mesh")) {
-							entity.AddComponent<MeshComponent>();
+							reg.Emplace<MeshComponent>(mSelectedEntity);
 							ImGui::CloseCurrentPopup();
 						}
 					}

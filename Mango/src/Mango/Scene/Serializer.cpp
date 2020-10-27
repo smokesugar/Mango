@@ -2,7 +2,6 @@
 #include "Serializer.h"
 
 #include "Components.h"
-#include "Entity.h"
 
 #include <json.hpp>
 using namespace nlohmann;
@@ -16,80 +15,79 @@ namespace Mango {
 		auto& reg = scene->GetRegistry();
 		auto query = reg.QueryE<>();
 
-		j["activeCamera"] = (uint32_t)scene->GetActiveCameraEntity().GetID();
+		j["activeCamera"] = (uint32_t)scene->GetActiveCameraEntity();
 
 		for (const auto& [size, entities] : query)
 		{
 			for (size_t i = 0; i < size; i++)
 			{
-				ECS::Entity ID = entities[i];
-				Entity entity(ID, scene.get());
+				ECS::Entity entity = entities[i];
 
 				// Tag Component
 				{
-					std::string tag = entity.GetComponent<TagComponent>().Tag;
-					j["entities"][std::to_string(ID)]["components"]["tag"] = tag;
+					std::string tag = reg.Get<TagComponent>(entity).Tag;
+					j["entities"][std::to_string(entity)]["components"]["tag"] = tag;
 				}
 
 				// Transform Component
 				{
-					auto& transform = entity.GetComponent<TransformComponent>();
-					j["entities"][std::to_string(ID)]["components"]["transform"]["translation"] = { transform.Translation.x, transform.Translation.y, transform.Translation.z };
-					j["entities"][std::to_string(ID)]["components"]["transform"]["rotation"] = { transform.Rotation.x, transform.Rotation.y, transform.Rotation.z };
-					j["entities"][std::to_string(ID)]["components"]["transform"]["scale"] = { transform.Scale.x, transform.Scale.y, transform.Scale.z };
+					auto& transform = reg.Get<TransformComponent>(entity);
+					j["entities"][std::to_string(entity)]["components"]["transform"]["translation"] = { transform.Translation.x, transform.Translation.y, transform.Translation.z };
+					j["entities"][std::to_string(entity)]["components"]["transform"]["rotation"] = { transform.Rotation.x, transform.Rotation.y, transform.Rotation.z };
+					j["entities"][std::to_string(entity)]["components"]["transform"]["scale"] = { transform.Scale.x, transform.Scale.y, transform.Scale.z };
 				}
 
 				// Camera Component
 				{
-					if (entity.HasComponent<CameraComponent>()) {
-						auto& cam = entity.GetComponent<CameraComponent>();
+					if (reg.Has<CameraComponent>(entity)) {
+						auto& cam = reg.Get<CameraComponent>(entity);
 						if (cam.Camera.GetType() == Camera::Type::Orthographic) {
-							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "orthographic";
-							j["entities"][std::to_string(ID)]["components"]["camera"]["size"] = cam.Camera.GetOSize();
+							j["entities"][std::to_string(entity)]["components"]["camera"]["type"] = "orthographic";
+							j["entities"][std::to_string(entity)]["components"]["camera"]["size"] = cam.Camera.GetOSize();
 						}
 						else if (cam.Camera.GetType() == Camera::Type::Perspective) {
-							j["entities"][std::to_string(ID)]["components"]["camera"]["type"] = "perspective";
-							j["entities"][std::to_string(ID)]["components"]["camera"]["fov"] = cam.Camera.GetPFOV();
-							j["entities"][std::to_string(ID)]["components"]["camera"]["nearPlane"] = cam.Camera.GetPNear();
-							j["entities"][std::to_string(ID)]["components"]["camera"]["farPlane"] = cam.Camera.GetPFar();
+							j["entities"][std::to_string(entity)]["components"]["camera"]["type"] = "perspective";
+							j["entities"][std::to_string(entity)]["components"]["camera"]["fov"] = cam.Camera.GetPFOV();
+							j["entities"][std::to_string(entity)]["components"]["camera"]["nearPlane"] = cam.Camera.GetPNear();
+							j["entities"][std::to_string(entity)]["components"]["camera"]["farPlane"] = cam.Camera.GetPFar();
 						}
 					}
 				}
 
 				// Sprite Renderer
 				{
-					if (entity.HasComponent<SpriteRendererComponent>())
+					if (reg.Has<SpriteRendererComponent>(entity))
 					{
-						auto& sprite = entity.GetComponent<SpriteRendererComponent>();
-						j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["usesTexture"] = sprite.UsesTexture;
+						auto& sprite = reg.Get<SpriteRendererComponent>(entity);
+						j["entities"][std::to_string(entity)]["components"]["spriteRenderer"]["usesTexture"] = sprite.UsesTexture;
 						if(sprite.UsesTexture)
-							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["texturePath"] = sprite.Texture ? sprite.Texture->GetPath() : "";
+							j["entities"][std::to_string(entity)]["components"]["spriteRenderer"]["texturePath"] = sprite.Texture ? sprite.Texture->GetPath() : "";
 						else
-							j["entities"][std::to_string(ID)]["components"]["spriteRenderer"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w };
+							j["entities"][std::to_string(entity)]["components"]["spriteRenderer"]["color"] = { sprite.Color.x, sprite.Color.y, sprite.Color.z, sprite.Color.w };
 					}
 				}
 
 				// Mesh
 				{
-					if (entity.HasComponent<MeshComponent>())
+					if (reg.Has<MeshComponent>(entity))
 					{
-						auto& comp = entity.GetComponent<MeshComponent>();
+						auto& comp = reg.Get<MeshComponent>(entity);
 						auto& mesh = comp.Mesh;
 						if (comp.Type == MeshType::Empty) {
-							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "empty";
+							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "empty";
 						}
 						else if (comp.Type == MeshType::Cube) {
-							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "cube";
+							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "cube";
 						}
 						else if (comp.Type == MeshType::Sphere) {
-							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "sphere";
+							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "sphere";
 						}
 						else if (comp.Type == MeshType::Capsule) {
-							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "capsule";
+							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "capsule";
 						}
 						else if (comp.Type == MeshType::Model) {
-							j["entities"][std::to_string(ID)]["components"]["mesh"]["type"] = "model";
-							j["entities"][std::to_string(ID)]["components"]["mesh"]["path"] = comp.Path;
+							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "model";
+							j["entities"][std::to_string(entity)]["components"]["mesh"]["path"] = comp.Path;
 						}
 					}
 				}
@@ -105,6 +103,7 @@ namespace Mango {
 	Ref<Scene> Serializer::DeserializeScene(const std::string& filename)
 	{
 		auto scene = CreateRef<Scene>();
+		auto& reg = scene->GetRegistry();
 
 		std::fstream file(filename);
 		MG_CORE_ASSERT(file.is_open(), "Failed to read from scene file '{0}'.", filename);
@@ -119,7 +118,7 @@ namespace Mango {
 		for (auto& [id, e] : entities.items())
 		{
 			json& components = e["components"];
-			Entity entity = scene->Create(components["tag"]);
+			ECS::Entity entity = scene->Create(components["tag"]);
 
 			// Transform
 			{
@@ -130,7 +129,7 @@ namespace Mango {
 				std::vector<float> scaleArray = components["transform"]["scale"];
 				float3 scale = *(float3*)(scaleArray.data());
 
-				entity.GetComponent<TransformComponent>() = TransformComponent(translation, rotation, scale);
+				reg.Get<TransformComponent>(entity) = TransformComponent(translation, rotation, scale);
 			}
 
 			// Camera
@@ -146,7 +145,7 @@ namespace Mango {
 					if (camera["type"] == "orthographic")
 					{
 						float size = camera["size"];
-						entity.AddComponent<CameraComponent>(Camera::CreateOrthographic(size));
+						reg.Emplace<CameraComponent>(entity, Camera::CreateOrthographic(size));
 					}
 					else if(camera["type"] == "perspective")
 					{
@@ -154,7 +153,7 @@ namespace Mango {
 						float nearPlane = camera["nearPlane"];
 						float farPlane = camera["farPlane"];
 
-						entity.AddComponent<CameraComponent>(Camera::CreatePerspective(fov, nearPlane, farPlane));
+						reg.Emplace<CameraComponent>(entity, Camera::CreatePerspective(fov, nearPlane, farPlane));
 					}
 				}
 			}
@@ -166,14 +165,14 @@ namespace Mango {
 					bool usesTexture = sprite["usesTexture"];
 					if (usesTexture) {
 						std::string path = sprite["texturePath"];
-						entity.AddComponent<SpriteRendererComponent>(scene->GetTextureLibrary().Get(path));
+						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path));
 					}
 					else
 					{
 						std::vector<float> c = sprite["color"];
 						float4 color;
 						memcpy(&color, c.data(), sizeof(color));
-						entity.AddComponent<SpriteRendererComponent>(color);
+						reg.Emplace<SpriteRendererComponent>(entity, color);
 					}
 					
 				}
@@ -184,20 +183,20 @@ namespace Mango {
 				if (components.find("mesh") != components.end()) {
 					json& mesh = components["mesh"];
 					if (mesh["type"] == "empty") {
-						entity.AddComponent<MeshComponent>();
+						reg.Emplace<MeshComponent>(entity);
 					}
 					else if (mesh["type"] == "cube") {
-						entity.AddComponent<MeshComponent>(Mesh::CreateCube(), MeshType::Cube);
+						reg.Emplace<MeshComponent>(entity, Mesh::CreateCube(), MeshType::Cube);
 					}
 					else if (mesh["type"] == "sphere") {
-						entity.AddComponent<MeshComponent>(Mesh::CreateSphere(), MeshType::Sphere);
+						reg.Emplace<MeshComponent>(entity, Mesh::CreateSphere(), MeshType::Sphere);
 					}
 					else if (mesh["type"] == "capsule") {
-						entity.AddComponent<MeshComponent>(Mesh::CreateCapsule(), MeshType::Capsule);
+						reg.Emplace<MeshComponent>(entity, Mesh::CreateCapsule(), MeshType::Capsule);
 					}
 					else if (mesh["type"] == "model") {
 						std::string path = mesh["path"];
-						entity.AddComponent<MeshComponent>(path.empty() ? Mesh() : Mesh::CreateModel(path), MeshType::Model).Path = path;
+						reg.Emplace<MeshComponent>(entity, path.empty() ? Mesh() : Mesh::CreateModel(path), MeshType::Model).Path = path;
 					}
 				}
 			}

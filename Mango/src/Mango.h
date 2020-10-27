@@ -13,6 +13,6 @@
 #include "Mango/Renderer/Buffer.h"
 #include "Mango/Renderer/Texture.h"
 
-#include "Mango/Scene/Entity.h"
+#include "Mango/Scene/Scene.h"
 #include "Mango/Scene/Components.h"
 #include "Mango/Scene/Serializer.h"

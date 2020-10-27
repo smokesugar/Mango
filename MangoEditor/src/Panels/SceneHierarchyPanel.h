@@ -19,8 +19,7 @@ namespace Mango {
 		void SetDeleteTypeOnRightClick() {
 			if (ImGui::IsItemClicked(1)) {
 				mCompDeleteFunction = [&]() {
-					Entity ent(mSelectedEntity, mScene);
-					ent.RemoveComponent<T>();
+					mScene->GetRegistry().Remove<T>(mSelectedEntity);
 				};
 				ImGui::OpenPopup("remove_component");
 			}

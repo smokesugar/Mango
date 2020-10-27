@@ -12,13 +12,13 @@ namespace Mango {
 		Scene();
 		~Scene();
 
-		class Entity Create(const std::string& name = "Unnamed Entity");
+		ECS::Entity Create(const std::string& name = "Unnamed Entity");
 
 		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget);
 		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
 
-		void SetActiveCamera(const class Entity& entity);
-		class Entity GetActiveCameraEntity();
+		void SetActiveCamera(ECS::Entity entity);
+		ECS::Entity GetActiveCameraEntity();
 		
 		inline ECS::Registry& GetRegistry() { return mRegistry; }
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
