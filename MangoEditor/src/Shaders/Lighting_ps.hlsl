@@ -53,6 +53,6 @@ float4 main (VSOut vso) : SV_Target
     const float3 lightPos = float3(1.0f, 3.0f, 1.0f);
     float3 L = normalize(lightPos - P);
     
-    float dif = max(dot(L, N), 0.1f);
-    return float4(dif*col, 1.0f);
+    float dif = max(dot(L, N), 0.0f);
+    return float4(dif*col, 1.0);
 }

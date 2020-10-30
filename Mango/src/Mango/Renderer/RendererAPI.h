@@ -11,6 +11,8 @@ namespace Mango {
 		virtual void EnableBlending() = 0;
 		virtual void DisableBlending() = 0;
 
+		virtual void EnableInvertedDepthTesting() = 0;
+
 		static RendererAPI* Create();
 	};
 

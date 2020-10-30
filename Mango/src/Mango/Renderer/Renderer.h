@@ -9,7 +9,7 @@
 
 namespace Mango {
 
-	static constexpr float4 RENDERER_CLEAR_COLOR = float4(0.1f, 0.1f, 0.1f, 1.0f);
+	static constexpr float4 RENDERER_CLEAR_COLOR = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	struct PreviousFrameTransformComponent {
 		xmmatrix Transform;

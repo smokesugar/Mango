@@ -11,9 +11,9 @@ namespace Mango {
 	xmmatrix Camera::GetProjectionMatrix(float aspect)
 	{
 		if (mType == Type::Orthographic)
-			return XMMatrixOrthographicOffCenterLH(aspect * -mOSize / 2, aspect * mOSize / 2, -mOSize / 2, mOSize / 2, -1.0f, 1.0f);
+			return XMMatrixOrthographicOffCenterLH(aspect * -mOSize / 2, aspect * mOSize / 2, -mOSize / 2, mOSize / 2, 1.0f, -1.0f);
 		else
-			return XMMatrixPerspectiveFovLH(mPFOV, aspect, mPNear, mPFar);
+			return XMMatrixPerspectiveFovLH(mPFOV, aspect, mPFar, mPNear);
 	}
 
 	Camera Camera::CreateOrthographic(float size)

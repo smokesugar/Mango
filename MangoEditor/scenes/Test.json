@@ -1,8 +1,12 @@
 {
-    "activeCamera": 4294967295,
+    "activeCamera": 0,
     "entities": {
         "0": {
             "components": {
+                "camera": {
+                    "size": 2.5,
+                    "type": "orthographic"
+                },
                 "tag": "Camera",
                 "transform": {
                     "rotation": [
@@ -18,7 +22,7 @@
                     "translation": [
                         0.0,
                         0.0,
-                        -3.2799999713897705
+                        0.0
                     ]
                 }
             }

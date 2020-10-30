@@ -27,4 +27,9 @@ namespace Mango {
 		sRendererAPI->DisableBlending();
 	}
 
+	void RenderCommand::EnableInvertedDepthTesting()
+	{
+		sRendererAPI->EnableInvertedDepthTesting();
+	}
+
 }

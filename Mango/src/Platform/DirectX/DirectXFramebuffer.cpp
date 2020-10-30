@@ -89,7 +89,7 @@ namespace Mango {
 	{
 		auto& context = RetrieveContext();
 		MG_CORE_ASSERT(mProps.Depth, "Cannot clear depth; this framebuffer does not have a depth attachment.");
-		VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0));
+		VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0));
 	}
 
 	void DirectXFramebuffer::Resize(uint32_t width, uint32_t height)

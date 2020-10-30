@@ -47,4 +47,18 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff));
 	}
 
+	void DirectXAPI::EnableInvertedDepthTesting()
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = true;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		desc.DepthFunc = D3D11_COMPARISON_GREATER;
+
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> dss;
+		HR_CALL(context.GetDevice()->CreateDepthStencilState(&desc, &dss));
+		VOID_CALL(context.GetDeviceContext()->OMSetDepthStencilState(dss.Get(), 1));
+	}
+
 }

@@ -61,6 +61,8 @@ namespace Mango {
 
 	void Renderer::Init()
 	{
+		RenderCommand::EnableInvertedDepthTesting();
+
 		sData = new RendererData();
 
 		// Shaders -----------------------------------------------------------------------------------
@@ -77,13 +79,13 @@ namespace Mango {
 		props.Height = 600;
 		props.Depth = true;
 
-		sData->ImmediateTarget = Ref<Framebuffer>(Framebuffer::Create(props));
-		sData->GBuffer.Color = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->GBuffer.Velocity = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		props.Depth = false;
 		sData->GBuffer.Normal = Ref<Framebuffer>(Framebuffer::Create(props));
 		sData->PreviousFrame = Ref<Framebuffer>(Framebuffer::Create(props));
-		sData->GBuffer.Velocity = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->GBuffer.Color = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->ImmediateTarget = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		// Textures ----------------------------------------------------------------------------------
 
@@ -209,7 +211,7 @@ namespace Mango {
 		// Geometry Pass
 		RenderCommand::DisableBlending();
 		Framebuffer::BindMultiple({sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity});
-		sData->GBuffer.Color->Clear(RENDERER_CLEAR_COLOR);
+		sData->GBuffer.Color->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 		sData->GBuffer.Normal->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 		
 		sData->GeometryShader->Bind();
@@ -222,20 +224,20 @@ namespace Mango {
 		}
 
 		// Lighting
-		Framebuffer::BindMultiple({ sData->ImmediateTarget, sData->GBuffer.Velocity });
-		sData->ImmediateTarget->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
+		sData->ImmediateTarget->Bind();
+		sData->ImmediateTarget->Clear(RENDERER_CLEAR_COLOR);
 
 		sData->SamplerPoint->Bind(0);
 		sData->GBuffer.Color->BindAsTexture(0);
 		sData->GBuffer.Normal->BindAsTexture(1);
-		sData->GBuffer.Color->BindDepthAsTexture(2);
+		sData->GBuffer.Velocity->BindDepthAsTexture(2);
 		sData->LightingShader->Bind();
 		sData->LightingUniforms->PSBind(0);
-
 		DrawScreenQuad();
 
+		Texture::Unbind(2);
+		Framebuffer::BindMultiple({ sData->ImmediateTarget, sData->GBuffer.Velocity });
 		RenderCommand::EnableBlending();
-		sData->ImmediateTarget->ClearDepth();
 		sData->SpriteShader->Bind();
 		sData->SamplerLinear->Bind(0);
 		sData->Quad->Bind();
