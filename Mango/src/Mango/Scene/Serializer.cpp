@@ -120,6 +120,9 @@ namespace Mango {
 			json& components = e["components"];
 			ECS::Entity entity = scene->Create(components["tag"]);
 
+			if (std::stoi(id) == activeCamera)
+				scene->SetActiveCamera(entity);
+
 			// Transform
 			{
 				std::vector<float> translationArray = components["transform"]["translation"];
@@ -137,10 +140,6 @@ namespace Mango {
 				if (components.find("camera") != components.end())
 				{
 					json& camera = components["camera"];
-
-					if (std::stoi(id) == activeCamera)
-						scene->SetActiveCamera(entity);
-
 
 					if (camera["type"] == "orthographic")
 					{

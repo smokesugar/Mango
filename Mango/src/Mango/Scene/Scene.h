@@ -24,7 +24,7 @@ namespace Mango {
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
 	private:
 		ECS::Registry mRegistry;
-		ECS::Entity mActiveCameraEntity;
+		ECS::Entity mActiveCameraEntity = ECS::Null;
 		class TextureLibrary mTextureLibrary;
 	};
 

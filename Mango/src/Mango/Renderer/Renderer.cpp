@@ -21,23 +21,35 @@ namespace Mango {
 		float4 color;
 	};
 
+	struct LightingData {
+		xmmatrix InvView;
+		float4 PerspectiveValues;
+	};
+
 	struct RendererData {
 		xmmatrix PreviousView = XMMatrixIdentity();
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
+		Scope<UniformBuffer> LightingUniforms;
 
 		Ref<VertexArray> Quad;
 		Ref<Texture2D> WhiteTexture;
-		Scope<SamplerState> Sampler;
+		Scope<SamplerState> SamplerLinear;
 		Scope<SamplerState> SamplerPoint;
 
 		Ref<Shader> SpriteShader;
-		Ref<Shader> MeshShader;
+		Ref<Shader> LightingShader;
 		Ref<Shader> TAAShader;
+		Ref<Shader> GeometryShader;
 
 		Ref<Framebuffer> PreviousFrame;
 		Ref<Framebuffer> ImmediateTarget;
-		Ref<Framebuffer> VelocityBuffer;
+
+		struct {
+			Ref<Framebuffer> Color;
+			Ref<Framebuffer> Normal;
+			Ref<Framebuffer> Velocity;
+		} GBuffer;
 
 		bool TAAEnabled = true;
 
@@ -49,15 +61,14 @@ namespace Mango {
 
 	void Renderer::Init()
 	{
-		RenderCommand::EnableBlending();
-
 		sData = new RendererData();
 
 		// Shaders -----------------------------------------------------------------------------------
 
 		sData->SpriteShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer2D_vs.cso", "assets/shaders/Renderer2D_ps.cso"));
-		sData->MeshShader = Ref<Shader>(Shader::Create("assets/shaders/Renderer3D_vs.cso", "assets/shaders/Renderer3D_ps.cso"));
+		sData->LightingShader = Ref<Shader>(Shader::Create("assets/shaders/Lighting_vs.cso", "assets/shaders/Lighting_ps.cso"));
 		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
+		sData->GeometryShader = Ref<Shader>(Shader::Create("assets/shaders/GeometryPass_vs.cso", "assets/shaders/GeometryPass_ps.cso"));
 
 		// Framebuffers ------------------------------------------------------------------------------
 
@@ -67,13 +78,16 @@ namespace Mango {
 		props.Depth = true;
 
 		sData->ImmediateTarget = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->GBuffer.Color = Ref<Framebuffer>(Framebuffer::Create(props));
+
 		props.Depth = false;
+		sData->GBuffer.Normal = Ref<Framebuffer>(Framebuffer::Create(props));
 		sData->PreviousFrame = Ref<Framebuffer>(Framebuffer::Create(props));
-		sData->VelocityBuffer = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->GBuffer.Velocity = Ref<Framebuffer>(Framebuffer::Create(props));
 
 		// Textures ----------------------------------------------------------------------------------
 
-		sData->Sampler = Scope<SamplerState>(SamplerState::Create());
+		sData->SamplerLinear = Scope<SamplerState>(SamplerState::Create());
 		sData->SamplerPoint = Scope<SamplerState>(SamplerState::Create(SamplerState::Mode::Point));
 
 		uint32_t color = 0xffffffff;
@@ -83,6 +97,7 @@ namespace Mango {
 
 		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<GlobalUniforms>());
 		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<IndividualData>());
+		sData->LightingUniforms = Scope<UniformBuffer>(UniformBuffer::Create<LightingData>());
 
 		// Quad --------------------------------------------------------------------------------------
 
@@ -134,6 +149,16 @@ namespace Mango {
 		xmmatrix viewProjection = view * projection * jitterMatrix;
 		sData->GlobalUniforms->SetData<GlobalUniforms>({ sData->PreviousView * projection, viewProjection });
 
+
+		float4x4 proj;
+		XMStoreFloat4x4(&proj, projection*jitterMatrix);
+		float4 perspectiveValues;
+		perspectiveValues.x = 1.0f / proj.m[0][0];
+		perspectiveValues.y = 1.0f / proj.m[1][1];
+		perspectiveValues.z = proj.m[3][2];
+		perspectiveValues.w = -proj.m[2][2];
+		sData->LightingUniforms->SetData<LightingData>({XMMatrixInverse(nullptr, view), perspectiveValues});
+
 		sData->PreviousView = view;
 	}
 
@@ -167,30 +192,52 @@ namespace Mango {
 	{
 		// Render Scene --------------------------------------------------------------------------------
 		
+		// Initialization
 		sData->ImmediateTarget->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->PreviousFrame->EnsureSize(target->GetWidth(), target->GetHeight());
-		sData->VelocityBuffer->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->GBuffer.Color->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->GBuffer.Normal->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->GBuffer.Velocity->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->GBuffer.Velocity->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 
 		Texture::Unbind(0);
 		Texture::Unbind(1);
 		Texture::Unbind(2);
-		Texture::Unbind(3);
-		Framebuffer::BindMultiple({sData->ImmediateTarget, sData->VelocityBuffer});
-		sData->ImmediateTarget->Clear(RENDERER_CLEAR_COLOR);
-		sData->VelocityBuffer->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
-
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
 
-		sData->MeshShader->Bind();
+		// Geometry Pass
+		RenderCommand::DisableBlending();
+		Framebuffer::BindMultiple({sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity});
+		sData->GBuffer.Color->Clear(RENDERER_CLEAR_COLOR);
+		sData->GBuffer.Normal->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
+		
+		sData->GeometryShader->Bind();
+		sData->SamplerLinear->Bind(0);
+
 		while (!sData->RenderQueue3D.empty()) {
 			auto& [mesh, previousTransform, transform] = sData->RenderQueue3D.front();
 			InternalRenderNode(&mesh->RootNode, previousTransform, transform);
 			sData->RenderQueue3D.pop();
 		}
 
+		// Lighting
+		Framebuffer::BindMultiple({ sData->ImmediateTarget, sData->GBuffer.Velocity });
+		sData->ImmediateTarget->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
+
+		sData->SamplerPoint->Bind(0);
+		sData->GBuffer.Color->BindAsTexture(0);
+		sData->GBuffer.Normal->BindAsTexture(1);
+		sData->GBuffer.Color->BindDepthAsTexture(2);
+		sData->LightingShader->Bind();
+		sData->LightingUniforms->PSBind(0);
+
+		DrawScreenQuad();
+
+		RenderCommand::EnableBlending();
+		sData->ImmediateTarget->ClearDepth();
 		sData->SpriteShader->Bind();
-		sData->Sampler->Bind(0);
+		sData->SamplerLinear->Bind(0);
 		sData->Quad->Bind();
 		while (!sData->RenderQueue2D.empty()) {
 			auto& [prevTransform, transform, texture, color] = sData->RenderQueue2D.front();
@@ -204,7 +251,7 @@ namespace Mango {
 		sData->SamplerPoint->Bind(0);
 		sData->ImmediateTarget->BindAsTexture(0);
 		sData->PreviousFrame->BindAsTexture(1);
-		sData->VelocityBuffer->BindAsTexture(2);
+		sData->GBuffer.Velocity->BindAsTexture(2);
 		sData->TAAShader->Bind();
 		DrawScreenQuad();
 

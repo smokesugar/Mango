@@ -81,8 +81,15 @@ namespace Mango {
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->ClearRenderTargetView(mRTV.Get(), ValuePtr(color)));
-		if(mProps.Depth)
-			VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0));
+		if (mProps.Depth)
+			ClearDepth();
+	}
+
+	void DirectXFramebuffer::ClearDepth()
+	{
+		auto& context = RetrieveContext();
+		MG_CORE_ASSERT(mProps.Depth, "Cannot clear depth; this framebuffer does not have a depth attachment.");
+		VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0));
 	}
 
 	void DirectXFramebuffer::Resize(uint32_t width, uint32_t height)
@@ -106,6 +113,14 @@ namespace Mango {
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
+	}
+
+	void DirectXFramebuffer::BindDepthAsTexture(size_t slot) const
+	{
+		MG_CORE_ASSERT(mProps.Depth, "Cannot bind depth buffer as texture; framebuffer does not own a depth attachment.");
+
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mDSRV.GetAddressOf()));
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> DirectXFramebuffer::CreateTexture()
@@ -136,19 +151,32 @@ namespace Mango {
 		if(mOwnsTexture)
 			HR_CALL(context.GetDevice()->CreateShaderResourceView(resource, nullptr, &mSRV));
 
-		if (mProps.Depth) {
+		if (mProps.Depth)
+		{
 			D3D11_TEXTURE2D_DESC desc = {};
 			desc.Width = mProps.Width;
 			desc.Height = mProps.Height;
 			desc.MipLevels = 1;
 			desc.ArraySize = 1;
-			desc.Format = DXGI_FORMAT_D32_FLOAT;
+			desc.Format = DXGI_FORMAT_R32_TYPELESS;
 			desc.SampleDesc = { 1, 0 };
-			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC sr_desc = {};
+			sr_desc.Format = DXGI_FORMAT_R32_FLOAT;
+			sr_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			sr_desc.Texture2D.MostDetailedMip = 0;
+			sr_desc.Texture2D.MipLevels = -1;
+
+			D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+			dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+			dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+			dsvDesc.Flags = 0;
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> depthTexture;
 			HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &depthTexture));
-			HR_CALL(context.GetDevice()->CreateDepthStencilView(depthTexture.Get(), nullptr, &mDSV));
+			HR_CALL(context.GetDevice()->CreateShaderResourceView(depthTexture.Get(), &sr_desc, &mDSRV));
+			HR_CALL(context.GetDevice()->CreateDepthStencilView(depthTexture.Get(), &dsvDesc, &mDSV));
 		}
 	}
 

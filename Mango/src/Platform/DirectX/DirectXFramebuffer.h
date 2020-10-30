@@ -15,6 +15,7 @@ namespace Mango {
 
 		virtual void Bind() override;
 		virtual void Clear(const float4& color) override;
+		virtual void ClearDepth() override;
 		virtual void Resize(uint32_t width, uint32_t height) override;
 		virtual void EnsureSize(uint32_t width, uint32_t height) override;
 
@@ -23,6 +24,7 @@ namespace Mango {
 
 		virtual void* GetTextureAttachment() const override { return mSRV.Get(); }
 		virtual void BindAsTexture(size_t slot) const override;
+		virtual void BindDepthAsTexture(size_t slot) const override;
 
 		inline ID3D11RenderTargetView* GetRenderTargetView() { return mRTV.Get(); }
 	private:
@@ -35,6 +37,7 @@ namespace Mango {
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDSV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mDSRV;
 	};
 
 }

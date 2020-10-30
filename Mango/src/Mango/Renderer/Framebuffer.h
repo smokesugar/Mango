@@ -16,6 +16,7 @@ namespace Mango {
 		virtual ~Framebuffer() {}
 		virtual void Bind() = 0;
 		virtual void Clear(const float4& color) = 0;
+		virtual void ClearDepth() = 0;
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 		virtual void EnsureSize(uint32_t width, uint32_t height) = 0;
 
@@ -24,6 +25,7 @@ namespace Mango {
 
 		virtual void* GetTextureAttachment() const = 0;
 		virtual void BindAsTexture(size_t slot) const = 0;
+		virtual void BindDepthAsTexture(size_t slot) const = 0;
 		
 		static void Blit(const Ref<Framebuffer>& dst, const Ref<Framebuffer>& src);
 

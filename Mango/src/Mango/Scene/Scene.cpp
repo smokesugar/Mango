@@ -27,6 +27,9 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt, const Ref<Framebuffer>& rendertarget)
 	{
+		if (mRegistry.Valid(mActiveCameraEntity) && !mRegistry.Has<CameraComponent>(mActiveCameraEntity))
+			mActiveCameraEntity = ECS::Null;
+
 		if (mRegistry.Valid(mActiveCameraEntity))
 		{
 			auto transform = mRegistry.Get<TransformComponent>(mActiveCameraEntity).GetMatrix();

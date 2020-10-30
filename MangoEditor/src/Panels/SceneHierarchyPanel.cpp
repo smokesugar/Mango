@@ -14,17 +14,38 @@ namespace Mango {
 	{
 	}
 
+	template<typename T, typename UIFunction>
+	static void  DrawComponent(const std::string& name, ECS::Entity entity, ECS::Registry& reg, UIFunction uifunction) {
+		if (reg.Has<T>(entity))
+		{
+			bool open = ImGui::TreeNodeEx(typeid(T).name(), 0, name.c_str());
+
+			bool remove = false;
+			if (ImGui::BeginPopupContextItem()) {
+				if (ImGui::MenuItem("Remove"))
+					remove = true;
+				ImGui::EndPopup();
+			}
+
+			if (open)
+			{
+				uifunction();
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+
+			if (remove)
+				reg.Remove<T>(entity);
+		}
+	}
+
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
 		// Scene Hierarchy -------------------------------------------------------------------------------------------------------------
 
 		auto& reg = mScene->GetRegistry();
 
-		static ECS::Entity rightClickedEntity = ECS::Null;
-
 		ImGui::Begin("Scene Hierarchy");
-		if (ImGui::Button("Create Entity"))
-			mScene->Create();
 		auto query = reg.QueryE<TagComponent>();
 		for (auto& [size, entities, tags] : query)
 		{
@@ -37,29 +58,32 @@ namespace Mango {
 
 				if (ImGui::IsItemClicked())
 					mSelectedEntity = id;
-				if (ImGui::IsItemClicked(1)) {
-					ImGui::OpenPopup("delete_entity");
-					rightClickedEntity = id;
+
+				bool remove = false;
+				if (ImGui::BeginPopupContextItem()) {
+					if (ImGui::MenuItem("Delete"))
+						remove = true;
+					ImGui::EndPopup();
 				}
 
 				if (open)
 				{
 					ImGui::TreePop();
 				}
+
+				if (remove)
+					reg.Destroy(id);
 			}
-		}
-		
-		if (ImGui::BeginPopup("delete_entity")) {
-			if (ImGui::Button("Delete")) {
-				if(reg.Valid(rightClickedEntity))
-					reg.Destroy(rightClickedEntity);
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::EndPopup();
 		}
 
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0))
 			mSelectedEntity = ECS::Null;
+
+		if (ImGui::BeginPopupContextWindow(0, 1, false)) {
+			if (ImGui::MenuItem("Create Empty"))
+				mScene->Create();
+			ImGui::EndPopup();
+		}
 
 		ImGui::End();
 
@@ -102,263 +126,211 @@ namespace Mango {
 			}
 
 			// Camera Component
-			{
-				if (reg.Has<CameraComponent>(mSelectedEntity))
-				{
-					bool open = ImGui::TreeNodeEx(typeid(CameraComponent).name(), 0, "Camera");
-					SetDeleteTypeOnRightClick<CameraComponent>();
+			DrawComponent<CameraComponent>("Camera", mSelectedEntity, reg, [&]() {
+				auto& cameraComp = reg.Get<CameraComponent>(mSelectedEntity);
 
-					if (open)
-					{
-						auto& cameraComp = reg.Get<CameraComponent>(mSelectedEntity);
+				bool orthographic = cameraComp.Camera.GetType() == Camera::Type::Orthographic;
 
-						bool orthographic = cameraComp.Camera.GetType() == Camera::Type::Orthographic;
+				ImGui::Columns(2);
+				ImGui::AlignTextToFramePadding();
 
-						ImGui::Columns(2);
-						ImGui::AlignTextToFramePadding();
+				ImGui::Text("Type");
 
-						ImGui::Text("Type");
-
-						if (!orthographic) {
-							ImGui::Text("FOV");
-							ImGui::Text("Near Plane");
-							ImGui::Text("Far Plane");
-						}
-						if (orthographic) {
-							ImGui::Text("Size");
-						}
-
-						ImGui::Text("Enabled");
-						ImGui::NextColumn();
-						ImGui::PushItemWidth(-1.0f);
-
-						const char* wantedType = orthographic ? "o" : "p";
-						if (ImGui::BeginCombo("##camera_type", orthographic ? "Orthographic" : "Perspective"))
-						{
-							if (ImGui::Selectable("Orthographic", orthographic)) {
-								wantedType = "o";
-							}
-							if (ImGui::Selectable("Perspective", !orthographic)) {
-								wantedType = "p";
-							}
-
-							ImGui::EndCombo();
-						}
-						if (wantedType == "o" && !orthographic) {
-							cameraComp.Camera = Camera::CreateOrthographic(2.5f);
-							orthographic = true;
-						}
-						if (wantedType == "p" && orthographic) {
-							cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f);
-							orthographic = false;
-						}
-
-						if (!orthographic) {
-							auto& cam = cameraComp.Camera;
-
-							float fov = ToDegrees(cam.GetPFOV());
-							ImGui::DragFloat("##camera_fov", &fov, 1.0f, 10.0f, 120.0f);
-							cam.SetPFOV(ToRadians(fov));
-
-							float nearPlane = cam.GetPNear();
-							ImGui::InputFloat("##camera_near", &nearPlane);
-							cam.SetPNear(nearPlane);
-
-							float farPlane = cam.GetPFar();
-							ImGui::InputFloat("##camera_far", &farPlane);
-							cam.SetPFar(farPlane);
-						}
-						if (orthographic) {
-							auto& cam = cameraComp.Camera;
-							float size = cam.GetOSize();
-							ImGui::DragFloat("##camera_size", &size, 0.1f, 0.001f, INFINITY);
-							cam.SetOSize(Max(size, 0.001f));
-						}
-
-						bool enabled = mSelectedEntity == mScene->GetActiveCameraEntity();
-						if (ImGui::Checkbox("##camera_enabled", &enabled)) {
-							if (enabled)
-								mScene->SetActiveCamera(mSelectedEntity);
-							else
-								mScene->SetActiveCamera(ECS::Null);
-						}
-						ImGui::PopItemWidth();
-						ImGui::Columns(1);
-						ImGui::TreePop();
-					}
-					ImGui::Separator();
+				if (!orthographic) {
+					ImGui::Text("FOV");
+					ImGui::Text("Near Plane");
+					ImGui::Text("Far Plane");
 				}
-			}
+				if (orthographic) {
+					ImGui::Text("Size");
+				}
+
+				ImGui::Text("Enabled");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1.0f);
+
+				const char* wantedType = orthographic ? "o" : "p";
+				if (ImGui::BeginCombo("##camera_type", orthographic ? "Orthographic" : "Perspective"))
+				{
+					if (ImGui::Selectable("Orthographic", orthographic)) {
+						wantedType = "o";
+					}
+					if (ImGui::Selectable("Perspective", !orthographic)) {
+						wantedType = "p";
+					}
+
+					ImGui::EndCombo();
+				}
+				if (wantedType == "o" && !orthographic) {
+					cameraComp.Camera = Camera::CreateOrthographic(2.5f);
+					orthographic = true;
+				}
+				if (wantedType == "p" && orthographic) {
+					cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f);
+					orthographic = false;
+				}
+
+				if (!orthographic) {
+					auto& cam = cameraComp.Camera;
+
+					float fov = ToDegrees(cam.GetPFOV());
+					ImGui::DragFloat("##camera_fov", &fov, 1.0f, 10.0f, 120.0f);
+					cam.SetPFOV(ToRadians(fov));
+
+					float nearPlane = cam.GetPNear();
+					ImGui::InputFloat("##camera_near", &nearPlane);
+					cam.SetPNear(nearPlane);
+
+					float farPlane = cam.GetPFar();
+					ImGui::InputFloat("##camera_far", &farPlane);
+					cam.SetPFar(farPlane);
+				}
+				if (orthographic) {
+					auto& cam = cameraComp.Camera;
+					float size = cam.GetOSize();
+					ImGui::DragFloat("##camera_size", &size, 0.1f, 0.001f, INFINITY);
+					cam.SetOSize(Max(size, 0.001f));
+				}
+
+				bool enabled = mSelectedEntity == mScene->GetActiveCameraEntity();
+				if (ImGui::Checkbox("##camera_enabled", &enabled)) {
+					if (enabled)
+						mScene->SetActiveCamera(mSelectedEntity);
+					else
+						mScene->SetActiveCamera(ECS::Null);
+				}
+				ImGui::PopItemWidth();
+				ImGui::Columns(1);
+			});
 
 			// Sprite Renderer Component
-			{
-				if (reg.Has<SpriteRendererComponent>(mSelectedEntity))
-				{
-					bool open = ImGui::TreeNodeEx(typeid(SpriteRendererComponent).name(), 0, "Sprite Renderer");
-					SetDeleteTypeOnRightClick<SpriteRendererComponent>();
+			DrawComponent<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity, reg, [&]() {
+				auto& sprite = reg.Get<SpriteRendererComponent>(mSelectedEntity);
+				ImGui::Columns(2);
+				ImGui::AlignTextToFramePadding();
 
-					if (open) {
-						auto& sprite = reg.Get<SpriteRendererComponent>(mSelectedEntity);
-						ImGui::Columns(2);
-						ImGui::AlignTextToFramePadding();
+				ImGui::Text("Type");
+				if (sprite.UsesTexture)
+					ImGui::Text("Texture");
+				else
+					ImGui::Text("Color");
 
-						ImGui::Text("Type");
-						if (sprite.UsesTexture)
-							ImGui::Text("Texture");
-						else
-							ImGui::Text("Color");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1.0f);
 
-						ImGui::NextColumn();
-						ImGui::PushItemWidth(-1.0f);
-
-						const char* wanted = sprite.UsesTexture ? "t" : "c";
-						if (ImGui::BeginCombo("##sprite_type", sprite.UsesTexture ? "Texture" : "Color")) {
-							if (ImGui::Selectable("Texture", sprite.UsesTexture))
-								wanted = "t";
-							if (ImGui::Selectable("Color", !sprite.UsesTexture))
-								wanted = "c";
-							ImGui::EndCombo();
-						}
-						if (wanted == "c" && sprite.UsesTexture)
-							sprite = SpriteRendererComponent(float4(1.0f, 1.0f, 1.0f, 1.0f));
-						if (wanted == "t" && !sprite.UsesTexture)
-							sprite = SpriteRendererComponent(Ref<Texture2D>());
-
-						if (sprite.UsesTexture) {
-							char path[64];
-							memset(path, 0, sizeof(path));
-							if (sprite.Texture)
-								memcpy(path, sprite.Texture->GetPath().c_str(), Min(sizeof(path), sprite.Texture->GetPath().size()));
-							ImGui::PopItemWidth();
-							ImGui::InputText("##sprite_texture_path", path, sizeof(path), ImGuiInputTextFlags_ReadOnly);
-							ImGui::SameLine();
-							if (ImGui::Button("..."))
-							{
-								std::string path;
-								if (FileDialog::Open(path, L"Image File\0*.jpg;*.png;*.bmp\0All\0*.*\0")) {
-									sprite.Texture = mScene->GetTextureLibrary().Get(path);
-								}
-							}
-							ImGui::PushItemWidth(-1.0f);
-						}
-						else
-							ImGui::ColorEdit4("##sprite_color", ValuePtr(sprite.Color));
-
-						ImGui::PopItemWidth();
-						ImGui::Columns(1);
-						ImGui::TreePop();
-					}
-					ImGui::Separator();
+				const char* wanted = sprite.UsesTexture ? "t" : "c";
+				if (ImGui::BeginCombo("##sprite_type", sprite.UsesTexture ? "Texture" : "Color")) {
+					if (ImGui::Selectable("Texture", sprite.UsesTexture))
+						wanted = "t";
+					if (ImGui::Selectable("Color", !sprite.UsesTexture))
+						wanted = "c";
+					ImGui::EndCombo();
 				}
-			}
+				if (wanted == "c" && sprite.UsesTexture)
+					sprite = SpriteRendererComponent(float4(1.0f, 1.0f, 1.0f, 1.0f));
+				if (wanted == "t" && !sprite.UsesTexture)
+					sprite = SpriteRendererComponent(Ref<Texture2D>());
 
-			// Mesh Component
-			{
-				if (reg.Has<MeshComponent>(mSelectedEntity))
-				{
-					bool open = ImGui::TreeNodeEx(typeid(MeshComponent).name(), 0, "Mesh");
-					SetDeleteTypeOnRightClick<MeshComponent>();
-
-					auto& comp = reg.Get<MeshComponent>(mSelectedEntity);
-					Mesh& mesh = comp.Mesh;
-					
-					if (open)
+				if (sprite.UsesTexture) {
+					char path[64];
+					memset(path, 0, sizeof(path));
+					if (sprite.Texture)
+						memcpy(path, sprite.Texture->GetPath().c_str(), Min(sizeof(path), sprite.Texture->GetPath().size()));
+					ImGui::PopItemWidth();
+					ImGui::InputText("##sprite_texture_path", path, sizeof(path), ImGuiInputTextFlags_ReadOnly);
+					ImGui::SameLine();
+					if (ImGui::Button("..."))
 					{
-						ImGui::Columns(2);
-						ImGui::AlignTextToFramePadding();
-						ImGui::Text("Type");
-
-						if (comp.Type == MeshType::Model)
-							ImGui::Text("Path");
-
-						ImGui::NextColumn();
-						ImGui::PushItemWidth(-1.0f);
-
-						const char* wanted = "Empty";
-						if (comp.Type == MeshType::Cube) wanted = "Cube";
-						if (comp.Type == MeshType::Sphere) wanted = "Sphere";
-						if (comp.Type == MeshType::Capsule) wanted = "Capsule";
-						if (comp.Type == MeshType::Model) wanted = "Model";
-
-						if (ImGui::BeginCombo("##mesh_type", wanted)) {
-							if (ImGui::Selectable("Cube", wanted == "Cube"))
-								wanted = "Cube";
-							if (ImGui::Selectable("Sphere", wanted == "Sphere"))
-								wanted = "Sphere";
-							if (ImGui::Selectable("Capsule", wanted == "Capsule"))
-								wanted = "Capsule";
-							if (ImGui::Selectable("Model", wanted == "Model"))
-								wanted = "Model";
-							ImGui::EndCombo();
+						std::string path;
+						if (FileDialog::Open(path, L"Image File\0*.jpg;*.png;*.bmp\0All\0*.*\0")) {
+							sprite.Texture = mScene->GetTextureLibrary().Get(path);
 						}
-						if (wanted == "Cube" && comp.Type != MeshType::Cube)
-							comp = MeshComponent(Mesh::CreateCube(), MeshType::Cube);
-						if (wanted == "Sphere" && comp.Type != MeshType::Sphere)
-							comp = MeshComponent(Mesh::CreateSphere(), MeshType::Sphere);
-						if (wanted == "Capsule" && comp.Type != MeshType::Capsule)
-							comp = MeshComponent(Mesh::CreateCapsule(), MeshType::Capsule);
-						if (wanted == "Model" && comp.Type != MeshType::Model)
-							comp = MeshComponent(Mesh(), MeshType::Model);
-
-						if (comp.Type == MeshType::Model) {
-							char buf[64];
-							memset(buf, 0, sizeof(buf));
-							memcpy(buf, comp.Path.c_str(), Min(comp.Path.size(), sizeof(buf)));
-							ImGui::PopItemWidth();
-							ImGui::InputText("##sprite_texture_path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
-							ImGui::SameLine();
-							if (ImGui::Button("...")) {
-								std::string path;
-								if (FileDialog::Open(path, L"3D Model\0*.obj;*.fbx;*.gltf\0All\0*.*\0")) {
-									comp = MeshComponent(Mesh::CreateModel(path), MeshType::Model);
-									comp.Path = path;
-								}
-							}
-							ImGui::PushItemWidth(-1.0f);
-						}
-
-						ImGui::Columns(1);
-						ImGui::PopItemWidth();
-						ImGui::TreePop();
 					}
-					ImGui::Separator();
+					ImGui::PushItemWidth(-1.0f);
 				}
-			}
+				else
+					ImGui::ColorEdit4("##sprite_color", ValuePtr(sprite.Color));
+
+				ImGui::PopItemWidth();
+				ImGui::Columns(1);
+			});
+
+			DrawComponent<MeshComponent>("Mesh Renderer", mSelectedEntity, reg, [&]() {
+				auto& comp = reg.Get<MeshComponent>(mSelectedEntity);
+				
+				ImGui::Columns(2);
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Type");
+				if (comp.Type == MeshType::Model)
+					ImGui::Text("Path");
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1.0f);
+
+				const char* wanted = "Empty";
+				if (comp.Type == MeshType::Cube) wanted = "Cube";
+				if (comp.Type == MeshType::Sphere) wanted = "Sphere";
+				if (comp.Type == MeshType::Capsule) wanted = "Capsule";
+				if (comp.Type == MeshType::Model) wanted = "Model";
+
+				if (ImGui::BeginCombo("##mesh_type", wanted)) {
+					if (ImGui::Selectable("Cube", wanted == "Cube"))
+						wanted = "Cube";
+					if (ImGui::Selectable("Sphere", wanted == "Sphere"))
+						wanted = "Sphere";
+					if (ImGui::Selectable("Capsule", wanted == "Capsule"))
+						wanted = "Capsule";
+					if (ImGui::Selectable("Model", wanted == "Model"))
+						wanted = "Model";
+					ImGui::EndCombo();
+				}
+				if (wanted == "Cube" && comp.Type != MeshType::Cube)
+					comp = MeshComponent(Mesh::CreateCube(), MeshType::Cube);
+				if (wanted == "Sphere" && comp.Type != MeshType::Sphere)
+					comp = MeshComponent(Mesh::CreateSphere(), MeshType::Sphere);
+				if (wanted == "Capsule" && comp.Type != MeshType::Capsule)
+					comp = MeshComponent(Mesh::CreateCapsule(), MeshType::Capsule);
+				if (wanted == "Model" && comp.Type != MeshType::Model)
+					comp = MeshComponent(Mesh(), MeshType::Model);
+
+				if (comp.Type == MeshType::Model) {
+					char buf[64];
+					memset(buf, 0, sizeof(buf));
+					memcpy(buf, comp.Path.c_str(), Min(comp.Path.size(), sizeof(buf)));
+					ImGui::PopItemWidth();
+					ImGui::InputText("##sprite_texture_path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+					ImGui::SameLine();
+					if (ImGui::Button("...")) {
+						std::string path;
+						if (FileDialog::Open(path, L"3D Model\0*.obj;*.fbx;*.gltf\0All\0*.*\0")) {
+							comp = MeshComponent(Mesh::CreateModel(path), MeshType::Model);
+							comp.Path = path;
+						}
+					}
+					ImGui::PushItemWidth(-1.0f);
+				}
+
+				ImGui::Columns(1);
+				ImGui::PopItemWidth();
+			});
 
 			// Add Component Button
 			{
-				if (ImGui::Button("Add Component"))
+				if (ImGui::Button("Add Component", ImVec2(ImGui::GetContentRegionAvailWidth(), 0.0f)))
 					ImGui::OpenPopup("add_component");
 
 				if (ImGui::BeginPopup("add_component")) {
 					if (!reg.Has<CameraComponent>(mSelectedEntity)) {
-						if (ImGui::Button("Camera")) {
+						if (ImGui::MenuItem("Camera"))
 							reg.Emplace<CameraComponent>(mSelectedEntity, Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f));
-							ImGui::CloseCurrentPopup();
-						}
 					}
 					if (!reg.Has<SpriteRendererComponent>(mSelectedEntity)) {
-						if (ImGui::Button("Sprite Renderer")) {
+						if (ImGui::MenuItem("Sprite Renderer"))
 							reg.Emplace<SpriteRendererComponent>(mSelectedEntity);
-							ImGui::CloseCurrentPopup();
-						}
 					}
 					if (!reg.Has<MeshComponent>(mSelectedEntity)) {
-						if (ImGui::Button("Mesh")) {
+						if (ImGui::MenuItem("Mesh"))
 							reg.Emplace<MeshComponent>(mSelectedEntity);
-							ImGui::CloseCurrentPopup();
-						}
-					}
-					ImGui::EndPopup();
-				}
-			}
-
-			// Remove Component Popup
-			{
-				if (ImGui::BeginPopup("remove_component")) {
-					if (ImGui::Button("Remove")) {
-						mCompDeleteFunction();
-						ImGui::CloseCurrentPopup();
 					}
 					ImGui::EndPopup();
 				}
