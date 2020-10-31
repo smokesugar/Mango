@@ -6,45 +6,47 @@
 
 namespace Mango {
 
-	Framebuffer* Framebuffer::Create(const FramebufferProperties& props) {
-		return new DirectXFramebuffer(props);
+	static DXGI_FORMAT DXGIFormatFromMangoFormat(Format format) {
+		switch (format) {
+			case Format::RGBA16_FLOAT:
+				return DXGI_FORMAT_R16G16B16A16_FLOAT;
+			default:
+				return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		}
 	}
 
-	void Framebuffer::Blit(const Ref<Framebuffer>& dst, const Ref<Framebuffer>& src) {
+	ColorBuffer* ColorBuffer::Create(const ColorBufferProperties& props) {
+		return new DirectXColorBuffer(props);
+	}
+
+	void ColorBuffer::Blit(const Ref<ColorBuffer>& dst, const Ref<ColorBuffer>& src) {
 		MG_CORE_ASSERT(dst->GetWidth() == src->GetWidth() && dst->GetHeight() == src->GetHeight(), "Framebuffers must have identical dimensions to blit");
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->CopyResource(
-			std::static_pointer_cast<DirectXFramebuffer>(dst)->mResourceReference,
-			std::static_pointer_cast<DirectXFramebuffer>(src)->mResourceReference
+			std::static_pointer_cast<DirectXColorBuffer>(dst)->mResourceReference,
+			std::static_pointer_cast<DirectXColorBuffer>(src)->mResourceReference
 		));
 	}
 
-	DirectXFramebuffer::DirectXFramebuffer(const FramebufferProperties& props)
+	DirectXColorBuffer::DirectXColorBuffer(const ColorBufferProperties& props)
 		: mProps(props), mOwnsTexture(true)
 	{
 		auto texture = CreateTexture();
 		CreateViews(texture.Get());
 	}
 
-	DirectXFramebuffer::DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height, bool depth)
-		: mProps({width, height, depth}), mOwnsTexture(false)
+	DirectXColorBuffer::DirectXColorBuffer(ID3D11Resource* resource, uint32_t width, uint32_t height)
+		: mProps({width, height}), mOwnsTexture(false)
 	{
 		CreateViews(resource);
 	}
 
-	void Framebuffer::BindMultiple(const std::vector<Ref<Framebuffer>>& framebuffers) {
+	void BindRenderTargets(const std::vector<Ref<ColorBuffer>>& framebuffers, const Ref<DepthBuffer>& depthbuffer) {
 		std::vector<ID3D11RenderTargetView*> rtvs;
-		ID3D11DepthStencilView* dsv = nullptr;
-
-		uint32_t width, height;
 
 		for (auto& framebuffer : framebuffers) {
-			auto dxframebuffer = std::static_pointer_cast<DirectXFramebuffer>(framebuffer);
+			auto dxframebuffer = std::static_pointer_cast<DirectXColorBuffer>(framebuffer);
 			rtvs.push_back(dxframebuffer->GetRenderTargetView());
-			width = framebuffer->GetWidth();
-			height = framebuffer->GetHeight();
-			if (!dsv && dxframebuffer->mProps.Depth)
-				dsv = dxframebuffer->mDSV.Get();
 		}
 
 		auto& context = RetrieveContext();
@@ -54,45 +56,22 @@ namespace Mango {
 		vp.TopLeftY = 0.0f;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
-		vp.Width = (float)width;
-		vp.Height = (float)height;
+		vp.Width = (float)framebuffers[0]->GetWidth();
+		vp.Height = (float)framebuffers[0]->GetHeight();
+
+		auto dsv = depthbuffer ? std::static_pointer_cast<DirectXDepthBuffer>(depthbuffer)->GetDepthStencilView() : nullptr;
 
 		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
-		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets((uint32_t)rtvs.size(), rtvs.data(), dsv?dsv:nullptr));
+		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets((uint32_t)rtvs.size(), rtvs.data(), dsv));
 	}
 
-	void DirectXFramebuffer::Bind()
-	{
-		auto& context = RetrieveContext();
-
-		D3D11_VIEWPORT vp;
-		vp.TopLeftX = 0.0f;
-		vp.TopLeftY = 0.0f;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.Width = (float)mProps.Width;
-		vp.Height = (float)mProps.Height;
-
-		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
-		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), mProps.Depth ? mDSV.Get() : nullptr));
-	}
-
-	void DirectXFramebuffer::Clear(const float4& color)
+	void DirectXColorBuffer::Clear(const float4& color)
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->ClearRenderTargetView(mRTV.Get(), ValuePtr(color)));
-		if (mProps.Depth)
-			ClearDepth();
 	}
 
-	void DirectXFramebuffer::ClearDepth()
-	{
-		auto& context = RetrieveContext();
-		MG_CORE_ASSERT(mProps.Depth, "Cannot clear depth; this framebuffer does not have a depth attachment.");
-		VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0));
-	}
-
-	void DirectXFramebuffer::Resize(uint32_t width, uint32_t height)
+	void DirectXColorBuffer::Resize(uint32_t width, uint32_t height)
 	{
 		MG_CORE_ASSERT(mOwnsTexture, "Cannot resize a framebuffer if it does not own its texture.");
 
@@ -103,34 +82,26 @@ namespace Mango {
 		CreateViews(texture.Get());
 	}
 
-	void DirectXFramebuffer::EnsureSize(uint32_t width, uint32_t height)
+	void DirectXColorBuffer::EnsureSize(uint32_t width, uint32_t height)
 	{
 		if (mProps.Width != width || mProps.Height != height)
 			Resize(width, height);
 	}
 
-	void DirectXFramebuffer::BindAsTexture(size_t slot) const
+	void DirectXColorBuffer::BindAsTexture(size_t slot) const
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
 	}
 
-	void DirectXFramebuffer::BindDepthAsTexture(size_t slot) const
-	{
-		MG_CORE_ASSERT(mProps.Depth, "Cannot bind depth buffer as texture; framebuffer does not own a depth attachment.");
-
-		auto& context = RetrieveContext();
-		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mDSRV.GetAddressOf()));
-	}
-
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> DirectXFramebuffer::CreateTexture()
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> DirectXColorBuffer::CreateTexture()
 	{
 		D3D11_TEXTURE2D_DESC desc = {};
 		desc.Width = mProps.Width;
 		desc.Height = mProps.Height;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.Format = DXGIFormatFromMangoFormat(mProps.Format);
 		desc.SampleDesc = {1, 0};
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -143,41 +114,81 @@ namespace Mango {
 		return texture;
 	}
 
-	void DirectXFramebuffer::CreateViews(ID3D11Resource* resource)
+	void DirectXColorBuffer::CreateViews(ID3D11Resource* resource)
 	{
 		mResourceReference = resource;
 		auto& context = RetrieveContext();
 		HR_CALL(context.GetDevice()->CreateRenderTargetView(resource, nullptr, &mRTV));
+
 		if(mOwnsTexture)
 			HR_CALL(context.GetDevice()->CreateShaderResourceView(resource, nullptr, &mSRV));
+	}
 
-		if (mProps.Depth)
-		{
-			D3D11_TEXTURE2D_DESC desc = {};
-			desc.Width = mProps.Width;
-			desc.Height = mProps.Height;
-			desc.MipLevels = 1;
-			desc.ArraySize = 1;
-			desc.Format = DXGI_FORMAT_R32_TYPELESS;
-			desc.SampleDesc = { 1, 0 };
-			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	// DEPTH BUFFER ----------------------------------------------------------------------------------
 
-			D3D11_SHADER_RESOURCE_VIEW_DESC sr_desc = {};
-			sr_desc.Format = DXGI_FORMAT_R32_FLOAT;
-			sr_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			sr_desc.Texture2D.MostDetailedMip = 0;
-			sr_desc.Texture2D.MipLevels = -1;
+	DepthBuffer* DepthBuffer::Create(uint32_t width, uint32_t height) {
+		return new DirectXDepthBuffer(width, height);
+	}
 
-			D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-			dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-			dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-			dsvDesc.Flags = 0;
+	DirectXDepthBuffer::DirectXDepthBuffer(uint32_t width, uint32_t height)
+	{
+		CreateViews(width, height);
+	}
 
-			Microsoft::WRL::ComPtr<ID3D11Texture2D> depthTexture;
-			HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &depthTexture));
-			HR_CALL(context.GetDevice()->CreateShaderResourceView(depthTexture.Get(), &sr_desc, &mDSRV));
-			HR_CALL(context.GetDevice()->CreateDepthStencilView(depthTexture.Get(), &dsvDesc, &mDSV));
-		}
+	void DirectXDepthBuffer::Clear(float value)
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->ClearDepthStencilView(mDSV.Get(), D3D11_CLEAR_DEPTH, value, 0));
+	}
+
+	void DirectXDepthBuffer::Resize(uint32_t width, uint32_t height)
+	{
+		CreateViews(width, height);
+	}
+
+	void DirectXDepthBuffer::EnsureSize(uint32_t width, uint32_t height)
+	{
+		if (mWidth != width || mHeight != height)
+			Resize(width, height);
+	}
+
+	void DirectXDepthBuffer::BindAsTexture(size_t slot) const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
+	}
+
+	void DirectXDepthBuffer::CreateViews(uint32_t width, uint32_t height)
+	{
+		mWidth = width;
+		mHeight = height;
+
+		auto& context = RetrieveContext();
+
+		D3D11_TEXTURE2D_DESC desc = {};
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R32_TYPELESS;
+		desc.SampleDesc = { 1, 0 };
+		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC sr_desc = {};
+		sr_desc.Format = DXGI_FORMAT_R32_FLOAT;
+		sr_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		sr_desc.Texture2D.MostDetailedMip = 0;
+		sr_desc.Texture2D.MipLevels = -1;
+
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Flags = 0;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> depthTexture;
+		HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &depthTexture));
+		HR_CALL(context.GetDevice()->CreateShaderResourceView(depthTexture.Get(), &sr_desc, &mSRV));
+		HR_CALL(context.GetDevice()->CreateDepthStencilView(depthTexture.Get(), &dsvDesc, &mDSV));
 	}
 
 }

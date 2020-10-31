@@ -25,7 +25,7 @@ namespace Mango {
 		return entity;
 	}
 
-	void Scene::OnUpdate(float dt, const Ref<Framebuffer>& rendertarget)
+	void Scene::OnUpdate(float dt, const Ref<ColorBuffer>& rendertarget)
 	{
 		if (mRegistry.Valid(mActiveCameraEntity) && !mRegistry.Has<CameraComponent>(mActiveCameraEntity))
 			mActiveCameraEntity = ECS::Null;
@@ -39,7 +39,7 @@ namespace Mango {
 		}
 	}
 
-	void Scene::OnUpdate(float dt, const Ref<Framebuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform)
+	void Scene::OnUpdate(float dt, const Ref<ColorBuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform)
 	{
 		Renderer::BeginScene(projection, cameraTransform, rendertarget->GetWidth(), rendertarget->GetHeight());
 

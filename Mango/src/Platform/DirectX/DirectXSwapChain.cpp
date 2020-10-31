@@ -45,9 +45,9 @@ namespace Mango {
 		HR_CALL(mInternal->Present(0, 0));
 	}
 
-	Ref<Framebuffer> DirectXSwapChain::GetFramebuffer()
+	Ref<ColorBuffer> DirectXSwapChain::GetFramebuffer()
 	{
-		return std::static_pointer_cast<Framebuffer>(mFramebuffer);
+		return std::static_pointer_cast<ColorBuffer>(mFramebuffer);
 	}
 
 	void DirectXSwapChain::Resize(uint32_t width, uint32_t height)
@@ -61,7 +61,7 @@ namespace Mango {
 	{
 		Microsoft::WRL::ComPtr<ID3D11Resource> backbuffer;
 		HR_CALL(mInternal->GetBuffer(0, __uuidof(ID3D11Resource), &backbuffer));
-		mFramebuffer = CreateRef<DirectXFramebuffer>(backbuffer.Get(), width, height, false);
+		mFramebuffer = CreateRef<DirectXColorBuffer>(backbuffer.Get(), width, height);
 	}
 
 }

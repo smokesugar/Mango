@@ -26,7 +26,7 @@ namespace Mango {
 		bool& TAAEnabled();
 
 		void BeginScene(const xmmatrix& projection, const xmmatrix& transform, uint32_t width, uint32_t height);
-		void EndScene(const Ref<Framebuffer>& target);
+		void EndScene(const Ref<ColorBuffer>& target);
 
 		void DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const float4& color);
 		void DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture);

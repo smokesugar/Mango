@@ -14,8 +14,8 @@ namespace Mango {
 
 		ECS::Entity Create(const std::string& name = "Unnamed Entity");
 
-		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget);
-		void OnUpdate(float dt, const Ref<Framebuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
+		void OnUpdate(float dt, const Ref<ColorBuffer>& rendertarget);
+		void OnUpdate(float dt, const Ref<ColorBuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
 
 		void SetActiveCamera(ECS::Entity entity);
 		ECS::Entity GetActiveCameraEntity();

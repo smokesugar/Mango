@@ -10,7 +10,7 @@
 
 namespace Mango {
 
-	struct GlobalUniforms {
+	struct GlobalData {
 		xmmatrix PreviousViewProjection;
 		xmmatrix ViewProjection;
 	};
@@ -42,13 +42,14 @@ namespace Mango {
 		Ref<Shader> TAAShader;
 		Ref<Shader> GeometryShader;
 
-		Ref<Framebuffer> PreviousFrame;
-		Ref<Framebuffer> ImmediateTarget;
+		Ref<ColorBuffer> PreviousFrame;
+		Ref<ColorBuffer> ImmediateTarget;
+		Ref<Mango::DepthBuffer> DepthBuffer;
 
 		struct {
-			Ref<Framebuffer> Color;
-			Ref<Framebuffer> Normal;
-			Ref<Framebuffer> Velocity;
+			Ref<ColorBuffer> Color;
+			Ref<ColorBuffer> Normal;
+			Ref<ColorBuffer> Velocity;
 		} GBuffer;
 
 		bool TAAEnabled = true;
@@ -74,18 +75,18 @@ namespace Mango {
 
 		// Framebuffers ------------------------------------------------------------------------------
 
-		FramebufferProperties props;
+		ColorBufferProperties props;
 		props.Width = 800;
 		props.Height = 600;
-		props.Depth = true;
+		props.Format = Format::RGBA16_FLOAT;
 
-		sData->GBuffer.Velocity = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->GBuffer.Velocity = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->GBuffer.Normal = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->PreviousFrame = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->GBuffer.Color = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->ImmediateTarget = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
-		props.Depth = false;
-		sData->GBuffer.Normal = Ref<Framebuffer>(Framebuffer::Create(props));
-		sData->PreviousFrame = Ref<Framebuffer>(Framebuffer::Create(props));
-		sData->GBuffer.Color = Ref<Framebuffer>(Framebuffer::Create(props));
-		sData->ImmediateTarget = Ref<Framebuffer>(Framebuffer::Create(props));
+		sData->DepthBuffer = Ref<DepthBuffer>(DepthBuffer::Create(800, 600));
 
 		// Textures ----------------------------------------------------------------------------------
 
@@ -97,7 +98,7 @@ namespace Mango {
 
 		// Uniform Buffers ---------------------------------------------------------------------------
 
-		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<GlobalUniforms>());
+		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<GlobalData>());
 		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<IndividualData>());
 		sData->LightingUniforms = Scope<UniformBuffer>(UniformBuffer::Create<LightingData>());
 
@@ -149,8 +150,7 @@ namespace Mango {
 
 		xmmatrix view = XMMatrixInverse(nullptr, transform);
 		xmmatrix viewProjection = view * projection * jitterMatrix;
-		sData->GlobalUniforms->SetData<GlobalUniforms>({ sData->PreviousView * projection, viewProjection });
-
+		sData->GlobalUniforms->SetData<GlobalData>({ sData->PreviousView * projection * jitterMatrix, viewProjection });
 
 		float4x4 proj;
 		XMStoreFloat4x4(&proj, projection*jitterMatrix);
@@ -190,17 +190,17 @@ namespace Mango {
 		}
 	}
 
-	void Renderer::EndScene(const Ref<Framebuffer>& target)
+	void Renderer::EndScene(const Ref<ColorBuffer>& target)
 	{
 		// Render Scene --------------------------------------------------------------------------------
 		
 		// Initialization
+		sData->DepthBuffer->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->ImmediateTarget->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->PreviousFrame->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->GBuffer.Color->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->GBuffer.Normal->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->GBuffer.Velocity->EnsureSize(target->GetWidth(), target->GetHeight());
-		sData->GBuffer.Velocity->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 
 		Texture::Unbind(0);
 		Texture::Unbind(1);
@@ -208,11 +208,14 @@ namespace Mango {
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
 
-		// Geometry Pass
+		// Geometry Pass ----------------------------------------------------------------------------------
+
 		RenderCommand::DisableBlending();
-		Framebuffer::BindMultiple({sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity});
+		BindRenderTargets({sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity}, sData->DepthBuffer);
 		sData->GBuffer.Color->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
 		sData->GBuffer.Normal->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
+		sData->GBuffer.Velocity->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
+		sData->DepthBuffer->Clear(0.0f);
 		
 		sData->GeometryShader->Bind();
 		sData->SamplerLinear->Bind(0);
@@ -223,20 +226,23 @@ namespace Mango {
 			sData->RenderQueue3D.pop();
 		}
 
-		// Lighting
-		sData->ImmediateTarget->Bind();
+		// Lighting ---------------------------------------------------------------------------
+
+		BindRenderTargets({sData->ImmediateTarget});
 		sData->ImmediateTarget->Clear(RENDERER_CLEAR_COLOR);
 
 		sData->SamplerPoint->Bind(0);
 		sData->GBuffer.Color->BindAsTexture(0);
 		sData->GBuffer.Normal->BindAsTexture(1);
-		sData->GBuffer.Velocity->BindDepthAsTexture(2);
+		sData->DepthBuffer->BindAsTexture(2);
 		sData->LightingShader->Bind();
 		sData->LightingUniforms->PSBind(0);
 		DrawScreenQuad();
 
+		// Sprites ------------------------------------------------------------------------------
+
 		Texture::Unbind(2);
-		Framebuffer::BindMultiple({ sData->ImmediateTarget, sData->GBuffer.Velocity });
+		BindRenderTargets({ sData->ImmediateTarget, sData->GBuffer.Velocity }, sData->DepthBuffer);
 		RenderCommand::EnableBlending();
 		sData->SpriteShader->Bind();
 		sData->SamplerLinear->Bind(0);
@@ -249,7 +255,7 @@ namespace Mango {
 
 		// Temporal Anti-aliasing --------------------------------------------------------------------
 
-		target->Bind();
+		BindRenderTargets({target});
 		sData->SamplerPoint->Bind(0);
 		sData->ImmediateTarget->BindAsTexture(0);
 		sData->PreviousFrame->BindAsTexture(1);
@@ -257,7 +263,7 @@ namespace Mango {
 		sData->TAAShader->Bind();
 		DrawScreenQuad();
 
-		Framebuffer::Blit(sData->PreviousFrame, target);
+		ColorBuffer::Blit(sData->PreviousFrame, target);
 
 		// -------------------------------------------------------------------------------------------
 	}

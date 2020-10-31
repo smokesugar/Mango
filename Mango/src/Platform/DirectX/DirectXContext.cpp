@@ -26,7 +26,7 @@ namespace Mango {
 	void ImGuiContext::RendererAPI_End() {
 		auto& context = RetrieveContext();
 
-		auto rtv = std::static_pointer_cast<DirectXFramebuffer>(Application::Get().GetWindow().GetSwapChain().GetFramebuffer())->GetRenderTargetView();
+		auto rtv = std::static_pointer_cast<DirectXColorBuffer>(Application::Get().GetWindow().GetSwapChain().GetFramebuffer())->GetRenderTargetView();
 		context.GetDeviceContext()->OMSetRenderTargets(1, &rtv, nullptr);
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 

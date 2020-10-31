@@ -14,12 +14,12 @@ namespace Mango {
 	public:
 		DirectXSwapChain();
 		virtual void Present() override;
-		virtual Ref<Framebuffer> GetFramebuffer() override;
+		virtual Ref<ColorBuffer> GetFramebuffer() override;
 		virtual void Resize(uint32_t width, uint32_t height) override;
 	private:
 		void CreateInternalFramebuffer(uint32_t width, uint32_t height);
 	private:
-		Ref<DirectXFramebuffer> mFramebuffer;
+		Ref<DirectXColorBuffer> mFramebuffer;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> mInternal;
 	};
 

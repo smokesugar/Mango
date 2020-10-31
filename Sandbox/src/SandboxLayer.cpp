@@ -6,11 +6,11 @@ SandboxLayer::SandboxLayer()
 {
 	mScene = CreateRef<Scene>();
 
-	FramebufferProperties props;
+	ColorBufferProperties props;
 	props.Width = Application::Get().GetWindow().GetWidth();
 	props.Height = Application::Get().GetWindow().GetHeight();
 	props.Depth = true;
-	mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
+	mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
 	mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 }
@@ -39,5 +39,5 @@ inline void SandboxLayer::OnUpdate(float dt) {
 
 	mScene->OnUpdate(dt);
 
-	Framebuffer::Blit(buf, mFramebuffer);
+	ColorBuffer::Blit(buf, mFramebuffer);
 }

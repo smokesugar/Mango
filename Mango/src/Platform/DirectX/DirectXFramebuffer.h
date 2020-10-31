@@ -7,15 +7,13 @@
 
 namespace Mango {
 	
-	class DirectXFramebuffer : public Framebuffer {
-		friend class Framebuffer;
+	class DirectXColorBuffer : public ColorBuffer {
+		friend class ColorBuffer;
 	public:
-		DirectXFramebuffer(const FramebufferProperties& props);
-		DirectXFramebuffer(ID3D11Resource* resource, uint32_t width, uint32_t height, bool depth);
+		DirectXColorBuffer(const ColorBufferProperties& props);
+		DirectXColorBuffer(ID3D11Resource* resource, uint32_t width, uint32_t height);
 
-		virtual void Bind() override;
 		virtual void Clear(const float4& color) override;
-		virtual void ClearDepth() override;
 		virtual void Resize(uint32_t width, uint32_t height) override;
 		virtual void EnsureSize(uint32_t width, uint32_t height) override;
 
@@ -24,7 +22,6 @@ namespace Mango {
 
 		virtual void* GetTextureAttachment() const override { return mSRV.Get(); }
 		virtual void BindAsTexture(size_t slot) const override;
-		virtual void BindDepthAsTexture(size_t slot) const override;
 
 		inline ID3D11RenderTargetView* GetRenderTargetView() { return mRTV.Get(); }
 	private:
@@ -32,12 +29,27 @@ namespace Mango {
 		void CreateViews(ID3D11Resource* resource);
 	private:
 		bool mOwnsTexture;
-		FramebufferProperties mProps;
+		ColorBufferProperties mProps;
 		ID3D11Resource* mResourceReference;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
+	};
+
+	class DirectXDepthBuffer : public DepthBuffer {
+	public:
+		DirectXDepthBuffer(uint32_t width, uint32_t height);
+		virtual void Clear(float value) override;
+		virtual void Resize(uint32_t width, uint32_t height) override;
+		virtual void EnsureSize(uint32_t width, uint32_t height) override;
+		virtual void BindAsTexture(size_t slot) const override;
+
+		inline ID3D11DepthStencilView* GetDepthStencilView() { return mDSV.Get(); }
+	private:
+		void CreateViews(uint32_t width, uint32_t height);
+	private:
+		uint32_t mWidth, mHeight;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDSV;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mDSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
 	};
 
 }

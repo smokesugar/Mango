@@ -10,11 +10,11 @@ namespace Mango {
 
 		mSceneHierarchyPanel.SetScene(mScene.get());
 
-		FramebufferProperties props;
-		props.Width = Application::Get().GetWindow().GetWidth();
-		props.Height = Application::Get().GetWindow().GetHeight();
-		props.Depth = false;
-		mFramebuffer = Ref<Framebuffer>(Framebuffer::Create(props));
+		ColorBufferProperties props;
+		props.Width = 800;
+		props.Height = 600;
+		props.Format = Format::RGBA16_FLOAT;
+		mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
 		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
 	}

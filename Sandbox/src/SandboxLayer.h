@@ -13,6 +13,6 @@ private:
 	Ref<Scene> mScene;
 
 	OrthographicCamera mCamera;
-	Ref<Framebuffer> mFramebuffer;
+	Ref<ColorBuffer> mFramebuffer;
 	Ref<Texture2D> mTexture;
 };
