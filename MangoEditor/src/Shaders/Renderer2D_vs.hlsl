@@ -1,9 +1,10 @@
 
 struct VSOut {
 	float3 pos : Position;
+    float4 posSS : ScreenSpacePosition;
+    float4 prevPos : PreviousPosition;
 	float2 uv : TexCoord;
 	float4 col : Color;
-    float3 vel : Velocity;
 	float4 svpos : SV_Position;
 };
 
@@ -25,12 +26,11 @@ VSOut main(float3 pos : Position, float2 uv : TexCoord) {
 	vso.pos = worldPos.xyz;
 	vso.uv = uv;
 	vso.svpos = mul(viewProjection, worldPos);
+   
 	vso.col = color;
 	
-    float4 prevPos = mul(prevViewProjection, mul(prevModel, float4(pos, 1.0f)));
-    vso.vel = vso.svpos.xyz/vso.svpos.w - prevPos.xyz/prevPos.w;
-    vso.vel.y *= -1.0f;
-    vso.vel /= 2.0f;
+    vso.posSS = vso.svpos;
+	vso.prevPos = mul(prevViewProjection, mul(prevModel, float4(pos, 1.0f)));
 	
 	return vso;
 }

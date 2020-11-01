@@ -1,9 +1,10 @@
 struct VSOut
 {
-    float3 pos : Position;
+    float4 pos : Position;
+    float4 posSS : ScreenSpacePosition;
+    float4 prevPos : PreviousScreenSpacePosition;
     float3 normal : Normal;
     float2 uv : TexCoord;
-    float3 vel : Velocity;
     float4 svpos : SV_Position;
 };
 
@@ -49,8 +50,15 @@ PSOut main (VSOut vso)
     PSOut pso;
     pso.color.rgb = albedoColor * albedoTexture.Sample(sampler0, vso.uv).rgb;
     pso.color.a = roughnessValue * roughnessTexture.Sample(sampler0, vso.uv).r;
-    pso.normal.xyz = useNormalMap ? GetNormalFromMap(vso.pos, vso.uv, vso.normal) : vso.normal;
-    pso.velocity = float4(vso.vel, 1.0);
+    pso.normal.xyz = useNormalMap ? GetNormalFromMap(vso.pos.xyz, vso.uv, vso.normal) : vso.normal;
+    
+    float2 xy = float2(vso.posSS.x, -vso.posSS.y);
+    float2 a = (xy / vso.posSS.w) * 0.5 + 0.5;
+    xy = float2(vso.prevPos.x, -vso.prevPos.y);
+    float2 b = (xy / vso.prevPos.w) * 0.5 + 0.5;
+    
+    pso.velocity = float4(a-b, 0.0f, 1.0);
+    
     return pso;
 }
 

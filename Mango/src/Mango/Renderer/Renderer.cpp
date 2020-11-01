@@ -34,7 +34,7 @@ namespace Mango {
 	};
 
 	struct RendererData {
-		xmmatrix PreviousView = XMMatrixIdentity();
+		xmmatrix PreviousViewProjection = XMMatrixIdentity();
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
 		Scope<UniformBuffer> LightingUniforms;
@@ -178,7 +178,7 @@ namespace Mango {
 
 		xmmatrix view = XMMatrixInverse(nullptr, transform);
 		xmmatrix viewProjection = view * projection * jitterMatrix;
-		sData->GlobalUniforms->SetData<GlobalData>({ sData->PreviousView * projection * jitterMatrix, viewProjection });
+		sData->GlobalUniforms->SetData<GlobalData>({ sData->PreviousViewProjection * jitterMatrix, viewProjection });
 
 		float4x4 proj;
 		XMStoreFloat4x4(&proj, projection*jitterMatrix);
@@ -189,7 +189,7 @@ namespace Mango {
 		perspectiveValues.w = -proj.m[2][2];
 		sData->LightingUniforms->SetData<LightingData>({XMMatrixInverse(nullptr, view), perspectiveValues});
 
-		sData->PreviousView = view;
+		sData->PreviousViewProjection = view * projection;
 	}
 
 	static void InternalDrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {

@@ -49,6 +49,6 @@ float4 main(VSOut vso) : SV_Target{
         blend = 1.0f;
 
     float3 curSample = neighbourhood[4];
-	float3 c = lerp(histSample, curSample, float3(blend, blend, blend));
+	float3 c = lerp(histSample, curSample, blend.xxx);
     return float4(c, 1.0f);
 }
