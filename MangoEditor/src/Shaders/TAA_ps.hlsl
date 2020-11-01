@@ -29,7 +29,7 @@ float4 main(VSOut vso) : SV_Target{
 	neighbourhood[5] = thisFrame.Sample(sampler0, vso.uv + float2(+1, +0) * pixelSize).xyz;
 	neighbourhood[6] = thisFrame.Sample(sampler0, vso.uv + float2(-1, +1) * pixelSize).xyz;
 	neighbourhood[7] = thisFrame.Sample(sampler0, vso.uv + float2(+0, +1) * pixelSize).xyz;
-	neighbourhood[8] = thisFrame.Sample(sampler0, vso.uv + float2(+1, +1) * pixelSize).xyz;
+	neighbourhood[8] = thisFrame.Sample(sampler0, vso.uv + float2(+1, +1) * pixelSize).xyz;  
 
 	float3 nmin = neighbourhood[0];
 	float3 nmax = neighbourhood[0];
@@ -43,7 +43,7 @@ float4 main(VSOut vso) : SV_Target{
     histSample = clamp(histSample, nmin, nmax);
 
     float subpixelCorrection = frac(max(abs(vel.x) * width, abs(vel.y) * height)) * 0.5f;
-    float blend = saturate(lerp(0.05f, 0.8f, subpixelCorrection));
+    float blend = saturate(lerp(0.2f, 0.8f, subpixelCorrection));
 	
     if(histUv.x < 0.0f || histUv.x > 1.0f || histUv.y < 0.0f || histUv.y > 1.0f)
         blend = 1.0f;

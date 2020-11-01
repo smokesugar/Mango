@@ -272,22 +272,16 @@ namespace Mango {
 				const char* wantedType = orthographic ? "o" : "p";
 				if (ImGui::BeginCombo("##camera_type", orthographic ? "Orthographic" : "Perspective"))
 				{
-					if (ImGui::Selectable("Orthographic", orthographic)) {
-						wantedType = "o";
+					if (ImGui::Selectable("Orthographic", orthographic) && !orthographic) {
+						cameraComp.Camera = Camera::CreateOrthographic(2.5f);
+						orthographic = true;
 					}
-					if (ImGui::Selectable("Perspective", !orthographic)) {
-						wantedType = "p";
+					if (ImGui::Selectable("Perspective", !orthographic) && orthographic) {
+						cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f);
+						orthographic = false;
 					}
 
 					ImGui::EndCombo();
-				}
-				if (wantedType == "o" && !orthographic) {
-					cameraComp.Camera = Camera::CreateOrthographic(2.5f);
-					orthographic = true;
-				}
-				if (wantedType == "p" && orthographic) {
-					cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f);
-					orthographic = false;
 				}
 
 				if (!orthographic) {
@@ -342,18 +336,13 @@ namespace Mango {
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1.0f);
 
-				const char* wanted = sprite.UsesTexture ? "t" : "c";
 				if (ImGui::BeginCombo("##sprite_type", sprite.UsesTexture ? "Texture" : "Color")) {
-					if (ImGui::Selectable("Texture", sprite.UsesTexture))
-						wanted = "t";
-					if (ImGui::Selectable("Color", !sprite.UsesTexture))
-						wanted = "c";
+					if (ImGui::Selectable("Texture", sprite.UsesTexture) && !sprite.UsesTexture)
+						sprite = SpriteRendererComponent(Ref<Texture2D>());
+					if (ImGui::Selectable("Color", !sprite.UsesTexture) && sprite.UsesTexture)
+						sprite = SpriteRendererComponent(float4(1.0f, 1.0f, 1.0f, 1.0f));
 					ImGui::EndCombo();
 				}
-				if (wanted == "c" && sprite.UsesTexture)
-					sprite = SpriteRendererComponent(float4(1.0f, 1.0f, 1.0f, 1.0f));
-				if (wanted == "t" && !sprite.UsesTexture)
-					sprite = SpriteRendererComponent(Ref<Texture2D>());
 
 				if (sprite.UsesTexture) {
 					char path[64];
@@ -391,31 +380,23 @@ namespace Mango {
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1.0f);
 
-				const char* wanted = "Empty";
-				if (comp.Type == MeshType::Cube) wanted = "Cube";
-				if (comp.Type == MeshType::Sphere) wanted = "Sphere";
-				if (comp.Type == MeshType::Capsule) wanted = "Capsule";
-				if (comp.Type == MeshType::Model) wanted = "Model";
+				const char* label = "Empty";
+				if (comp.Type == MeshType::Cube) label = "Cube";
+				if (comp.Type == MeshType::Sphere) label = "Sphere";
+				if (comp.Type == MeshType::Capsule) label = "Capsule";
+				if (comp.Type == MeshType::Model) label = "Model";
 
-				if (ImGui::BeginCombo("##mesh_type", wanted)) {
-					if (ImGui::Selectable("Cube", wanted == "Cube"))
-						wanted = "Cube";
-					if (ImGui::Selectable("Sphere", wanted == "Sphere"))
-						wanted = "Sphere";
-					if (ImGui::Selectable("Capsule", wanted == "Capsule"))
-						wanted = "Capsule";
-					if (ImGui::Selectable("Model", wanted == "Model"))
-						wanted = "Model";
+				if (ImGui::BeginCombo("##mesh_type", label)) {
+					if (ImGui::Selectable("Cube", label == "Cube") && comp.Type != MeshType::Cube)
+						comp = MeshComponent(Mesh::CreateCube(Renderer::CreateDefaultMaterial()), MeshType::Cube);
+					if (ImGui::Selectable("Sphere", label == "Sphere") && comp.Type != MeshType::Sphere)
+						comp = MeshComponent(Mesh::CreateSphere(Renderer::CreateDefaultMaterial()), MeshType::Sphere);
+					if (ImGui::Selectable("Capsule", label == "Capsule") && comp.Type != MeshType::Capsule)
+						comp = MeshComponent(Mesh::CreateCapsule(Renderer::CreateDefaultMaterial()), MeshType::Capsule);
+					if (ImGui::Selectable("Model", label == "Model") && comp.Type != MeshType::Model)
+						comp = MeshComponent(Mesh(), MeshType::Model);
 					ImGui::EndCombo();
 				}
-				if (wanted == "Cube" && comp.Type != MeshType::Cube)
-					comp = MeshComponent(Mesh::CreateCube(Renderer::CreateDefaultMaterial()), MeshType::Cube);
-				if (wanted == "Sphere" && comp.Type != MeshType::Sphere)
-					comp = MeshComponent(Mesh::CreateSphere(Renderer::CreateDefaultMaterial()), MeshType::Sphere);
-				if (wanted == "Capsule" && comp.Type != MeshType::Capsule)
-					comp = MeshComponent(Mesh::CreateCapsule(Renderer::CreateDefaultMaterial()), MeshType::Capsule);
-				if (wanted == "Model" && comp.Type != MeshType::Model)
-					comp = MeshComponent(Mesh(), MeshType::Model);
 
 				if (comp.Type == MeshType::Model) {
 					char buf[64];
