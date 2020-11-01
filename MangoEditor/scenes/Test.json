@@ -1,13 +1,81 @@
 {
-    "activeCamera": 0,
+    "activeCamera": 4294967295,
     "entities": {
         "0": {
             "components": {
-                "camera": {
-                    "size": 2.5,
-                    "type": "orthographic"
+                "mesh": {
+                    "materials": [
+                        {
+                            "albedoColor": [
+                                0.5221239328384399,
+                                0.30536457896232605,
+                                0.12706556916236877
+                            ],
+                            "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\GroundTireTracks001_NRM_3K.jpg",
+                            "roughnessValue": 0.5
+                        },
+                        {
+                            "albedoColor": [
+                                0.800000011920929,
+                                0.3069469928741455,
+                                0.15806299448013306
+                            ],
+                            "roughnessValue": 0.5
+                        },
+                        {
+                            "albedoColor": [
+                                0.800000011920929,
+                                0.5730940103530884,
+                                0.21723000705242157
+                            ],
+                            "roughnessValue": 0.5
+                        },
+                        {
+                            "albedoColor": [
+                                0.33185839653015137,
+                                0.590410590171814,
+                                1.0
+                            ],
+                            "roughnessValue": 0.5
+                        }
+                    ],
+                    "path": "assets\\models\\testScene.fbx",
+                    "type": "model"
                 },
-                "tag": "Camera",
+                "tag": "Test Scene",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        0.009999999776482582,
+                        0.009999999776482582,
+                        0.009999999776482582
+                    ],
+                    "translation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        },
+        "1": {
+            "components": {
+                "mesh": {
+                    "material": {
+                        "albedoColor": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "roughnessValue": 0.5
+                    },
+                    "type": "cube"
+                },
+                "tag": "Cube",
                 "transform": {
                     "rotation": [
                         0.0,
@@ -20,14 +88,14 @@
                         1.0
                     ],
                     "translation": [
-                        0.0,
-                        0.0,
-                        0.0
+                        2.049999952316284,
+                        0.800000011920929,
+                        2.1700000762939453
                     ]
                 }
             }
         },
-        "1": {
+        "3": {
             "components": {
                 "spriteRenderer": {
                     "texturePath": "assets\\textures\\Chicken.jpg",
@@ -36,69 +104,19 @@
                 "tag": "Sprite",
                 "transform": {
                     "rotation": [
+                        26.200000762939453,
                         0.0,
-                        0.0,
-                        0.0
+                        -28.100000381469727
                     ],
                     "scale": [
-                        0.9300000071525574,
-                        0.9300000071525574,
-                        0.9300000071525574
+                        1.0,
+                        1.0,
+                        1.0
                     ],
                     "translation": [
                         0.0,
-                        -0.10999999940395355,
-                        0.14000000059604645
-                    ]
-                }
-            }
-        },
-        "2": {
-            "components": {
-                "mesh": {
-                    "type": "sphere"
-                },
-                "tag": "Sphere",
-                "transform": {
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        0.75,
-                        0.75,
-                        0.75
-                    ],
-                    "translation": [
-                        -0.8899999856948853,
-                        -0.8500000238418579,
-                        0.0
-                    ]
-                }
-            }
-        },
-        "3": {
-            "components": {
-                "mesh": {
-                    "type": "cube"
-                },
-                "tag": "Cube",
-                "transform": {
-                    "rotation": [
-                        -32.599998474121094,
-                        -33.29999923706055,
-                        0.0
-                    ],
-                    "scale": [
-                        0.5,
-                        0.5,
-                        0.5
-                    ],
-                    "translation": [
-                        0.8199999928474426,
-                        0.6499999761581421,
-                        0.17000000178813934
+                        0.5199999809265137,
+                        1.7999999523162842
                     ]
                 }
             }
@@ -106,40 +124,36 @@
         "4": {
             "components": {
                 "mesh": {
-                    "path": "assets\\models\\monkey.obj",
+                    "materials": [
+                        {
+                            "albedoColor": [
+                                0.6000000238418579,
+                                0.6000000238418579,
+                                0.6000000238418579
+                            ],
+                            "roughnessValue": 0.5
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
+                            "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
+                            "roughnessTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Glossiness.png",
+                            "roughnessValue": 1.0
+                        }
+                    ],
+                    "path": "assets\\models\\regency\\regency.obj",
                     "type": "model"
                 },
-                "tag": "Monkey",
+                "tag": "Couch",
                 "transform": {
                     "rotation": [
                         0.0,
-                        0.0,
+                        30.200000762939453,
                         0.0
-                    ],
-                    "scale": [
-                        0.4699999988079071,
-                        0.4699999988079071,
-                        0.4699999988079071
-                    ],
-                    "translation": [
-                        -0.7900000214576721,
-                        0.3799999952316284,
-                        0.0
-                    ]
-                }
-            }
-        },
-        "5": {
-            "components": {
-                "mesh": {
-                    "type": "capsule"
-                },
-                "tag": "Capsule",
-                "transform": {
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        -60.400001525878906
                     ],
                     "scale": [
                         0.5,
@@ -147,9 +161,9 @@
                         0.5
                     ],
                     "translation": [
-                        0.6399999856948853,
-                        -0.8700000047683716,
-                        0.0
+                        0.5400000214576721,
+                        -0.15000000596046448,
+                        -0.7300000190734863
                     ]
                 }
             }

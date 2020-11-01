@@ -2,11 +2,52 @@
 #include "Serializer.h"
 
 #include "Components.h"
+#include "Mango/Renderer/Renderer.h"
 
 #include <json.hpp>
 using namespace nlohmann;
 
 namespace Mango {
+
+	static void DumpMaterial(json& j, const Ref<Material>& mat) {
+		std::string path = mat->AlbedoTexture->GetPath();
+		if (!path.empty())
+			j["albedoTexture"] = path;
+
+		if (mat->NormalTexture)
+			j["normalTexture"] = mat->NormalTexture->GetPath();
+
+		path = mat->RoughnessTexture->GetPath();
+		if (!path.empty())
+			j["roughnessTexture"] = path;
+		
+		j["albedoColor"] = { mat->AlbedoColor.x, mat->AlbedoColor.y, mat->AlbedoColor.z };
+		j["roughnessValue"] = mat->RoughnessValue;
+	}
+
+	static Ref<Material> LoadMaterial(json& j, TextureLibrary& library) {
+		Ref<Texture2D> albedoTexture;
+		if (j.find("albedoTexture") != j.end())
+			albedoTexture = library.Get(j["albedoTexture"]);
+		else
+			albedoTexture = Renderer::GetWhiteTexture();
+
+		Ref<Texture2D> normalTexture;
+		if (j.find("normalTexture") != j.end())
+			normalTexture = library.Get(j["normalTexture"]);
+
+		Ref<Texture2D> roughnessTexture;
+		if (j.find("roughnessTexture") != j.end())
+			roughnessTexture = library.Get(j["roughnessTexture"]);
+		else
+			roughnessTexture = Renderer::GetWhiteTexture();
+
+		std::vector<float> albedoColorV = j["albedoColor"];
+		float3 albedoColor = {albedoColorV[0], albedoColorV[1], albedoColorV[2] };
+		float roughnessValue = j["roughnessValue"];
+
+		return CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughnessValue);
+	}
 
 	void Serializer::SerializeScene(const Ref<Scene>& scene, const std::string& filename)
 	{
@@ -78,16 +119,24 @@ namespace Mango {
 						}
 						else if (comp.Type == MeshType::Cube) {
 							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "cube";
+							DumpMaterial(j["entities"][std::to_string(entity)]["components"]["mesh"]["material"], mesh.Materials[0]);
 						}
 						else if (comp.Type == MeshType::Sphere) {
 							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "sphere";
+							DumpMaterial(j["entities"][std::to_string(entity)]["components"]["mesh"]["material"], mesh.Materials[0]);
 						}
 						else if (comp.Type == MeshType::Capsule) {
 							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "capsule";
+							DumpMaterial(j["entities"][std::to_string(entity)]["components"]["mesh"]["material"], mesh.Materials[0]);
 						}
 						else if (comp.Type == MeshType::Model) {
 							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "model";
 							j["entities"][std::to_string(entity)]["components"]["mesh"]["path"] = comp.Path;
+							for (auto& mat : mesh.Materials) {
+								json jmat;
+								DumpMaterial(jmat, mat);
+								j["entities"][std::to_string(entity)]["components"]["mesh"]["materials"].push_back(jmat);
+							}
 						}
 					}
 				}
@@ -185,17 +234,23 @@ namespace Mango {
 						reg.Emplace<MeshComponent>(entity);
 					}
 					else if (mesh["type"] == "cube") {
-						reg.Emplace<MeshComponent>(entity, Mesh::CreateCube(), MeshType::Cube);
+						Ref<Material> mat = LoadMaterial(mesh["material"], scene->GetTextureLibrary());
+						reg.Emplace<MeshComponent>(entity, Mesh::CreateCube(mat), MeshType::Cube);
 					}
 					else if (mesh["type"] == "sphere") {
-						reg.Emplace<MeshComponent>(entity, Mesh::CreateSphere(), MeshType::Sphere);
+						Ref<Material> mat = LoadMaterial(mesh["material"], scene->GetTextureLibrary());
+						reg.Emplace<MeshComponent>(entity, Mesh::CreateSphere(mat), MeshType::Sphere);
 					}
 					else if (mesh["type"] == "capsule") {
-						reg.Emplace<MeshComponent>(entity, Mesh::CreateCapsule(), MeshType::Capsule);
+						Ref<Material> mat = LoadMaterial(mesh["material"], scene->GetTextureLibrary());
+						reg.Emplace<MeshComponent>(entity, Mesh::CreateCapsule(mat), MeshType::Capsule);
 					}
 					else if (mesh["type"] == "model") {
 						std::string path = mesh["path"];
-						reg.Emplace<MeshComponent>(entity, path.empty() ? Mesh() : Mesh::CreateModel(path), MeshType::Model).Path = path;
+						std::vector<Ref<Material>> mats;
+						for (auto& j : mesh["materials"])
+							mats.push_back(LoadMaterial(j, scene->GetTextureLibrary()));
+						reg.Emplace<MeshComponent>(entity, path.empty() ? Mesh() : Mesh::CreateModel(mats, scene->GetTextureLibrary(), path), MeshType::Model).Path = path;
 					}
 				}
 			}

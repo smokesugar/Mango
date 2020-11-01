@@ -1,9 +1,10 @@
 #include "mgpch.h"
 #include "Mango/Renderer/Mesh.h"
+#include "Mango/Renderer/Renderer.h"
 
 namespace Mango {
 
-	Mesh Mesh::CreateCube()
+	Mesh Mesh::CreateCube(const Ref<Material>& mat)
 	{
 		float vertices[] = {
 			-0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
@@ -53,9 +54,11 @@ namespace Mango {
 		auto vb = Ref<VertexBuffer>(VertexBuffer::Create(vertices, std::size(vertices)/8, 8*sizeof(float)));
 
 		Node node;
-		node.Submeshes.push_back(CreateRef<VertexArray>(vb, Ref<IndexBuffer>()));
+		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, Ref<IndexBuffer>()), mat });
+		Mesh mesh(node);
+		mesh.Materials.push_back(mat);
 
-		return Mesh(node);
+		return mesh;
 	}
 
 }

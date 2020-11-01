@@ -1,5 +1,6 @@
 #include "mgpch.h"
 #include "Mango/Renderer/Mesh.h"
+#include "Mango/Renderer/Renderer.h"
 
 #include "Mango/Core/Math.h"
 
@@ -7,7 +8,7 @@ namespace Mango {
 
 	// Code straight up stolen from https://github.com/JoeyDeVries/Cell/blob/56726959fa85b4c087f9e87cc67d504db32ea41e/cell/mesh/sphere.cpp
 	
-	Mesh Mesh::CreateSphere(uint32_t xSegments, uint32_t ySegments)
+	Mesh Mesh::CreateSphere(const Ref<Material>& mat, uint32_t xSegments, uint32_t ySegments)
 	{
 		std::vector<float> vertices;
 		for (uint32_t y = 0; y <= ySegments; y++)
@@ -58,9 +59,12 @@ namespace Mango {
 		auto ib = Ref<IndexBuffer>(IndexBuffer::Create(indices.data(), indices.size()));
 
 		Node node;
-		node.Submeshes.push_back(CreateRef<VertexArray>(vb, ib));
+		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
 
-		return Mesh(node);
+		Mesh mesh(node);
+		mesh.Materials.push_back(mat);
+
+		return mesh;
 	}
 
 }

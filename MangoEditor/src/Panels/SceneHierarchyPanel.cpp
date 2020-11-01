@@ -4,10 +4,15 @@
 
 #include "Mango/Core/FileDialog.h"
 #include "Mango/Scene/Components.h"
+#include "Mango/Renderer/Renderer.h"
 
 #include <imgui.h>
 
 namespace Mango {
+	
+	static bool OpenTextureFileDialog(std::string& path) {
+		return FileDialog::Open(path, L"Image File\0*.jpg;*.png;*.bmp\0All\0*.*\0");
+	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel()
 		: mScene(nullptr)
@@ -87,6 +92,114 @@ namespace Mango {
 
 		ImGui::End();
 
+		// Material Panel ------------------------------------------------------------------------------------------------------------
+
+		ImGui::Begin("Materials");
+		if (reg.Has<MeshComponent>(mSelectedEntity)) {
+			auto& mesh = reg.Get<MeshComponent>(mSelectedEntity).Mesh;
+			size_t counter = 0;
+			for (auto& material : mesh.Materials) {
+				if (ImGui::TreeNodeEx((void*)material.get(), 0, ("Material" + std::to_string(counter++)).c_str())) {
+					ImGui::Columns(2);
+
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Albedo");
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("");
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Roughness");
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("");
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Normal");
+
+					ImGui::NextColumn();
+
+					bool color = material->AlbedoTexture == Renderer::GetWhiteTexture();
+					bool roughnessVal = material->RoughnessTexture == Renderer::GetWhiteTexture();
+
+					if (ImGui::BeginCombo("##combo_albedo", color ? "Color" : "Texture")) {
+						if (ImGui::Selectable("Color") && !color) {
+							material->AlbedoTexture = Renderer::GetWhiteTexture();
+						}
+						if (ImGui::Selectable("Texture") && color) {
+							material->AlbedoTexture = Renderer::GetBlackTexture();
+							material->AlbedoColor = float3(1.0f, 1.0f, 1.0f);
+						}
+						ImGui::EndCombo();
+					}
+
+					if (color) {
+						ImGui::ColorEdit3("##material_albedocolor", ValuePtr(material->AlbedoColor));
+					}
+					else {
+						char buf[64];
+						memset(buf, 0, sizeof(buf));
+						std::string path = material->AlbedoTexture->GetPath();
+						memcpy(buf, path.c_str(), Min(path.size(), sizeof(buf)));
+						ImGui::InputText("##material_albedotex", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+						ImGui::SameLine();
+						if (ImGui::Button("...##0")) {
+							std::string newPath;
+							if (OpenTextureFileDialog(newPath))
+								material->AlbedoTexture = mScene->GetTextureLibrary().Get(newPath);
+						}
+					}
+					
+					if (ImGui::BeginCombo("##combo_roughness", roughnessVal ? "Float" : "Texture")) {
+						if (ImGui::Selectable("Float") && !roughnessVal) {
+							material->RoughnessTexture = Renderer::GetWhiteTexture();
+							material->RoughnessValue = 0.5f;
+						}
+						if (ImGui::Selectable("Texture") && roughnessVal) {
+							material->RoughnessTexture = Renderer::GetBlackTexture();
+							material->RoughnessValue = 1.0f;
+						}
+						ImGui::EndCombo();
+					}
+
+					if (roughnessVal) {
+						ImGui::DragFloat("##material_roughnessValue", &material->RoughnessValue, 0.01f, 0.0f, 1.0f);
+					}
+					else {
+						char buf[64];
+						memset(buf, 0, sizeof(buf));
+						std::string path = material->RoughnessTexture->GetPath();
+						memcpy(buf, path.c_str(), Min(path.size(), sizeof(buf)));
+						ImGui::InputText("##material_roughnesstex", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+						ImGui::SameLine();
+						if (ImGui::Button("...##1")) {
+							std::string newPath;
+							if (OpenTextureFileDialog(newPath))
+								material->RoughnessTexture = mScene->GetTextureLibrary().Get(newPath);
+						}
+					}
+					
+					char buf[64];
+					memset(buf, 0, sizeof(buf));
+					if (material->NormalTexture) {
+						std::string path = material->NormalTexture->GetPath();
+						memcpy(buf, path.c_str(), Min(path.size(), sizeof(buf)));
+					}
+					ImGui::InputText("##material_normaltex", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+					ImGui::SameLine();
+					if (ImGui::Button("Clear"))
+						material->NormalTexture.reset();
+					ImGui::SameLine();
+					if (ImGui::Button("...##2")) {
+						std::string newPath;
+						if (OpenTextureFileDialog(newPath))
+							material->NormalTexture = mScene->GetTextureLibrary().Get(newPath);
+					}
+
+					ImGui::Columns(1);
+					ImGui::TreePop();
+				}
+				ImGui::Separator();
+			}
+		}
+		ImGui::End();
+
 		// Properties ----------------------------------------------------------------------------------------------------------------
 
 		ImGui::Begin("Properties");
@@ -109,7 +222,9 @@ namespace Mango {
 					ImGui::Columns(2);
 					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Position");
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Rotation");
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Scale");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1.0f);
@@ -132,19 +247,24 @@ namespace Mango {
 				bool orthographic = cameraComp.Camera.GetType() == Camera::Type::Orthographic;
 
 				ImGui::Columns(2);
-				ImGui::AlignTextToFramePadding();
 
+				ImGui::AlignTextToFramePadding();
 				ImGui::Text("Type");
 
 				if (!orthographic) {
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("FOV");
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Near Plane");
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Far Plane");
 				}
 				if (orthographic) {
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Size");
 				}
 
+				ImGui::AlignTextToFramePadding();
 				ImGui::Text("Enabled");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1.0f);
@@ -207,13 +327,17 @@ namespace Mango {
 			DrawComponent<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity, reg, [&]() {
 				auto& sprite = reg.Get<SpriteRendererComponent>(mSelectedEntity);
 				ImGui::Columns(2);
-				ImGui::AlignTextToFramePadding();
 
+				ImGui::AlignTextToFramePadding();
 				ImGui::Text("Type");
-				if (sprite.UsesTexture)
+				if (sprite.UsesTexture) {
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Texture");
-				else
+				}
+				else {
+					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Color");
+				}
 
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1.0f);
@@ -242,7 +366,7 @@ namespace Mango {
 					if (ImGui::Button("..."))
 					{
 						std::string path;
-						if (FileDialog::Open(path, L"Image File\0*.jpg;*.png;*.bmp\0All\0*.*\0")) {
+						if (OpenTextureFileDialog(path)) {
 							sprite.Texture = mScene->GetTextureLibrary().Get(path);
 						}
 					}
@@ -285,11 +409,11 @@ namespace Mango {
 					ImGui::EndCombo();
 				}
 				if (wanted == "Cube" && comp.Type != MeshType::Cube)
-					comp = MeshComponent(Mesh::CreateCube(), MeshType::Cube);
+					comp = MeshComponent(Mesh::CreateCube(Renderer::CreateDefaultMaterial()), MeshType::Cube);
 				if (wanted == "Sphere" && comp.Type != MeshType::Sphere)
-					comp = MeshComponent(Mesh::CreateSphere(), MeshType::Sphere);
+					comp = MeshComponent(Mesh::CreateSphere(Renderer::CreateDefaultMaterial()), MeshType::Sphere);
 				if (wanted == "Capsule" && comp.Type != MeshType::Capsule)
-					comp = MeshComponent(Mesh::CreateCapsule(), MeshType::Capsule);
+					comp = MeshComponent(Mesh::CreateCapsule(Renderer::CreateDefaultMaterial()), MeshType::Capsule);
 				if (wanted == "Model" && comp.Type != MeshType::Model)
 					comp = MeshComponent(Mesh(), MeshType::Model);
 
@@ -303,7 +427,7 @@ namespace Mango {
 					if (ImGui::Button("...")) {
 						std::string path;
 						if (FileDialog::Open(path, L"3D Model\0*.obj;*.fbx;*.gltf\0All\0*.*\0")) {
-							comp = MeshComponent(Mesh::CreateModel(path), MeshType::Model);
+							comp = MeshComponent(Mesh::CreateModel({}, mScene->GetTextureLibrary(), path), MeshType::Model);
 							comp.Path = path;
 						}
 					}

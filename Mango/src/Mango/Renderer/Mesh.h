@@ -3,12 +3,25 @@
 #include "Mango/Core/Math.h"
 
 #include "VertexArray.h"
+#include "Texture.h"
 
 namespace Mango {
 	
+	struct Material {
+		Ref<Texture2D> AlbedoTexture;
+		Ref<Texture2D> NormalTexture;
+		Ref<Texture2D> RoughnessTexture;
+		float3 AlbedoColor;
+		float RoughnessValue;
+
+		Material(const Ref<Texture2D>& albedoTex, const Ref<Texture2D>& normalTex, const Ref<Texture2D>& roughnessTex, const float3& color, float roughness)
+			: AlbedoTexture(albedoTex), NormalTexture(normalTex), RoughnessTexture(roughnessTex), AlbedoColor(color), RoughnessValue(roughness)
+		{}
+	};
+
 	struct Node {
 		std::vector<Node> Children;
-		std::vector<Ref<VertexArray>> Submeshes;
+		std::vector<std::pair<Ref<VertexArray>, Ref<Material>>> Submeshes;
 		xmmatrix Transform;
 
 		Node(const xmmatrix& transform = XMMatrixIdentity())
@@ -20,16 +33,17 @@ namespace Mango {
 
 	struct Mesh {
 		Node RootNode;
+		std::vector<Ref<Material>> Materials;
 
 		Mesh() = default;
 		Mesh(const Node& rootNode)
 			: RootNode(rootNode)
 		{}
 
-		static Mesh CreateCube();
-		static Mesh CreateSphere(uint32_t xSegments = 32, uint32_t ySegments = 16);
-		static Mesh CreateCapsule(uint32_t mantleSegments = 20, uint32_t ellipsoidSegments = 5);
-		static Mesh CreateModel(const std::string& file);
+		static Mesh CreateCube(const Ref<Material>& material);
+		static Mesh CreateSphere(const Ref<Material>& material, uint32_t xSegments = 32, uint32_t ySegments = 16);
+		static Mesh CreateCapsule(const Ref<Material>& material, uint32_t mantleSegments = 20, uint32_t ellipsoidSegments = 5);
+		static Mesh CreateModel(const std::vector<Ref<Material>>& material, TextureLibrary& textureLibrary, const std::string& file);
 	};
 
 }

@@ -26,14 +26,23 @@ namespace Mango {
 		float4 PerspectiveValues;
 	};
 
+	struct SurfaceData {
+		float3 AlbedoColor;
+		int UseNormalMap;
+		float RoughnessValue;
+		float3 _padding;
+	};
+
 	struct RendererData {
 		xmmatrix PreviousView = XMMatrixIdentity();
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
 		Scope<UniformBuffer> LightingUniforms;
+		Scope<UniformBuffer> SurfaceUniforms;
 
 		Ref<VertexArray> Quad;
 		Ref<Texture2D> WhiteTexture;
+		Ref<Texture2D> BlackTexture;
 		Scope<SamplerState> SamplerLinear;
 		Scope<SamplerState> SamplerPoint;
 
@@ -56,6 +65,7 @@ namespace Mango {
 
 		std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
 		std::queue<std::tuple<const Mesh*, xmmatrix, xmmatrix>> RenderQueue3D;
+		std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>> MaterialMeshQueue;
 	};
 
 	static RendererData* sData;
@@ -95,12 +105,15 @@ namespace Mango {
 
 		uint32_t color = 0xffffffff;
 		sData->WhiteTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
+		color = 0;
+		sData->BlackTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
 
 		// Uniform Buffers ---------------------------------------------------------------------------
 
 		sData->GlobalUniforms = Scope<UniformBuffer>(UniformBuffer::Create<GlobalData>());
 		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<IndividualData>());
 		sData->LightingUniforms = Scope<UniformBuffer>(UniformBuffer::Create<LightingData>());
+		sData->SurfaceUniforms = Scope<UniformBuffer>(UniformBuffer::Create<SurfaceData>());
 
 		// Quad --------------------------------------------------------------------------------------
 
@@ -128,6 +141,21 @@ namespace Mango {
 	bool& Renderer::TAAEnabled()
 	{
 		return sData->TAAEnabled;
+	}
+
+	const Ref<Texture2D>& Renderer::GetWhiteTexture()
+	{
+		return sData->WhiteTexture;
+	}
+
+	const Ref<Texture2D>& Renderer::GetBlackTexture()
+	{
+		return sData->BlackTexture;
+	}
+
+	Ref<Material> Renderer::CreateDefaultMaterial()
+	{
+		return CreateRef<Material>(Renderer::GetWhiteTexture(), nullptr, Renderer::GetWhiteTexture(), float3(1.0f, 1.0f, 1.0f), 0.5f);
 	}
 
 	void Renderer::BeginScene(const xmmatrix& projection, const xmmatrix& transform, uint32_t width, uint32_t height)
@@ -172,21 +200,17 @@ namespace Mango {
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
-	static void InternalRenderNode(const Node* node, const xmmatrix& previousTransform, const xmmatrix& parentTransform) {
+	static void SubmitNode(const Node* node, const xmmatrix& previousTransform, const xmmatrix& parentTransform) {
 		xmmatrix transform = node->Transform * parentTransform;
 		xmmatrix prevT = node->Transform * previousTransform;
-		sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 
-		for (auto va : node->Submeshes) {
-			va->Bind();
-			if (va->IsIndexed())
-				RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
-			else
-				RenderCommand::Draw(va->GetDrawCount(), 0);
+		for (auto& [va, material] : node->Submeshes)
+		{
+			sData->MaterialMeshQueue[material].push_back({va, prevT, transform});
 		}
 
 		for (auto& node : node->Children) {
-			InternalRenderNode(&node, prevT, transform);
+			SubmitNode(&node, prevT, transform);
 		}
 	}
 
@@ -219,10 +243,31 @@ namespace Mango {
 		
 		sData->GeometryShader->Bind();
 		sData->SamplerLinear->Bind(0);
+		sData->SurfaceUniforms->PSBind(0);
 
 		while (!sData->RenderQueue3D.empty()) {
 			auto& [mesh, previousTransform, transform] = sData->RenderQueue3D.front();
-			InternalRenderNode(&mesh->RootNode, previousTransform, transform);
+			SubmitNode(&mesh->RootNode, previousTransform, transform);
+
+			for (auto& [material, submeshes] : sData->MaterialMeshQueue) {
+				sData->SurfaceUniforms->SetData<SurfaceData>({ material->AlbedoColor, material->NormalTexture ? true : false, material->RoughnessValue });
+				material->AlbedoTexture->Bind(0);
+				if (material->NormalTexture)
+					material->NormalTexture->Bind(1);
+				material->RoughnessTexture->Bind(2);
+
+				for (auto& [va, prevT, transform] : submeshes) {
+					sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+
+					va->Bind();
+					if (va->IsIndexed())
+						RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
+					else
+						RenderCommand::Draw(va->GetDrawCount(), 0);
+				}
+			}
+
+			sData->MaterialMeshQueue.clear();
 			sData->RenderQueue3D.pop();
 		}
 
@@ -268,14 +313,9 @@ namespace Mango {
 		// -------------------------------------------------------------------------------------------
 	}
 
-	void Renderer::DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const float4& color)
+	void Renderer::DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color)
 	{
-		sData->RenderQueue2D.push({ previousFrameTransform, transform, sData->WhiteTexture, color });
-	}
-
-	void Renderer::DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture)
-	{
-		sData->RenderQueue2D.push({ previousFrameTransform, transform, texture, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+		sData->RenderQueue2D.push({ previousFrameTransform, transform, texture, color });
 	}
 
 	void Renderer::DrawScreenQuad()

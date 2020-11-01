@@ -59,7 +59,7 @@ namespace Mango {
 			: Color(color), UsesTexture(false)
 		{}
 		SpriteRendererComponent(const Ref<Texture2D>& texture)
-			: Texture(texture), Color(0.0f, 0.0f, 0.0f, 1.0f), UsesTexture(true)
+			: Texture(texture), Color(1.0f, 1.0f, 1.0f, 1.0f), UsesTexture(true)
 		{}
 	};
 

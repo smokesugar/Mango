@@ -50,11 +50,7 @@ namespace Mango {
 				auto transform = transforms[i].GetMatrix();
 				auto& prevTransform = previousTransforms[i].Transform;
 
-				if (spriteComp.UsesTexture && spriteComp.Texture) {
-					Renderer::DrawQuad(prevTransform, transform, spriteComp.Texture);
-				}
-				else
-					Renderer::DrawQuad(prevTransform, transform, spriteComp.Color);
+				Renderer::DrawQuad(prevTransform, transform, spriteComp.UsesTexture && spriteComp.Texture? spriteComp.Texture : Renderer::GetWhiteTexture(), spriteComp.Color);
 
 				prevTransform = transform;
 			}

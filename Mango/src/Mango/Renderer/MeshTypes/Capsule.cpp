@@ -1,5 +1,6 @@
 #include "mgpch.h"
 #include "Mango/Renderer/Mesh.h"
+#include "Mango/Renderer/Renderer.h"
 
 #define CAPSULE_HEIGHT 2.0f
 #define CAPSULE_RADIUS 0.5f
@@ -25,7 +26,7 @@ namespace Mango {
 		}
 	};
 
-	Mesh Mesh::CreateCapsule(uint32_t mantleSegments, uint32_t ellipsoidSegments) {
+	Mesh Mesh::CreateCapsule(const Ref<Material>& mat, uint32_t mantleSegments, uint32_t ellipsoidSegments) {
 		const uint32_t segsHorz = Max(3u, mantleSegments);
 		const uint32_t segsVert = 1u;
 		const uint32_t segsV = Max(2u, ellipsoidSegments);
@@ -179,9 +180,11 @@ namespace Mango {
 		auto ib = Ref<IndexBuffer>(IndexBuffer::Create(indices.data(), indices.size()));
 
 		Node node;
-		node.Submeshes.push_back(CreateRef<VertexArray>(vb, ib));
+		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
+		Mesh mesh(node);
+		mesh.Materials.push_back(mat);
 
-		return Mesh(node);
+		return mesh;
 	}
 
 }
