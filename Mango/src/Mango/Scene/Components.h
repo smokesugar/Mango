@@ -79,4 +79,20 @@ namespace Mango {
 		{}
 	};
 
+	enum class LightType {
+		Point, Directional
+	};
+
+	struct LightComponent {
+		float3 Color;
+		float Intensity;
+		LightType Type;
+
+		LightComponent() = default;
+		LightComponent(const LightComponent&) = default;
+		LightComponent(const float3& color, float intensity, LightType type)
+			: Color(color), Intensity(intensity), Type(type)
+		{}
+	};
+
 }

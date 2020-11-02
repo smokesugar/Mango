@@ -13,13 +13,30 @@ struct VSOut
     float4 svpos : SV_Position;
 };
 
+#define MAX_DIRECTIONAL_LIGHTS 4
+#define MAX_POINT_LIGHTS 16
+
+struct Light
+{
+    float3 Vector;
+    float padding0;
+    float3 Color;
+    float padding1;
+};
+
 cbuffer LightingData : register(b0)
 {
     matrix invView;
     float4 perspectiveValues;
+    Light pointLights[MAX_POINT_LIGHTS];
+    Light directionalLights[MAX_DIRECTIONAL_LIGHTS];
+    int numDirectionalLights;
+    int numPointLights;
 };
 
 // Functions ------------------------------------------------------------------------------------
+
+// Position ------------------------------------
 
 float LinearizeDepth(float depth)
 {
@@ -82,36 +99,8 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-// Main ------------------------------------------------------------------------------------------
-
-float4 main(VSOut vso) : SV_Target
+float3 CalculateLighting(float3 N, float3 V, float3 L, float3 H, float attenuation, float3 lightColor, float3 albedo, float roughness, float metallic)
 {
-    float4 normalSample = normal.Sample(sampler0, vso.uv);
-    float3 norm = normalSample.xyz;
-    if (dot(norm, norm) == 0.0f)
-        discard;
-    
-    float metallic = normalSample.w;
-    
-    float4 colorSample = color.Sample(sampler0, vso.uv);
-    float3 albedo = colorSample.rgb;
-    float roughness = colorSample.a;
-  
-    float nonLinearDepth = depthBuffer.Sample(sampler0, vso.uv).r;
-    float z = LinearizeDepth(nonLinearDepth);
-    float3 worldPos = GetPosition(vso.uv, z);
-    float3 eye = mul(invView, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
-    float3 lightColor = 1.0f.xxx;
-    
-    // Lighting -------------------------------------------------------
-    
-    float3 N = normalize(norm);
-    float3 V = normalize(eye - worldPos);
-    
-    float3 L = normalize(float3(2.0f, 3.0f, 0.0f));
-    float3 H = normalize(V + L);
-    
-    float attenuation = 1.0f;
     float3 radiance = lightColor * attenuation;
     
     float3 F0 = 0.04.xxx;
@@ -131,13 +120,71 @@ float4 main(VSOut vso) : SV_Target
     
     float NdotL = max(dot(N, L), 0.0f);
     float3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+    return Lo;
+}
+
+// Main ------------------------------------------------------------------------------------------
+
+float4 main (VSOut vso): SV_Target
+{
+    float4 normalSample = normal.Sample(sampler0, vso.uv);
+    float3 norm = normalSample.xyz;
+    if (dot(norm, norm) == 0.0f)
+        discard;
+    
+    float metallic = normalSample.w;
+    float4 colorSample = color.Sample(sampler0, vso.uv);
+    float3 albedo = colorSample.rgb;
+    float roughness = colorSample.a;
+  
+    float nonLinearDepth = depthBuffer.Sample(sampler0, vso.uv).r;
+    float z = LinearizeDepth(nonLinearDepth);
+    float3 worldPos = GetPosition(vso.uv, z);
+    float3 eye = mul(invView, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+    
+    // Lighting -------------------------------------------------------
+    
+    float3 N = normalize(norm);
+    float3 V = normalize(eye - worldPos);
+    
+    float3 Lo = 0.0f.xxx;
+    
+    {
+        for (int i = 0; i < numPointLights; i++)
+        {
+            float3 L = pointLights[i].Vector - worldPos;
+        
+            float distance = length(L);
+            float attenuation = 1.0f / (distance * distance);
+            L /= distance;
+        
+            float3 H = normalize(V + L);
+        
+            Lo += CalculateLighting(N, V, L, H, attenuation, pointLights[i].Color, albedo, roughness, metallic);
+        }
+    }
+    
+    {
+        for (int i = 0; i < numDirectionalLights; i++)
+        {
+            float3 L = normalize(directionalLights[i].Vector);
+            float3 H = normalize(V + L);
+            
+            float attenuation = 1.0f;
+            
+            Lo += CalculateLighting(N, V, L, H, attenuation, directionalLights[i].Color, albedo, roughness, metallic);
+        }
+    }
     
     // ----------------------------------------------------------------
     
     float3 fragColor = Lo;
+   
+    // HDR Tonemap
+    fragColor = fragColor / (fragColor+1.0f);
     
     float gamma = 2.2f;
-    fragColor = pow(fragColor, (1.0f/gamma).xxx);
-    
+    fragColor = pow(fragColor, (1.0f / gamma).xxx);
+   
     return float4(fragColor, 1.0);
 }

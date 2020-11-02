@@ -32,8 +32,8 @@ inline void SandboxLayer::OnUpdate(float dt) {
 	accum += dt;
 	float s = sinf(accum) * 0.5f + 0.5f;
 
-	Renderer::DrawQuad(float3(0.0f, 0.0f, 0.0f), float2(1.0f, 1.0f), mTexture);
-	Renderer::DrawQuad(float3(0.0f, 0.0f, -0.5f), float2(1.0f, 1.0f), float4(1.0f, 0.2f, 0.3f, 1.0f));
+	Renderer::SubmitQuad(float3(0.0f, 0.0f, 0.0f), float2(1.0f, 1.0f), mTexture);
+	Renderer::SubmitQuad(float3(0.0f, 0.0f, -0.5f), float2(1.0f, 1.0f), float4(1.0f, 0.2f, 0.3f, 1.0f));
 
 	Renderer::EndScene();
 

@@ -142,6 +142,16 @@ namespace Mango {
 						}
 					}
 				}
+
+				// Light
+				{
+					if (reg.Has<LightComponent>(entity)) {
+						auto& comp = reg.Get<LightComponent>(entity);
+						j["entities"][std::to_string(entity)]["components"]["light"]["type"] = comp.Type == LightType::Point ? "point" : "directional";
+						j["entities"][std::to_string(entity)]["components"]["light"]["color"] = { comp.Color.x, comp.Color.y, comp.Color.z };
+						j["entities"][std::to_string(entity)]["components"]["light"]["intensity"] = comp.Intensity;
+					}
+				}
 			}
 		}
 		
@@ -254,6 +264,17 @@ namespace Mango {
 							mats.push_back(LoadMaterial(j, scene->GetTextureLibrary()));
 						reg.Emplace<MeshComponent>(entity, path.empty() ? Mesh() : Mesh::CreateModel(mats, scene->GetTextureLibrary(), path), MeshType::Model).Path = path;
 					}
+				}
+			}
+
+			// Light
+			{
+				if (components.find("light") != components.end()) {
+					auto& light = components["light"];
+					std::vector<float> col = light["color"];
+					float intensity = light["intensity"];
+					std::string type = light["type"];
+					reg.Emplace<LightComponent>(entity, *(float3*)col.data(), intensity, type == "point" ? LightType::Point : LightType::Directional);
 				}
 			}
 		}

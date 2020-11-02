@@ -8,6 +8,9 @@
 
 #include "Halton.h"
 
+#define MAX_DIRECTIONAL_LIGHTS 4
+#define MAX_POINT_LIGHTS 16
+
 namespace Mango {
 
 	struct GlobalData {
@@ -21,9 +24,20 @@ namespace Mango {
 		float4 color;
 	};
 
+	struct Light {
+		float3 Vector;
+		float padding0;
+		float3 Color;
+		float padding1;
+	};
+
 	struct LightingData {
 		xmmatrix InvView;
 		float4 PerspectiveValues;
+		Light PointLights[MAX_POINT_LIGHTS];
+		Light DirectionalLights[MAX_DIRECTIONAL_LIGHTS];
+		int NumDirectionalLights;
+		int NumPointLights;
 	};
 
 	struct SurfaceData {
@@ -38,6 +52,7 @@ namespace Mango {
 		xmmatrix PreviousViewProjection = XMMatrixIdentity();
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
+		Mango::LightingData LightingData;
 		Scope<UniformBuffer> LightingUniforms;
 		Scope<UniformBuffer> SurfaceUniforms;
 
@@ -188,7 +203,11 @@ namespace Mango {
 		perspectiveValues.y = 1.0f / proj.m[1][1];
 		perspectiveValues.z = proj.m[3][2];
 		perspectiveValues.w = -proj.m[2][2];
-		sData->LightingUniforms->SetData<LightingData>({XMMatrixInverse(nullptr, view), perspectiveValues});
+
+		sData->LightingData.InvView = XMMatrixInverse(nullptr, view);
+		sData->LightingData.PerspectiveValues = perspectiveValues;
+		sData->LightingData.NumDirectionalLights = 0;
+		sData->LightingData.NumPointLights = 0;
 
 		sData->PreviousViewProjection = view * projection;
 	}
@@ -282,6 +301,7 @@ namespace Mango {
 		sData->GBuffer.Normal->BindAsTexture(1);
 		sData->DepthBuffer->BindAsTexture(2);
 		sData->LightingShader->Bind();
+		sData->LightingUniforms->SetData(sData->LightingData);
 		sData->LightingUniforms->PSBind(0);
 		DrawScreenQuad();
 
@@ -314,7 +334,19 @@ namespace Mango {
 		// -------------------------------------------------------------------------------------------
 	}
 
-	void Renderer::DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color)
+	void Renderer::SubmitDirectionalLight(const float3& direction, const float3& color)
+	{
+		if (sData->LightingData.NumDirectionalLights < MAX_DIRECTIONAL_LIGHTS)
+			sData->LightingData.DirectionalLights[sData->LightingData.NumDirectionalLights++] = { direction, 0.0f, color };
+	}
+
+	void Renderer::SubmitPointLight(const float3& position, const float3& color)
+	{
+		if(sData->LightingData.NumPointLights < MAX_POINT_LIGHTS)
+			sData->LightingData.PointLights[sData->LightingData.NumPointLights++] = { position, 0.0f, color };
+	}
+
+	void Renderer::SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color)
 	{
 		sData->RenderQueue2D.push({ previousFrameTransform, transform, texture, color });
 	}

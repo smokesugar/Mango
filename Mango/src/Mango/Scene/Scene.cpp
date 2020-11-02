@@ -43,6 +43,29 @@ namespace Mango {
 	{
 		Renderer::BeginScene(projection, cameraTransform, rendertarget->GetWidth(), rendertarget->GetHeight());
 
+		auto queryL = mRegistry.Query<LightComponent, TransformComponent>();
+		for (auto& [size, lights, transforms] : queryL) {
+			for (size_t i = 0; i < size; i++) {
+				auto& light = lights[i];
+				auto& transform = transforms[i];
+
+				xmvector colxm = XMLoadFloat3(&light.Color);
+				colxm *= light.Intensity;
+				float3 color;
+				XMStoreFloat3(&color, colxm);
+
+				if (light.Type == LightType::Point)
+					Renderer::SubmitPointLight(transform.Translation, color);
+				else {
+					xmvector xmdir = {0.0f, 1.0f, 0.0f, 0.0f};
+					xmdir = XMVector4Transform(xmdir, transform.GetMatrix());
+					float3 dir;
+					XMStoreFloat3(&dir, xmdir);
+					Renderer::SubmitDirectionalLight(dir, color);
+				}
+			}
+		}
+
 		auto query = mRegistry.Query<SpriteRendererComponent, TransformComponent, PreviousFrameTransformComponent>();
 		for (auto& [size, sprites, transforms, previousTransforms] : query) {
 			for (size_t i = 0; i < size; i++) {
@@ -50,7 +73,7 @@ namespace Mango {
 				auto transform = transforms[i].GetMatrix();
 				auto& prevTransform = previousTransforms[i].Transform;
 
-				Renderer::DrawQuad(prevTransform, transform, spriteComp.UsesTexture && spriteComp.Texture? spriteComp.Texture : Renderer::GetWhiteTexture(), spriteComp.Color);
+				Renderer::SubmitQuad(prevTransform, transform, spriteComp.UsesTexture && spriteComp.Texture? spriteComp.Texture : Renderer::GetWhiteTexture(), spriteComp.Color);
 
 				prevTransform = transform;
 			}

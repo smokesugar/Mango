@@ -28,13 +28,15 @@ namespace Mango {
 		const Ref<Texture2D>& GetBlackTexture();
 		Ref<Material> CreateDefaultMaterial();
 
+		void DrawScreenQuad();
+
 		void BeginScene(const xmmatrix& projection, const xmmatrix& transform, uint32_t width, uint32_t height);
 		void EndScene(const Ref<ColorBuffer>& target);
 
-		void DrawQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color);
+		void SubmitDirectionalLight(const float3& direction, const float3& color);
+		void SubmitPointLight(const float3& position, const float3& color);
 
-		void DrawScreenQuad();
-
+		void SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color);
 		void SubmitMesh(const Mesh& mesh, const xmmatrix& previousFrameTransform, const xmmatrix& transform);
 	}
 

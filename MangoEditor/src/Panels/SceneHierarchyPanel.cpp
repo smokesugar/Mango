@@ -425,6 +425,38 @@ namespace Mango {
 				ImGui::PopItemWidth();
 			});
 
+			// Light
+			DrawComponent<LightComponent>("Light", mSelectedEntity, reg, [&]() {
+				auto& light = reg.Get<LightComponent>(mSelectedEntity);
+				ImGui::Columns(2);
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Type");
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Color");
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Intensity");
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1.0f);
+
+				bool typePoint = light.Type == LightType::Point;
+
+				if (ImGui::BeginCombo("##light_type", typePoint ? "Point" : "Directional")) {
+					if (ImGui::Selectable("Point", typePoint) && !typePoint)
+						light = LightComponent(float3(1.0f, 1.0f, 1.0f), 1.0f, LightType::Point);
+					if (ImGui::Selectable("Directional", !typePoint) && typePoint)
+						light = LightComponent(float3(1.0f, 1.0f, 1.0f), 1.0f, LightType::Directional);
+					ImGui::EndCombo();
+				}
+
+				ImGui::ColorEdit3("##light_color", ValuePtr(light.Color));
+				ImGui::DragFloat("##light_intensity", &light.Intensity, 1.0f, 0.0f, INFINITY);
+
+				ImGui::PopItemWidth();
+				ImGui::Columns(1);
+			});
+
 			// Add Component Button
 			{
 				if (ImGui::Button("Add Component", ImVec2(ImGui::GetContentRegionAvailWidth(), 0.0f)))
@@ -442,6 +474,10 @@ namespace Mango {
 					if (!reg.Has<MeshComponent>(mSelectedEntity)) {
 						if (ImGui::MenuItem("Mesh"))
 							reg.Emplace<MeshComponent>(mSelectedEntity);
+					}
+					if (!reg.Has<LightComponent>(mSelectedEntity)) {
+						if (ImGui::MenuItem("Light"))
+							reg.Emplace<LightComponent>(mSelectedEntity, float3(1.0f, 1.0f, 1.0f), 1.0f, LightType::Point);
 					}
 					ImGui::EndPopup();
 				}
