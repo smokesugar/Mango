@@ -7,12 +7,15 @@
                     "materials": [
                         {
                             "albedoColor": [
-                                0.5221239328384399,
-                                0.30536457896232605,
-                                0.12706556916236877
+                                1.0,
+                                1.0,
+                                1.0
                             ],
-                            "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\GroundTireTracks001_NRM_3K.jpg",
-                            "roughnessValue": 0.5
+                            "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\MetalPanelRectangular001_COL_3K_SPECULAR.jpg",
+                            "metalness": 0.10000000149011612,
+                            "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\MetalPanelRectangular001_NRM_3K_SPECULAR.jpg",
+                            "roughnessTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\MetalPanelRectangular001_GLOSS_3K_SPECULAR.jpg",
+                            "roughnessValue": 0.46000000834465027
                         },
                         {
                             "albedoColor": [
@@ -20,7 +23,8 @@
                                 0.3069469928741455,
                                 0.15806299448013306
                             ],
-                            "roughnessValue": 0.5
+                            "metalness": 1.0,
+                            "roughnessValue": 0.4300000071525574
                         },
                         {
                             "albedoColor": [
@@ -28,7 +32,8 @@
                                 0.5730940103530884,
                                 0.21723000705242157
                             ],
-                            "roughnessValue": 0.5
+                            "metalness": 0.10000000149011612,
+                            "roughnessValue": 0.15000000596046448
                         },
                         {
                             "albedoColor": [
@@ -36,6 +41,7 @@
                                 0.590410590171814,
                                 1.0
                             ],
+                            "metalness": 0.10000000149011612,
                             "roughnessValue": 0.5
                         }
                     ],
@@ -71,6 +77,7 @@
                             1.0,
                             1.0
                         ],
+                        "metalness": 0.10000000149011612,
                         "roughnessValue": 0.5
                     },
                     "type": "cube"
@@ -95,7 +102,7 @@
                 }
             }
         },
-        "3": {
+        "2": {
             "components": {
                 "spriteRenderer": {
                     "texturePath": "assets\\textures\\Chicken.jpg",
@@ -121,7 +128,7 @@
                 }
             }
         },
-        "4": {
+        "3": {
             "components": {
                 "mesh": {
                     "materials": [
@@ -131,6 +138,7 @@
                                 0.6000000238418579,
                                 0.6000000238418579
                             ],
+                            "metalness": 0.10000000149011612,
                             "roughnessValue": 0.5
                         },
                         {
@@ -140,9 +148,10 @@
                                 1.0
                             ],
                             "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
+                            "metalness": 0.10000000149011612,
                             "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
                             "roughnessTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Glossiness.png",
-                            "roughnessValue": 1.0
+                            "roughnessValue": 0.550000011920929
                         }
                     ],
                     "path": "assets\\models\\regency\\regency.obj",
@@ -152,7 +161,7 @@
                 "transform": {
                     "rotation": [
                         0.0,
-                        30.200000762939453,
+                        68.5999984741211,
                         0.0
                     ],
                     "scale": [

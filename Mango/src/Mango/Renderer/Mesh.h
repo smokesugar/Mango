@@ -13,9 +13,10 @@ namespace Mango {
 		Ref<Texture2D> RoughnessTexture;
 		float3 AlbedoColor;
 		float RoughnessValue;
+		float Metalness;
 
-		Material(const Ref<Texture2D>& albedoTex, const Ref<Texture2D>& normalTex, const Ref<Texture2D>& roughnessTex, const float3& color, float roughness)
-			: AlbedoTexture(albedoTex), NormalTexture(normalTex), RoughnessTexture(roughnessTex), AlbedoColor(color), RoughnessValue(roughness)
+		Material(const Ref<Texture2D>& albedoTex, const Ref<Texture2D>& normalTex, const Ref<Texture2D>& roughnessTex, const float3& color, float roughness, float metalness)
+			: AlbedoTexture(albedoTex), NormalTexture(normalTex), RoughnessTexture(roughnessTex), AlbedoColor(color), RoughnessValue(roughness), Metalness(metalness)
 		{}
 	};
 

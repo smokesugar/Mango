@@ -30,7 +30,8 @@ namespace Mango {
 		float3 AlbedoColor;
 		int UseNormalMap;
 		float RoughnessValue;
-		float3 _padding;
+		float Metalness;
+		float2 _padding;
 	};
 
 	struct RendererData {
@@ -155,7 +156,7 @@ namespace Mango {
 
 	Ref<Material> Renderer::CreateDefaultMaterial()
 	{
-		return CreateRef<Material>(Renderer::GetWhiteTexture(), nullptr, Renderer::GetWhiteTexture(), float3(1.0f, 1.0f, 1.0f), 0.5f);
+		return CreateRef<Material>(Renderer::GetWhiteTexture(), nullptr, Renderer::GetWhiteTexture(), float3(1.0f, 1.0f, 1.0f), 0.5f, 0.1f);
 	}
 
 	void Renderer::BeginScene(const xmmatrix& projection, const xmmatrix& transform, uint32_t width, uint32_t height)
@@ -250,7 +251,7 @@ namespace Mango {
 			SubmitNode(&mesh->RootNode, previousTransform, transform);
 
 			for (auto& [material, submeshes] : sData->MaterialMeshQueue) {
-				sData->SurfaceUniforms->SetData<SurfaceData>({ material->AlbedoColor, material->NormalTexture ? true : false, material->RoughnessValue });
+				sData->SurfaceUniforms->SetData<SurfaceData>({ material->AlbedoColor, material->NormalTexture ? true : false, material->RoughnessValue, material->Metalness });
 				material->AlbedoTexture->Bind(0);
 				if (material->NormalTexture)
 					material->NormalTexture->Bind(1);

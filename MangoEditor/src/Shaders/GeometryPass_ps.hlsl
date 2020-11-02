@@ -24,6 +24,7 @@ cbuffer SurfaceData : register(b0)
     float3 albedoColor;
     int useNormalMap;
     float roughnessValue;
+    float metalness;
 };
 
 SamplerState sampler0;
@@ -51,6 +52,7 @@ PSOut main (VSOut vso)
     pso.color.rgb = albedoColor * albedoTexture.Sample(sampler0, vso.uv).rgb;
     pso.color.a = roughnessValue * roughnessTexture.Sample(sampler0, vso.uv).r;
     pso.normal.xyz = useNormalMap ? GetNormalFromMap(vso.pos.xyz, vso.uv, vso.normal) : vso.normal;
+    pso.normal.w = metalness;
     
     float2 xy = float2(vso.posSS.x, -vso.posSS.y);
     float2 a = (xy / vso.posSS.w) * 0.5 + 0.5;

@@ -25,7 +25,7 @@ namespace Mango {
 
 		virtual const std::string& GetPath() const = 0;
 
-		static Texture2D* Create(const std::string& filePath);
+		static Texture2D* Create(const std::string& filePath, bool sRGB);
 		static Texture2D* Create(void* data, uint32_t width, uint32_t height);
 	};
 
@@ -46,8 +46,8 @@ namespace Mango {
 	class TextureLibrary {
 	public:
 		TextureLibrary() = default;
-		void Load(const std::string& name);
-		const Ref<Texture2D>& Get(const std::string& name);
+		void Load(const std::string& name, bool sRGB);
+		const Ref<Texture2D>& Get(const std::string& name, bool sRGB);
 		bool IsLoaded(const std::string& name);
 		void ClearUnused();
 	private:

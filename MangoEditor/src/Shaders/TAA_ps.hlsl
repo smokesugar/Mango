@@ -43,7 +43,7 @@ float4 main(VSOut vso) : SV_Target{
     histSample = clamp(histSample, nmin, nmax);
 
     float subpixelCorrection = frac(max(abs(vel.x) * width, abs(vel.y) * height)) * 0.5f;
-    float blend = saturate(lerp(0.2f, 0.8f, subpixelCorrection));
+    float blend = saturate(lerp(0.05f, 0.8f, subpixelCorrection));
 	
     if(histUv.x < 0.0f || histUv.x > 1.0f || histUv.y < 0.0f || histUv.y > 1.0f)
         blend = 1.0f;

@@ -102,6 +102,9 @@ namespace Mango {
 				if (ImGui::TreeNodeEx((void*)material.get(), 0, ("Material" + std::to_string(counter++)).c_str())) {
 					ImGui::Columns(2);
 
+					bool color = material->AlbedoTexture == Renderer::GetWhiteTexture();
+					bool roughnessVal = material->RoughnessTexture == Renderer::GetWhiteTexture();
+
 					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Albedo");
 					ImGui::AlignTextToFramePadding();
@@ -110,13 +113,16 @@ namespace Mango {
 					ImGui::Text("Roughness");
 					ImGui::AlignTextToFramePadding();
 					ImGui::Text("");
+					if (!roughnessVal) {
+						ImGui::AlignTextToFramePadding();
+						ImGui::Text("");
+					}
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Metalness");
 					ImGui::AlignTextToFramePadding();
 					ImGui::Text("Normal");
 
 					ImGui::NextColumn();
-
-					bool color = material->AlbedoTexture == Renderer::GetWhiteTexture();
-					bool roughnessVal = material->RoughnessTexture == Renderer::GetWhiteTexture();
 
 					if (ImGui::BeginCombo("##combo_albedo", color ? "Color" : "Texture")) {
 						if (ImGui::Selectable("Color") && !color) {
@@ -142,7 +148,7 @@ namespace Mango {
 						if (ImGui::Button("...##0")) {
 							std::string newPath;
 							if (OpenTextureFileDialog(newPath))
-								material->AlbedoTexture = mScene->GetTextureLibrary().Get(newPath);
+								material->AlbedoTexture = mScene->GetTextureLibrary().Get(newPath, true);
 						}
 					}
 					
@@ -158,10 +164,7 @@ namespace Mango {
 						ImGui::EndCombo();
 					}
 
-					if (roughnessVal) {
-						ImGui::DragFloat("##material_roughnessValue", &material->RoughnessValue, 0.01f, 0.0f, 1.0f);
-					}
-					else {
+					if (!roughnessVal) {
 						char buf[64];
 						memset(buf, 0, sizeof(buf));
 						std::string path = material->RoughnessTexture->GetPath();
@@ -171,9 +174,12 @@ namespace Mango {
 						if (ImGui::Button("...##1")) {
 							std::string newPath;
 							if (OpenTextureFileDialog(newPath))
-								material->RoughnessTexture = mScene->GetTextureLibrary().Get(newPath);
+								material->RoughnessTexture = mScene->GetTextureLibrary().Get(newPath, false);
 						}
 					}
+					ImGui::DragFloat("##material_roughnessValue", &material->RoughnessValue, 0.01f, 0.0f, 1.0f);
+
+					ImGui::DragFloat("##material_metalness", &material->Metalness, 0.01f, 0.0f, 1.0f);
 					
 					char buf[64];
 					memset(buf, 0, sizeof(buf));
@@ -189,7 +195,7 @@ namespace Mango {
 					if (ImGui::Button("...##2")) {
 						std::string newPath;
 						if (OpenTextureFileDialog(newPath))
-							material->NormalTexture = mScene->GetTextureLibrary().Get(newPath);
+							material->NormalTexture = mScene->GetTextureLibrary().Get(newPath, false);
 					}
 
 					ImGui::Columns(1);
@@ -356,7 +362,7 @@ namespace Mango {
 					{
 						std::string path;
 						if (OpenTextureFileDialog(path)) {
-							sprite.Texture = mScene->GetTextureLibrary().Get(path);
+							sprite.Texture = mScene->GetTextureLibrary().Get(path, false);
 						}
 					}
 					ImGui::PushItemWidth(-1.0f);

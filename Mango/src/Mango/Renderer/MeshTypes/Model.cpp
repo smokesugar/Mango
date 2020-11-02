@@ -89,9 +89,9 @@ namespace Mango {
 				aiMaterial* material = scene->mMaterials[i];
 				std::string path;
 
-				Ref<Texture2D> albedoTexture = GetTexturePath(path, aiTextureType_DIFFUSE, material) ? textureLibrary.Get(directory + path) : Renderer::GetWhiteTexture();
-				Ref<Texture2D> normalTexture = GetTexturePath(path, aiTextureType_NORMALS, material) ? textureLibrary.Get(directory + path) : nullptr;
-				Ref<Texture2D> roughnessTexture = GetTexturePath(path, aiTextureType_SPECULAR, material) ? textureLibrary.Get(directory + path) : Renderer::GetWhiteTexture();
+				Ref<Texture2D> albedoTexture = GetTexturePath(path, aiTextureType_DIFFUSE, material) ? textureLibrary.Get(directory + path, true) : Renderer::GetWhiteTexture();
+				Ref<Texture2D> normalTexture = GetTexturePath(path, aiTextureType_NORMALS, material) ? textureLibrary.Get(directory + path, false) : nullptr;
+				Ref<Texture2D> roughnessTexture = GetTexturePath(path, aiTextureType_SPECULAR, material) ? textureLibrary.Get(directory + path, false) : Renderer::GetWhiteTexture();
 
 				float3 albedoColor;
 				if (albedoTexture == Renderer::GetWhiteTexture())
@@ -100,8 +100,9 @@ namespace Mango {
 					albedoColor = float3(1.0f, 1.0f, 1.0f);
 				
 				float roughness = roughnessTexture == Renderer::GetWhiteTexture() ? 0.5f : 1.0f;
+				float metalness = 0.1f;
 
-				sMaterials.push_back(CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughness));
+				sMaterials.push_back(CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughness, metalness));
 			}
 		}
 

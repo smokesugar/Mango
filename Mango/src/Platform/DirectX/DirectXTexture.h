@@ -10,7 +10,7 @@ namespace Mango {
 	class DirectXTexture2D : public Texture2D {
 	public:
 		DirectXTexture2D(void* data, uint32_t width, uint32_t height);
-		DirectXTexture2D(const std::string& filePath);
+		DirectXTexture2D(const std::string& filePath, bool sRGB);
 
 		inline virtual const std::string& GetPath() const override { return mPath; }
 
@@ -19,7 +19,7 @@ namespace Mango {
 
 		virtual void Bind(size_t slot) const override;
 	private:
-		void Create(void* data);
+		void Create(void* data, bool sRGB);
 	private:
 		std::string mPath;
 		uint32_t mWidth, mHeight;

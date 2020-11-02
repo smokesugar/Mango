@@ -23,30 +23,32 @@ namespace Mango {
 		
 		j["albedoColor"] = { mat->AlbedoColor.x, mat->AlbedoColor.y, mat->AlbedoColor.z };
 		j["roughnessValue"] = mat->RoughnessValue;
+		j["metalness"] = mat->Metalness;
 	}
 
 	static Ref<Material> LoadMaterial(json& j, TextureLibrary& library) {
 		Ref<Texture2D> albedoTexture;
 		if (j.find("albedoTexture") != j.end())
-			albedoTexture = library.Get(j["albedoTexture"]);
+			albedoTexture = library.Get(j["albedoTexture"], true);
 		else
 			albedoTexture = Renderer::GetWhiteTexture();
 
 		Ref<Texture2D> normalTexture;
 		if (j.find("normalTexture") != j.end())
-			normalTexture = library.Get(j["normalTexture"]);
+			normalTexture = library.Get(j["normalTexture"], false);
 
 		Ref<Texture2D> roughnessTexture;
 		if (j.find("roughnessTexture") != j.end())
-			roughnessTexture = library.Get(j["roughnessTexture"]);
+			roughnessTexture = library.Get(j["roughnessTexture"], false);
 		else
 			roughnessTexture = Renderer::GetWhiteTexture();
 
 		std::vector<float> albedoColorV = j["albedoColor"];
 		float3 albedoColor = {albedoColorV[0], albedoColorV[1], albedoColorV[2] };
 		float roughnessValue = j["roughnessValue"];
+		float metalness = j["metalness"];
 
-		return CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughnessValue);
+		return CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughnessValue, metalness);
 	}
 
 	void Serializer::SerializeScene(const Ref<Scene>& scene, const std::string& filename)
@@ -213,7 +215,7 @@ namespace Mango {
 					bool usesTexture = sprite["usesTexture"];
 					if (usesTexture) {
 						std::string path = sprite["texturePath"];
-						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path));
+						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path, false));
 					}
 					else
 					{

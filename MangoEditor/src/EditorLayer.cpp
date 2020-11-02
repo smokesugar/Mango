@@ -16,7 +16,7 @@ namespace Mango {
 		props.Format = Format::RGBA16_FLOAT;
 		mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
-		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
+		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png", false));
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
