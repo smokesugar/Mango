@@ -28,11 +28,12 @@ namespace Mango {
 
 	class DirectXSamplerState : public SamplerState {
 	public:
-		DirectXSamplerState(Mode mode);
+		DirectXSamplerState(Filter mode, Address address, bool comparison);
 
 		virtual void Bind(size_t slot) const override;
 	private:
-		static D3D11_FILTER GetFilter(Mode mode);
+		static D3D11_FILTER GetFilter(Filter mode, bool comparison);
+		static D3D11_TEXTURE_ADDRESS_MODE GetAddress(Address mode);
 	private:
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> mInternal;
 	};

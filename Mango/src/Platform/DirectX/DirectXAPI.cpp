@@ -47,6 +47,32 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff));
 	}
 
+	void DirectXAPI::DefaultRasterizerState()
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.CullMode = D3D11_CULL_BACK;
+		desc.FillMode = D3D11_FILL_SOLID;
+
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> state;
+		HR_CALL(context.GetDevice()->CreateRasterizerState(&desc, &state));
+		VOID_CALL(context.GetDeviceContext()->RSSetState(state.Get()));
+	}
+
+	void DirectXAPI::ShadowRasterizerState()
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.CullMode = D3D11_CULL_NONE;
+		desc.FillMode = D3D11_FILL_SOLID;
+
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> state;
+		HR_CALL(context.GetDevice()->CreateRasterizerState(&desc, &state));
+		VOID_CALL(context.GetDeviceContext()->RSSetState(state.Get()));
+	}
+
 	void DirectXAPI::EnableInvertedDepthTesting()
 	{
 		auto& context = RetrieveContext();

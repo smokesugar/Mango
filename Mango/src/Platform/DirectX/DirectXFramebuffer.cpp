@@ -42,6 +42,9 @@ namespace Mango {
 	}
 
 	void BindRenderTargets(const std::vector<Ref<ColorBuffer>>& framebuffers, const Ref<DepthBuffer>& depthbuffer) {
+		if (framebuffers.empty() && !depthbuffer)
+			return;
+
 		std::vector<ID3D11RenderTargetView*> rtvs;
 
 		for (auto& framebuffer : framebuffers) {
@@ -51,13 +54,16 @@ namespace Mango {
 
 		auto& context = RetrieveContext();
 
+		uint32_t width = framebuffers.empty() ? depthbuffer->GetWidth() : framebuffers[0]->GetWidth();
+		uint32_t height = framebuffers.empty() ? depthbuffer->GetHeight() : framebuffers[0]->GetHeight();
+
 		D3D11_VIEWPORT vp;
 		vp.TopLeftX = 0.0f;
 		vp.TopLeftY = 0.0f;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
-		vp.Width = (float)framebuffers[0]->GetWidth();
-		vp.Height = (float)framebuffers[0]->GetHeight();
+		vp.Width = (float)width;
+		vp.Height = (float)height;
 
 		auto dsv = depthbuffer ? std::static_pointer_cast<DirectXDepthBuffer>(depthbuffer)->GetDepthStencilView() : nullptr;
 

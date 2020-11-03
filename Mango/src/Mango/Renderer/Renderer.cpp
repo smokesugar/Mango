@@ -25,6 +25,7 @@ namespace Mango {
 	};
 
 	struct Light {
+		xmmatrix ViewProjection;
 		float3 Vector;
 		float padding0;
 		float3 Color;
@@ -61,15 +62,19 @@ namespace Mango {
 		Ref<Texture2D> BlackTexture;
 		Scope<SamplerState> SamplerLinear;
 		Scope<SamplerState> SamplerPoint;
+		Scope<SamplerState> ShadowSampler;
 
 		Ref<Shader> SpriteShader;
 		Ref<Shader> LightingShader;
 		Ref<Shader> TAAShader;
 		Ref<Shader> GeometryShader;
+		Ref<Shader> DirectionalShadowmapShader;
 
 		Ref<ColorBuffer> PreviousFrame;
 		Ref<ColorBuffer> ImmediateTarget;
 		Ref<Mango::DepthBuffer> DepthBuffer;
+
+		Ref<Mango::DepthBuffer> DirectionalShadowmaps[MAX_DIRECTIONAL_LIGHTS];
 
 		struct {
 			Ref<ColorBuffer> Color;
@@ -98,6 +103,7 @@ namespace Mango {
 		sData->LightingShader = Ref<Shader>(Shader::Create("assets/shaders/Lighting_vs.cso", "assets/shaders/Lighting_ps.cso"));
 		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
 		sData->GeometryShader = Ref<Shader>(Shader::Create("assets/shaders/GeometryPass_vs.cso", "assets/shaders/GeometryPass_ps.cso"));
+		sData->DirectionalShadowmapShader = Ref<Shader>(Shader::Create("assets/shaders/DirectionalShadowmap_vs.cso", "assets/shaders/DirectionalShadowmap_ps.cso"));
 
 		// Framebuffers ------------------------------------------------------------------------------
 
@@ -114,10 +120,14 @@ namespace Mango {
 
 		sData->DepthBuffer = Ref<DepthBuffer>(DepthBuffer::Create(800, 600));
 
+		for(int i=0; i < MAX_DIRECTIONAL_LIGHTS; i++)
+			sData->DirectionalShadowmaps[i] = Ref<DepthBuffer>(DepthBuffer::Create(1024, 1024));
+
 		// Textures ----------------------------------------------------------------------------------
 
 		sData->SamplerLinear = Scope<SamplerState>(SamplerState::Create());
-		sData->SamplerPoint = Scope<SamplerState>(SamplerState::Create(SamplerState::Mode::Point));
+		sData->SamplerPoint = Scope<SamplerState>(SamplerState::Create(SamplerState::Filter::Point));
+		sData->ShadowSampler = Scope<SamplerState>(SamplerState::Create(SamplerState::Filter::Linear, SamplerState::Address::Border, true));
 
 		uint32_t color = 0xffffffff;
 		sData->WhiteTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
@@ -251,9 +261,42 @@ namespace Mango {
 		Texture::Unbind(2);
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
+		
+		// Submit meshes ------------------------------------------------------------------------
+
+		sData->MaterialMeshQueue.clear();
+		while (!sData->RenderQueue3D.empty()) {
+			auto& [mesh, previousTransform, transform] = sData->RenderQueue3D.front();
+			SubmitNode(&mesh->RootNode, previousTransform, transform);
+			sData->RenderQueue3D.pop();
+		}
+		
+		// Shadowmaps ---------------------------------------------------------------------------
+
+		RenderCommand::ShadowRasterizerState();
+		sData->DirectionalShadowmapShader->Bind();
+
+		for (int i = 0; i < sData->LightingData.NumDirectionalLights; i++) {
+			Texture::Unbind(3 + i);
+			auto& shadowmap = sData->DirectionalShadowmaps[i];
+			BindRenderTargets({}, shadowmap);
+			shadowmap->Clear(0.0f);
+
+			for (auto& [material, submeshes] : sData->MaterialMeshQueue) {
+				for (auto& [va, prevT, transform] : submeshes) {
+					sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform * sData->LightingData.DirectionalLights[i].ViewProjection, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+					va->Bind();
+					if (va->IsIndexed())
+						RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
+					else
+						RenderCommand::Draw(va->GetDrawCount(), 0);
+				}
+			}
+		}
 
 		// Geometry Pass ----------------------------------------------------------------------------------
 
+		RenderCommand::DefaultRasterizerState();
 		RenderCommand::DisableBlending();
 		BindRenderTargets({sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity}, sData->DepthBuffer);
 		sData->GBuffer.Color->Clear(float4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -265,30 +308,22 @@ namespace Mango {
 		sData->SamplerLinear->Bind(0);
 		sData->SurfaceUniforms->PSBind(0);
 
-		while (!sData->RenderQueue3D.empty()) {
-			auto& [mesh, previousTransform, transform] = sData->RenderQueue3D.front();
-			SubmitNode(&mesh->RootNode, previousTransform, transform);
+		for (auto& [material, submeshes] : sData->MaterialMeshQueue) {
+			sData->SurfaceUniforms->SetData<SurfaceData>({ material->AlbedoColor, material->NormalTexture ? true : false, material->RoughnessValue, material->Metalness });
+			material->AlbedoTexture->Bind(0);
+			if (material->NormalTexture)
+				material->NormalTexture->Bind(1);
+			material->RoughnessTexture->Bind(2);
 
-			for (auto& [material, submeshes] : sData->MaterialMeshQueue) {
-				sData->SurfaceUniforms->SetData<SurfaceData>({ material->AlbedoColor, material->NormalTexture ? true : false, material->RoughnessValue, material->Metalness });
-				material->AlbedoTexture->Bind(0);
-				if (material->NormalTexture)
-					material->NormalTexture->Bind(1);
-				material->RoughnessTexture->Bind(2);
+			for (auto& [va, prevT, transform] : submeshes) {
+				sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
 
-				for (auto& [va, prevT, transform] : submeshes) {
-					sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform, float4(1.0f, 1.0f, 1.0f, 1.0f) });
-
-					va->Bind();
-					if (va->IsIndexed())
-						RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
-					else
-						RenderCommand::Draw(va->GetDrawCount(), 0);
-				}
+				va->Bind();
+				if (va->IsIndexed())
+					RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
+				else
+					RenderCommand::Draw(va->GetDrawCount(), 0);
 			}
-
-			sData->MaterialMeshQueue.clear();
-			sData->RenderQueue3D.pop();
 		}
 
 		// Lighting ---------------------------------------------------------------------------
@@ -297,9 +332,15 @@ namespace Mango {
 		sData->ImmediateTarget->Clear(RENDERER_CLEAR_COLOR);
 
 		sData->SamplerPoint->Bind(0);
+		sData->ShadowSampler->Bind(1);
 		sData->GBuffer.Color->BindAsTexture(0);
 		sData->GBuffer.Normal->BindAsTexture(1);
 		sData->DepthBuffer->BindAsTexture(2);
+
+		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++) {
+			sData->DirectionalShadowmaps[i]->BindAsTexture(i + 3);
+		}
+
 		sData->LightingShader->Bind();
 		sData->LightingUniforms->SetData(sData->LightingData);
 		sData->LightingUniforms->PSBind(0);
@@ -336,14 +377,19 @@ namespace Mango {
 
 	void Renderer::SubmitDirectionalLight(const float3& direction, const float3& color)
 	{
-		if (sData->LightingData.NumDirectionalLights < MAX_DIRECTIONAL_LIGHTS)
-			sData->LightingData.DirectionalLights[sData->LightingData.NumDirectionalLights++] = { direction, 0.0f, color };
+		if (sData->LightingData.NumDirectionalLights < MAX_DIRECTIONAL_LIGHTS) {
+			xmvector dir = XMVector3Normalize(XMLoadFloat3(&direction));
+			xmmatrix view = XMMatrixLookAtLH(dir, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+			xmmatrix projection = XMMatrixOrthographicOffCenterLH(-5.0f, 5.0f, -5.0f, 5.0f, 5.0f, -5.0f);
+
+			sData->LightingData.DirectionalLights[sData->LightingData.NumDirectionalLights++] = { view*projection, direction, 0.0f, color };
+		}
 	}
 
 	void Renderer::SubmitPointLight(const float3& position, const float3& color)
 	{
 		if(sData->LightingData.NumPointLights < MAX_POINT_LIGHTS)
-			sData->LightingData.PointLights[sData->LightingData.NumPointLights++] = { position, 0.0f, color };
+			sData->LightingData.PointLights[sData->LightingData.NumPointLights++] = { XMMatrixIdentity(), position, 0.0f, color };
 	}
 
 	void Renderer::SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color)

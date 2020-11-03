@@ -27,6 +27,16 @@ namespace Mango {
 		sRendererAPI->DisableBlending();
 	}
 
+	void RenderCommand::DefaultRasterizerState()
+	{
+		sRendererAPI->DefaultRasterizerState();
+	}
+
+	void RenderCommand::ShadowRasterizerState()
+	{
+		sRendererAPI->ShadowRasterizerState();
+	}
+
 	void RenderCommand::EnableInvertedDepthTesting()
 	{
 		sRendererAPI->EnableInvertedDepthTesting();

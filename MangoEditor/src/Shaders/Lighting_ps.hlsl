@@ -3,7 +3,14 @@ Texture2D color : register(t0);
 Texture2D normal : register(t1);
 Texture2D depthBuffer : register(t2);
 
+Texture2D directionalShadowmap0 : register(t3);
+Texture2D directionalShadowmap1 : register(t4);
+Texture2D directionalShadowmap2 : register(t5);
+Texture2D directionalShadowmap3 : register(t6);
+Texture2D directionalShadowmap4 : register(t7);
+
 SamplerState sampler0 : register(s0);
+SamplerComparisonState shadowSampler : register(s1);
 
 #define PI 3.14159265359
 
@@ -18,6 +25,7 @@ struct VSOut
 
 struct Light
 {
+    matrix ViewProjection;
     float3 Vector;
     float padding0;
     float3 Color;
@@ -35,6 +43,52 @@ cbuffer LightingData : register(b0)
 };
 
 // Functions ------------------------------------------------------------------------------------
+
+float2 GetSizeOfDirectionalShadowmap(int index)
+{
+    float2 size;
+    switch (index)
+    {
+        case 0:
+            directionalShadowmap0.GetDimensions(size.x, size.y);
+            break;
+        case 1:
+            directionalShadowmap1.GetDimensions(size.x, size.y);
+            break;
+        case 2:
+            directionalShadowmap2.GetDimensions(size.x, size.y);
+            break;
+        case 3:
+            directionalShadowmap3.GetDimensions(size.x, size.y);
+            break;
+        case 4:
+            directionalShadowmap4.GetDimensions(size.x, size.y);
+            break;
+        default:
+            directionalShadowmap0.GetDimensions(size.x, size.y);
+            break;
+    }
+    return size;
+}
+
+float SampleDirectionalShadowmap(int index, float2 uv, float comp)
+{
+    switch (index)
+    {
+        case 0:
+            return directionalShadowmap0.SampleCmpLevelZero(shadowSampler, uv, comp).r;
+        case 1:
+            return directionalShadowmap1.SampleCmpLevelZero(shadowSampler, uv, comp).r;
+        case 2:
+            return directionalShadowmap2.SampleCmpLevelZero(shadowSampler, uv, comp).r;
+        case 3:
+            return directionalShadowmap3.SampleCmpLevelZero(shadowSampler, uv, comp).r;
+        case 4:
+            return directionalShadowmap4.SampleCmpLevelZero(shadowSampler, uv, comp).r;
+        default:
+            return directionalShadowmap0.SampleCmpLevelZero(shadowSampler, uv, comp).r;
+    }
+}
 
 // Position ------------------------------------
 
@@ -123,6 +177,33 @@ float3 CalculateLighting(float3 N, float3 V, float3 L, float3 H, float attenuati
     return Lo;
 }
 
+// ---------------------------------------------------
+
+float CalculateShadow(matrix viewProj, float3 worldPos, int mapIndex)
+{
+    float4 position = mul(viewProj, float4(worldPos, 1.0f));
+    position /= position.w;
+    
+    if (position.z < 0.0f)
+        return 1.0f;
+    
+    float2 uv = position.xy * 0.5 + 0.5;
+    uv.y = 1.0f - uv.y;
+    
+    float shadowValue = 0.0f;
+    float2 texelSize = 1.0f / GetSizeOfDirectionalShadowmap(mapIndex);
+    
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
+        {
+            shadowValue += SampleDirectionalShadowmap(mapIndex, uv + float2(x,y)*texelSize, position.z).r;
+        }
+    }
+    
+    return shadowValue/9.0f;
+}
+
 // Main ------------------------------------------------------------------------------------------
 
 float4 main (VSOut vso): SV_Target
@@ -169,10 +250,11 @@ float4 main (VSOut vso): SV_Target
         {
             float3 L = normalize(directionalLights[i].Vector);
             float3 H = normalize(V + L);
-            
             float attenuation = 1.0f;
             
-            Lo += CalculateLighting(N, V, L, H, attenuation, directionalLights[i].Color, albedo, roughness, metallic);
+            float shadowValue = CalculateShadow(directionalLights[i].ViewProjection, worldPos, i);
+            
+            Lo += shadowValue*CalculateLighting(N, V, L, H, attenuation, directionalLights[i].Color, albedo, roughness, metallic);
         }
     }
     

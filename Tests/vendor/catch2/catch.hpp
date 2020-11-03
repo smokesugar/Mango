@@ -5189,9 +5189,9 @@ namespace Catch {
 namespace Catch {
 
     class TestSpecParser {
-        enum Mode{ None, Name, QuotedName, Tag, EscapedName };
-        Mode m_mode = None;
-        Mode lastMode = None;
+        enum Filter{ None, Name, QuotedName, Tag, EscapedName };
+        Filter m_mode = None;
+        Filter lastMode = None;
         bool m_exclusion = false;
         std::size_t m_pos = 0;
         std::size_t m_realPatternPos = 0;
@@ -5211,7 +5211,7 @@ namespace Catch {
 
     private:
         bool visitChar( char c );
-        void startNewMode( Mode mode );
+        void startNewMode( Filter mode );
         bool processNoneChar( char c );
         void processNameChar( char c );
         bool processOtherChar( char c );
@@ -14675,7 +14675,7 @@ namespace Catch {
         endMode();
         return true;
     }
-    void TestSpecParser::startNewMode( Mode mode ) {
+    void TestSpecParser::startNewMode( Filter mode ) {
         m_mode = mode;
     }
     void TestSpecParser::endMode() {

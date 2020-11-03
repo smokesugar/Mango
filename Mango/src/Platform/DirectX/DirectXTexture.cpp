@@ -71,21 +71,22 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->GenerateMips(mSRV.Get()));
 	}
 
-	SamplerState* SamplerState::Create(Mode mode) {
-		return new DirectXSamplerState(mode);
+	SamplerState* SamplerState::Create(Filter mode, Address address, bool comparison) {
+		return new DirectXSamplerState(mode, address, comparison);
 	}
 
-	DirectXSamplerState::DirectXSamplerState(Mode mode)
+	DirectXSamplerState::DirectXSamplerState(Filter mode, Address address, bool comparison)
 	{
 		auto& context = RetrieveContext();
 
 		D3D11_SAMPLER_DESC desc = {};
-		desc.Filter = GetFilter(mode);
-		desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		desc.Filter = GetFilter(mode, comparison);
+		desc.AddressU = GetAddress(address);
+		desc.AddressV = GetAddress(address);
+		desc.AddressW = GetAddress(address);
 		desc.MinLOD = 0;
 		desc.MaxLOD = D3D11_FLOAT32_MAX;
+		desc.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL;
 
 		HR_CALL(context.GetDevice()->CreateSamplerState(&desc, &mInternal));
 	}
@@ -96,18 +97,34 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->PSSetSamplers((uint32_t)slot, 1, mInternal.GetAddressOf()));
 	}
 
-	D3D11_FILTER DirectXSamplerState::GetFilter(Mode mode)
+	D3D11_FILTER DirectXSamplerState::GetFilter(Filter mode, bool comparison)
 	{
 		D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		switch (mode) {
-		case SamplerState::Mode::Linear:
-			filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		case SamplerState::Filter::Linear:
+			filter = comparison ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			break;
-		case SamplerState::Mode::Point:
-			filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+		case SamplerState::Filter::Point:
+			filter = comparison ? D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR : D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
 			break;
 		}
 		return filter;
 	}
 
+	D3D11_TEXTURE_ADDRESS_MODE DirectXSamplerState::GetAddress(Address mode)
+	{
+		D3D11_TEXTURE_ADDRESS_MODE add = D3D11_TEXTURE_ADDRESS_WRAP;
+		switch (mode) {
+		case SamplerState::Address::Wrap:
+			add = D3D11_TEXTURE_ADDRESS_WRAP;
+			break;
+		case SamplerState::Address::Clamp:
+			add = D3D11_TEXTURE_ADDRESS_CLAMP;
+			break;
+		case SamplerState::Address::Border:
+			add = D3D11_TEXTURE_ADDRESS_BORDER;
+			break;
+		}
+		return add;
+	}
 }

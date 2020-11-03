@@ -10,6 +10,8 @@ namespace Mango {
 		virtual void DrawIndexed(size_t count, size_t offset) override;
 		virtual void EnableBlending() override;
 		virtual void DisableBlending() override;
+		virtual void DefaultRasterizerState() override;
+		virtual void ShadowRasterizerState() override;
 		virtual void EnableInvertedDepthTesting() override;
 	};
 

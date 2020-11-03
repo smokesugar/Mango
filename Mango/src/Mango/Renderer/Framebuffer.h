@@ -37,6 +37,9 @@ namespace Mango {
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 		virtual void EnsureSize(uint32_t width, uint32_t height) = 0;
 
+		virtual uint32_t GetWidth() const = 0;
+		virtual uint32_t GetHeight() const = 0;
+
 		virtual void BindAsTexture(size_t slot) const = 0;
 
 		static DepthBuffer* Create(uint32_t width, uint32_t height);

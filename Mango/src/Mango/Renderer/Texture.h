@@ -31,16 +31,21 @@ namespace Mango {
 
 	class SamplerState {
 	public:
-		enum class Mode {
+		enum class Filter {
 			Linear,
 			Point
+		};
+		enum class Address {
+			Clamp,
+			Wrap,
+			Border
 		};
 	public:
 		virtual ~SamplerState() {}
 
 		virtual void Bind(size_t slot) const = 0;
 
-		static SamplerState* Create(Mode mode = Mode::Linear);
+		static SamplerState* Create(Filter mode = Filter::Linear, Address address = Address::Wrap, bool comparison = false);
 	};
 
 	class TextureLibrary {
