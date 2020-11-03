@@ -104,4 +104,10 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->PSSetConstantBuffers((uint32_t)slot, 1, mInternal.GetAddressOf()));
 	}
 
+	void DirectXUniformBuffer::GSBind(size_t slot) const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->GSSetConstantBuffers((uint32_t)slot, 1, mInternal.GetAddressOf()));
+	}
+
 }

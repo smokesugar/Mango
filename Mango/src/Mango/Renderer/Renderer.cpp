@@ -103,7 +103,7 @@ namespace Mango {
 		sData->LightingShader = Ref<Shader>(Shader::Create("assets/shaders/Lighting_vs.cso", "assets/shaders/Lighting_ps.cso"));
 		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
 		sData->GeometryShader = Ref<Shader>(Shader::Create("assets/shaders/GeometryPass_vs.cso", "assets/shaders/GeometryPass_ps.cso"));
-		sData->DirectionalShadowmapShader = Ref<Shader>(Shader::Create("assets/shaders/DirectionalShadowmap_vs.cso", "assets/shaders/DirectionalShadowmap_ps.cso"));
+		sData->DirectionalShadowmapShader = Ref<Shader>(Shader::Create("assets/shaders/DirectionalShadowmap_vs.cso", "assets/shaders/DirectionalShadowmap_gs.cso", "assets/shaders/DirectionalShadowmap_ps.cso"));
 
 		// Framebuffers ------------------------------------------------------------------------------
 
@@ -275,6 +275,7 @@ namespace Mango {
 
 		RenderCommand::ShadowRasterizerState();
 		sData->DirectionalShadowmapShader->Bind();
+		sData->IndividualUniforms->GSBind(0);
 
 		for (int i = 0; i < sData->LightingData.NumDirectionalLights; i++) {
 			Texture::Unbind(3 + i);

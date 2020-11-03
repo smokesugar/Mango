@@ -37,6 +37,7 @@ namespace Mango {
 		
 		virtual void VSBind(size_t slot) const = 0;
 		virtual void PSBind(size_t slot) const = 0;
+		virtual void GSBind(size_t slot) const = 0;
 
 		template<typename T>
 		void SetData(const T& data) {

@@ -130,6 +130,8 @@ project "Sandbox"
 	filter "files:**_vs.hlsl"
         shadertype "Vertex"
         
+    filter "files:**_gs.hlsl"
+        shadertype "Geometry"
 
     filter "configurations:Debug"
         defines "MG_DEBUG"
@@ -190,7 +192,9 @@ project "MangoEditor"
 
 	filter "files:**_vs.hlsl"
         shadertype "Vertex"
-        
+    
+    filter "files:**_gs.hlsl"
+        shadertype "Geometry"
 
     filter "configurations:Debug"
         defines "MG_DEBUG"
@@ -249,7 +253,9 @@ project "Tests"
 
 	filter "files:**_vs.hlsl"
         shadertype "Vertex"
-        
+
+    filter "files:**_gs.hlsl"
+        shadertype "Geometry"    
 
     filter "configurations:Debug"
         defines "MG_DEBUG"

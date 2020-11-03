@@ -12,6 +12,11 @@ namespace Mango {
 		return new DirectXShader(vertex, pixel);
 	}
 
+	Shader* Shader::Create(const std::string& vertex, const std::string& geometry, const std::string& pixel)
+	{
+		return new DirectXShader(vertex, geometry, pixel);
+	}
+
 	DirectXShader::DirectXShader(const std::string& vertex, const std::string& pixel)
 	{
 		auto& context = RetrieveContext();
@@ -20,13 +25,51 @@ namespace Mango {
 		// Shaders
 		if (FAILED(D3DReadFileToBlob(WidenString(pixel).c_str(), &blob)))
 			MG_CORE_ASSERT(false, "Failed to load shader '{0}'.", pixel);
-		if (FAILED(context.GetDevice()->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mPixelShader)))
-			MG_CORE_ASSERT(false, "Failed to load shader '{0}'.", vertex);
+		HR_CALL(context.GetDevice()->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mPixelShader));
 
-		HR_CALL(D3DReadFileToBlob(WidenString(vertex).c_str(), &blob));
+		if(FAILED(D3DReadFileToBlob(WidenString(vertex).c_str(), &blob)))
+			MG_CORE_ASSERT(false, "Failed to load shader '{0}'.", vertex);
 		HR_CALL(context.GetDevice()->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mVertexShader));
 
 		// Input Layout
+		CreateInputLayout(blob.Get());
+	}
+
+	DirectXShader::DirectXShader(const std::string& vertex, const std::string& geometry, const std::string& pixel)
+	{
+		auto& context = RetrieveContext();
+		Microsoft::WRL::ComPtr<ID3DBlob> blob;
+
+		// Shaders
+		if (FAILED(D3DReadFileToBlob(WidenString(pixel).c_str(), &blob)))
+			MG_CORE_ASSERT(false, "Failed to load shader '{0}'.", pixel);
+		HR_CALL(context.GetDevice()->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mPixelShader));
+
+		if (FAILED(D3DReadFileToBlob(WidenString(geometry).c_str(), &blob)))
+			MG_CORE_ASSERT(false, "Failed to load shader '{0}'.", geometry);
+		HR_CALL(context.GetDevice()->CreateGeometryShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mGeometryShader));
+
+		if (FAILED(D3DReadFileToBlob(WidenString(vertex).c_str(), &blob)))
+			MG_CORE_ASSERT(false, "Failed to load shader '{0}'.", vertex);
+		HR_CALL(context.GetDevice()->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mVertexShader));
+
+		// Input Layout
+		CreateInputLayout(blob.Get());
+	}
+
+	void DirectXShader::Bind() const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->IASetInputLayout(mInputLayout.Get()));
+		VOID_CALL(context.GetDeviceContext()->VSSetShader(mVertexShader.Get(), nullptr, 0));
+		VOID_CALL(context.GetDeviceContext()->PSSetShader(mPixelShader.Get(), nullptr, 0));
+	    VOID_CALL(context.GetDeviceContext()->GSSetShader(mGeometryShader ? mGeometryShader.Get() : nullptr, nullptr, 0));
+	}
+
+	void DirectXShader::CreateInputLayout(ID3DBlob* blob)
+	{
+		auto& context = RetrieveContext();
+
 		Microsoft::WRL::ComPtr<ID3D11ShaderReflection> reflection;
 		HR_CALL(D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_ID3D11ShaderReflection, &reflection));
 
@@ -51,14 +94,6 @@ namespace Mango {
 		}
 
 		HR_CALL(context.GetDevice()->CreateInputLayout(ied.data(), (uint32_t)ied.size(), blob->GetBufferPointer(), blob->GetBufferSize(), &mInputLayout));
-	}
-
-	void DirectXShader::Bind() const
-	{
-		auto& context = RetrieveContext();
-		VOID_CALL(context.GetDeviceContext()->VSSetShader(mVertexShader.Get(), nullptr, 0));
-		VOID_CALL(context.GetDeviceContext()->PSSetShader(mPixelShader.Get(), nullptr, 0));
-		VOID_CALL(context.GetDeviceContext()->IASetInputLayout(mInputLayout.Get()));
 	}
 
 	DXGI_FORMAT DirectXShader::GetDXGIFormat(BYTE mask, D3D_REGISTER_COMPONENT_TYPE type)

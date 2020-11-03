@@ -33,6 +33,7 @@ namespace Mango {
 
 		virtual void VSBind(size_t slot) const override;
 		virtual void PSBind(size_t slot) const override;
+		virtual void GSBind(size_t slot) const override;
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> mInternal;
 	};

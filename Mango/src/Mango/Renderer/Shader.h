@@ -11,6 +11,7 @@ namespace Mango {
 		virtual void Bind() const = 0;
 
 		static Shader* Create(const std::string& vertex, const std::string& pixel);
+		static Shader* Create(const std::string& vertex, const std::string& geometry, const std::string& pixel);
 	};
 
 }
