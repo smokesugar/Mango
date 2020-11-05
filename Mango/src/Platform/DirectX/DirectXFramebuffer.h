@@ -23,7 +23,7 @@ namespace Mango {
 		virtual void* GetTextureAttachment() const override { return mSRV.Get(); }
 		virtual void BindAsTexture(size_t slot) const override;
 
-		inline ID3D11RenderTargetView* GetRenderTargetView() { return mRTV.Get(); }
+		inline ID3D11RenderTargetView* GetRenderTargetView() { return mDSV.Get(); }
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateTexture();
 		void CreateViews(ID3D11Resource* resource);
@@ -31,7 +31,7 @@ namespace Mango {
 		bool mOwnsTexture;
 		ColorBufferProperties mProps;
 		ID3D11Resource* mResourceReference;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mDSV;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
 	};
 

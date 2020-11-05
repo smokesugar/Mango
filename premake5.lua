@@ -122,7 +122,7 @@ project "Sandbox"
 
     filter "files:**.hlsl"
 		shaderobjectfileoutput("assets/shaders/%{file.basename}"..".cso")
-		shadermodel "4.0"
+		shadermodel "5.0"
 
 	filter "files:**_ps.hlsl"
 		shadertype "Pixel"
@@ -185,7 +185,7 @@ project "MangoEditor"
 
     filter "files:**.hlsl"
 		shaderobjectfileoutput("assets/shaders/%{file.basename}"..".cso")
-		shadermodel "4.0"
+		shadermodel "5.0"
 
 	filter "files:**_ps.hlsl"
 		shadertype "Pixel"
@@ -246,7 +246,7 @@ project "Tests"
 
     filter "files:**.hlsl"
 		shaderobjectfileoutput("assets/shaders/%{file.basename}"..".cso")
-		shadermodel "4.0"
+		shadermodel "5.0"
 
 	filter "files:**_ps.hlsl"
 		shadertype "Pixel"

@@ -74,7 +74,7 @@ namespace Mango {
 	void DirectXColorBuffer::Clear(const float4& color)
 	{
 		auto& context = RetrieveContext();
-		VOID_CALL(context.GetDeviceContext()->ClearRenderTargetView(mRTV.Get(), ValuePtr(color)));
+		VOID_CALL(context.GetDeviceContext()->ClearRenderTargetView(mDSV.Get(), ValuePtr(color)));
 	}
 
 	void DirectXColorBuffer::Resize(uint32_t width, uint32_t height)
@@ -124,7 +124,7 @@ namespace Mango {
 	{
 		mResourceReference = resource;
 		auto& context = RetrieveContext();
-		HR_CALL(context.GetDevice()->CreateRenderTargetView(resource, nullptr, &mRTV));
+		HR_CALL(context.GetDevice()->CreateRenderTargetView(resource, nullptr, &mDSV));
 
 		if(mOwnsTexture)
 			HR_CALL(context.GetDevice()->CreateShaderResourceView(resource, nullptr, &mSRV));

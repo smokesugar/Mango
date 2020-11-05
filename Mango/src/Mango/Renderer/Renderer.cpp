@@ -5,11 +5,13 @@
 #include "Buffer.h"
 #include "RenderCommand.h"
 #include "Shader.h"
+#include "CascadedShadowmap.h"
 
 #include "Halton.h"
 
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
+#define NUM_SHADOW_CASCADES 4
 
 namespace Mango {
 
@@ -25,7 +27,6 @@ namespace Mango {
 	};
 
 	struct Light {
-		xmmatrix ViewProjection;
 		float3 Vector;
 		float padding0;
 		float3 Color;
@@ -34,11 +35,20 @@ namespace Mango {
 
 	struct LightingData {
 		xmmatrix InvView;
-		float4 PerspectiveValues;
 		Light PointLights[MAX_POINT_LIGHTS];
 		Light DirectionalLights[MAX_DIRECTIONAL_LIGHTS];
+		xmmatrix DirectionalMatrices[MAX_DIRECTIONAL_LIGHTS*NUM_SHADOW_CASCADES];
 		int NumDirectionalLights;
 		int NumPointLights;
+		float2 padding;
+		float4 PerspectiveValues;
+		float CascadeEnds[NUM_SHADOW_CASCADES];
+	};
+
+	int size = sizeof(LightingData);
+
+	struct CSMData {
+		xmmatrix MVP[NUM_SHADOW_CASCADES];
 	};
 
 	struct SurfaceData {
@@ -50,12 +60,14 @@ namespace Mango {
 	};
 
 	struct RendererData {
-		xmmatrix PreviousViewProjection = XMMatrixIdentity();
+		xmmatrix ViewMatrix = XMMatrixIdentity();
+		xmmatrix ProjectionMatrix = XMMatrixIdentity();
 		Scope<UniformBuffer> GlobalUniforms;
 		Scope<UniformBuffer> IndividualUniforms;
 		Mango::LightingData LightingData;
 		Scope<UniformBuffer> LightingUniforms;
 		Scope<UniformBuffer> SurfaceUniforms;
+		Scope<UniformBuffer> CascadedUniforms;
 
 		Ref<VertexArray> Quad;
 		Ref<Texture2D> WhiteTexture;
@@ -74,7 +86,7 @@ namespace Mango {
 		Ref<ColorBuffer> ImmediateTarget;
 		Ref<Mango::DepthBuffer> DepthBuffer;
 
-		Ref<Mango::DepthBuffer> DirectionalShadowmaps[MAX_DIRECTIONAL_LIGHTS];
+		Ref<CascadedShadowmap> DirectionalShadowmaps[MAX_DIRECTIONAL_LIGHTS];
 
 		struct {
 			Ref<ColorBuffer> Color;
@@ -121,7 +133,7 @@ namespace Mango {
 		sData->DepthBuffer = Ref<DepthBuffer>(DepthBuffer::Create(800, 600));
 
 		for(int i=0; i < MAX_DIRECTIONAL_LIGHTS; i++)
-			sData->DirectionalShadowmaps[i] = Ref<DepthBuffer>(DepthBuffer::Create(1024, 1024));
+			sData->DirectionalShadowmaps[i] = Ref<CascadedShadowmap>(CascadedShadowmap::Create(1024, 1024, NUM_SHADOW_CASCADES));
 
 		// Textures ----------------------------------------------------------------------------------
 
@@ -140,6 +152,7 @@ namespace Mango {
 		sData->IndividualUniforms = Scope<UniformBuffer>(UniformBuffer::Create<IndividualData>());
 		sData->LightingUniforms = Scope<UniformBuffer>(UniformBuffer::Create<LightingData>());
 		sData->SurfaceUniforms = Scope<UniformBuffer>(UniformBuffer::Create<SurfaceData>());
+		sData->CascadedUniforms = Scope<UniformBuffer>(UniformBuffer::Create<CSMData>());
 
 		// Quad --------------------------------------------------------------------------------------
 
@@ -204,7 +217,7 @@ namespace Mango {
 
 		xmmatrix view = XMMatrixInverse(nullptr, transform);
 		xmmatrix viewProjection = view * projection * jitterMatrix;
-		sData->GlobalUniforms->SetData<GlobalData>({ sData->PreviousViewProjection * jitterMatrix, viewProjection });
+		sData->GlobalUniforms->SetData<GlobalData>({ sData->ViewMatrix * sData->ProjectionMatrix * jitterMatrix, viewProjection });
 
 		float4x4 proj;
 		XMStoreFloat4x4(&proj, projection*jitterMatrix);
@@ -219,7 +232,12 @@ namespace Mango {
 		sData->LightingData.NumDirectionalLights = 0;
 		sData->LightingData.NumPointLights = 0;
 
-		sData->PreviousViewProjection = view * projection;
+		sData->ViewMatrix = view;
+		sData->ProjectionMatrix = projection;
+
+		auto ends = CascadedShadowmap::GenerateCascadeDistances(projection, NUM_SHADOW_CASCADES);
+		for (int i = 0; i < NUM_SHADOW_CASCADES; i++)
+			sData->LightingData.CascadeEnds[i] = ends[i+1];
 	}
 
 	static void InternalDrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
@@ -259,6 +277,11 @@ namespace Mango {
 		Texture::Unbind(0);
 		Texture::Unbind(1);
 		Texture::Unbind(2);
+		Texture::Unbind(3);
+		Texture::Unbind(4);
+		Texture::Unbind(5);
+		Texture::Unbind(6);
+		Texture::Unbind(7);
 		sData->GlobalUniforms->VSBind(0);
 		sData->IndividualUniforms->VSBind(1);
 		
@@ -275,17 +298,19 @@ namespace Mango {
 
 		RenderCommand::ShadowRasterizerState();
 		sData->DirectionalShadowmapShader->Bind();
-		sData->IndividualUniforms->GSBind(0);
+		sData->CascadedUniforms->GSBind(0);
 
 		for (int i = 0; i < sData->LightingData.NumDirectionalLights; i++) {
-			Texture::Unbind(3 + i);
 			auto& shadowmap = sData->DirectionalShadowmaps[i];
-			BindRenderTargets({}, shadowmap);
+			shadowmap->BindAsRenderTarget();
 			shadowmap->Clear(0.0f);
 
 			for (auto& [material, submeshes] : sData->MaterialMeshQueue) {
 				for (auto& [va, prevT, transform] : submeshes) {
-					sData->IndividualUniforms->SetData<IndividualData>({ prevT, transform * sData->LightingData.DirectionalLights[i].ViewProjection, float4(1.0f, 1.0f, 1.0f, 1.0f) });
+					CSMData data;
+					for (int c = 0; c < NUM_SHADOW_CASCADES; c++)
+						data.MVP[c] = transform * sData->LightingData.DirectionalMatrices[i * NUM_SHADOW_CASCADES + c];
+					sData->CascadedUniforms->SetData(data);
 					va->Bind();
 					if (va->IsIndexed())
 						RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
@@ -379,18 +404,19 @@ namespace Mango {
 	void Renderer::SubmitDirectionalLight(const float3& direction, const float3& color)
 	{
 		if (sData->LightingData.NumDirectionalLights < MAX_DIRECTIONAL_LIGHTS) {
-			xmvector dir = XMVector3Normalize(XMLoadFloat3(&direction));
-			xmmatrix view = XMMatrixLookAtLH(dir, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
-			xmmatrix projection = XMMatrixOrthographicOffCenterLH(-5.0f, 5.0f, -5.0f, 5.0f, 5.0f, -5.0f);
-
-			sData->LightingData.DirectionalLights[sData->LightingData.NumDirectionalLights++] = { view*projection, direction, 0.0f, color };
+			int index = sData->LightingData.NumDirectionalLights++;
+			auto matrices = CascadedShadowmap::GenerateMatrices(direction, sData->ViewMatrix, sData->ProjectionMatrix, NUM_SHADOW_CASCADES);
+			for (int i = 0; i < NUM_SHADOW_CASCADES; i++) {
+				sData->LightingData.DirectionalMatrices[index*NUM_SHADOW_CASCADES+i] = matrices[i];
+			}
+			sData->LightingData.DirectionalLights[index] = {direction, 0.0f, color };
 		}
 	}
 
 	void Renderer::SubmitPointLight(const float3& position, const float3& color)
 	{
 		if(sData->LightingData.NumPointLights < MAX_POINT_LIGHTS)
-			sData->LightingData.PointLights[sData->LightingData.NumPointLights++] = { XMMatrixIdentity(), position, 0.0f, color };
+			sData->LightingData.PointLights[sData->LightingData.NumPointLights++] = {position, 0.0f, color };
 	}
 
 	void Renderer::SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color)
