@@ -33,7 +33,8 @@ namespace Mango {
 		xmmatrix invProj = XMMatrixInverse(nullptr, projection);
 		xmmatrix invViewProjection = XMMatrixInverse(nullptr, view * projection);
 
-		xmmatrix lightView = XMMatrixLookAtLH(XMVector3Normalize(XMLoadFloat3(&direction)), { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+		xmvector normDir = XMVector3Normalize(XMLoadFloat3(&direction));
+		xmmatrix lightView = XMMatrixLookAtLH(normDir, { 0.0f, 0.0f, 0.0f }, XMVector3Normalize(XMVector3Cross(normDir, {1.0f, 0.0f, 0.0f})));
 
 		std::vector<float> cascadeEnds = GenerateCascadeDistances(projection, numCascades);
 
