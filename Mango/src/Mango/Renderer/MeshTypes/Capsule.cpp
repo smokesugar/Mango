@@ -1,6 +1,6 @@
 #include "mgpch.h"
 #include "Mango/Renderer/Mesh.h"
-#include "Mango/Renderer/Renderer.h"
+#include "Mango/Renderer/Render/Renderer.h"
 
 #define CAPSULE_HEIGHT 2.0f
 #define CAPSULE_RADIUS 0.5f

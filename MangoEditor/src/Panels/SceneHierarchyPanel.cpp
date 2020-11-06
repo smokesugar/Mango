@@ -4,7 +4,7 @@
 
 #include "Mango/Core/FileDialog.h"
 #include "Mango/Scene/Components.h"
-#include "Mango/Renderer/Renderer.h"
+#include "Mango/Renderer/Render/Renderer.h"
 
 #include <imgui.h>
 

@@ -1,7 +1,6 @@
 
 struct VSOut
 {
-    float3 pos : Position;
     float4 posSS : ScreenSpacePosition;
     float4 prevPos : PreviousPosition;
     float2 uv : TexCoord;

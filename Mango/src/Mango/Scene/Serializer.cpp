@@ -2,7 +2,7 @@
 #include "Serializer.h"
 
 #include "Components.h"
-#include "Mango/Renderer/Renderer.h"
+#include "Mango/Renderer/Render/Renderer.h"
 
 #include <json.hpp>
 using namespace nlohmann;

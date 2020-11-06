@@ -1,15 +1,10 @@
 
-cbuffer GlobalUniforms : register(b0)
+cbuffer TransformUniforms : register(b0)
 {
-    matrix prevViewProjection;
-    matrix viewProjection;
+    matrix transform;
+    matrix prevMVP;
+    matrix MVP;
 };
-
-cbuffer IndividualUniforms : register(b1)
-{
-    matrix prevModel;
-    matrix model;
-}
 
 struct VSOut
 {
@@ -25,13 +20,12 @@ VSOut main(float3 pos : Position, float3 normal : Normal, float2 uv : TexCoord)
 {
     VSOut vso;
 	
-    vso.normal = mul((float3x3) model, normal);
+    vso.normal = mul((float3x3) transform, normal);
     vso.uv = uv;
-    vso.pos = mul(model, float4(pos, 1.0f));
-    vso.svpos = mul(viewProjection, vso.pos);
-    
+    vso.pos = mul(transform, float4(pos, 1.0f));
+    vso.svpos = mul(MVP, float4(pos, 1.0f));
     vso.posSS = vso.svpos;
-    vso.prevPos = mul(prevViewProjection, mul(prevModel, float4(pos, 1.0f)));
+    vso.prevPos = mul(prevMVP, float4(pos, 1.0f));
 	
     return vso;
 }

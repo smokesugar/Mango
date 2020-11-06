@@ -7,7 +7,7 @@
 #include "Mango/Core/FileDialog.h"
 #include "Mango/Core/Input.h"
 
-#include "Mango/Renderer/Renderer.h"
+#include "Mango/Renderer/Render/Renderer.h"
 #include "Mango/Renderer/RenderCommand.h"
 #include "Mango/Renderer/Shader.h"
 #include "Mango/Renderer/Buffer.h"
