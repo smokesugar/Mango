@@ -26,8 +26,6 @@ namespace Mango {
 
 		float mFPS = 0.0f;
 
-		Ref<Texture2D> mTexture;
-
 		float2 mViewportSize = { 800.0f, 600.0f };
 		bool mViewportFocused = false;
 		EditorCamera mEditorCamera;

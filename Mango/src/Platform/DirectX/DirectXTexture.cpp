@@ -10,8 +10,8 @@
 
 namespace Mango {
 
-	Texture2D* Texture2D::Create(const std::string& filePath, bool sRGB) {
-		return new DirectXTexture2D(filePath, sRGB);
+	Texture2D* Texture2D::Create(const std::string& filePath, Format format) {
+		return new DirectXTexture2D(filePath, format);
 	}
 
 	Texture2D* Texture2D::Create(void* data, uint32_t width, uint32_t height) {
@@ -27,18 +27,25 @@ namespace Mango {
 	DirectXTexture2D::DirectXTexture2D(void* data, uint32_t width, uint32_t height)
 		: mWidth(width), mHeight(height)
 	{
-		Create(data, false);
+		Create(data, Format::RGBA8_UNORM);
 	}
 
-	DirectXTexture2D::DirectXTexture2D(const std::string& filePath, bool sRGB)
+	DirectXTexture2D::DirectXTexture2D(const std::string& filePath, Format format)
 		: mWidth(0), mHeight(0), mPath(filePath)
 	{
 		int width, height;
-		unsigned char* data = stbi_load(filePath.c_str(), &width, &height, nullptr, 4);
+		void* data;
+		if (IsFormatFloatingPoint(format)) {
+			data = stbi_loadf(filePath.c_str(), &width, &height, nullptr, 4);
+			MG_CORE_INFO("Loading floating point image.");
+		}
+		else
+			data = stbi_load(filePath.c_str(), &width, &height, nullptr, 4);
+
 		MG_CORE_ASSERT(data, "Could not load texture '{0}'.", filePath);
 		mWidth = (uint32_t)width;
 		mHeight = (uint32_t)height;
-		Create(data, sRGB);
+		Create(data, format);
 		stbi_image_free(data);
 	}
 
@@ -48,7 +55,7 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
 	}
 
-	void DirectXTexture2D::Create(void* data, bool sRGB)
+	void DirectXTexture2D::Create(void* data, Format format)
 	{
 		auto& context = RetrieveContext();
 
@@ -57,7 +64,7 @@ namespace Mango {
 		desc.Height = mHeight;
 		desc.MipLevels = 0;
 		desc.ArraySize = 1;
-		desc.Format = sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Format = DXGIFormatFromMangoFormat(format);
 		desc.SampleDesc = {1, 0};
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
@@ -66,7 +73,7 @@ namespace Mango {
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
 		HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &texture));
-		VOID_CALL(context.GetDeviceContext()->UpdateSubresource(texture.Get(), 0, nullptr, data, mWidth*4, 0));
+		VOID_CALL(context.GetDeviceContext()->UpdateSubresource(texture.Get(), 0, nullptr, data, mWidth*FormatSize(format), 0));
 		HR_CALL(context.GetDevice()->CreateShaderResourceView(texture.Get(), nullptr, &mSRV));
 		VOID_CALL(context.GetDeviceContext()->GenerateMips(mSRV.Get()));
 	}
@@ -126,5 +133,68 @@ namespace Mango {
 			break;
 		}
 		return add;
+	}
+
+	Cubemap* Cubemap::Create(const std::string& path, uint32_t size) {
+		return new DirectXCubemap(path, size);
+	}
+
+	DirectXCubemap::DirectXCubemap(const std::string& path, uint32_t size)
+		: mPath(path), mWidth(size), mHeight(size)
+	{
+		auto& context = RetrieveContext();
+
+		DXGI_FORMAT format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+		D3D11_TEXTURE2D_DESC texDesc = {};
+		texDesc.Width = mWidth;
+		texDesc.Height = mHeight;
+		texDesc.MipLevels = 1;
+		texDesc.ArraySize = 6;
+		texDesc.Format = format;
+		texDesc.CPUAccessFlags = 0;
+		texDesc.SampleDesc = { 1, 0 };
+		texDesc.Usage = D3D11_USAGE_DEFAULT;
+		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+		srvDesc.TextureCube.MipLevels = texDesc.MipLevels;
+		srvDesc.TextureCube.MostDetailedMip = 0;
+
+		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+		rtvDesc.Format = format;
+		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtvDesc.Texture2DArray.MipSlice = 0;
+		rtvDesc.Texture2DArray.FirstArraySlice = 0;
+		rtvDesc.Texture2DArray.ArraySize = 6;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+		HR_CALL(context.GetDevice()->CreateTexture2D(&texDesc, nullptr, &texture));
+		HR_CALL(context.GetDevice()->CreateShaderResourceView(texture.Get(), &srvDesc, &mSRV));
+		HR_CALL(context.GetDevice()->CreateRenderTargetView(texture.Get(), &rtvDesc, &mRTV));
+	}
+
+	void DirectXCubemap::BindAsRenderTarget() const
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_VIEWPORT vp;
+		vp.TopLeftX = 0.0f;
+		vp.TopLeftY = 0.0f;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.Width = (float)mWidth;
+		vp.Height = (float)mHeight;
+		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
+		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr));
+	}
+
+	void DirectXCubemap::Bind(size_t slot) const
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
 	}
 }

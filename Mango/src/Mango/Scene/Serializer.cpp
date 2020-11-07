@@ -29,17 +29,17 @@ namespace Mango {
 	static Ref<Material> LoadMaterial(json& j, TextureLibrary& library) {
 		Ref<Texture2D> albedoTexture;
 		if (j.find("albedoTexture") != j.end())
-			albedoTexture = library.Get(j["albedoTexture"], true);
+			albedoTexture = library.Get(j["albedoTexture"], Format::RGBA8_UNORM_SRGB);
 		else
 			albedoTexture = Renderer::GetWhiteTexture();
 
 		Ref<Texture2D> normalTexture;
 		if (j.find("normalTexture") != j.end())
-			normalTexture = library.Get(j["normalTexture"], false);
+			normalTexture = library.Get(j["normalTexture"], Format::RGBA8_UNORM);
 
 		Ref<Texture2D> roughnessTexture;
 		if (j.find("roughnessTexture") != j.end())
-			roughnessTexture = library.Get(j["roughnessTexture"], false);
+			roughnessTexture = library.Get(j["roughnessTexture"], Format::RGBA8_UNORM);
 		else
 			roughnessTexture = Renderer::GetWhiteTexture();
 
@@ -225,7 +225,7 @@ namespace Mango {
 					bool usesTexture = sprite["usesTexture"];
 					if (usesTexture) {
 						std::string path = sprite["texturePath"];
-						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path, false));
+						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path, Format::RGBA8_UNORM));
 					}
 					else
 					{

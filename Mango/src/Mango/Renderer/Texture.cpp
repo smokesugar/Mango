@@ -3,16 +3,16 @@
 
 namespace Mango {
 
-	void TextureLibrary::Load(const std::string& name, bool sRGB)
+	void TextureLibrary::Load(const std::string& name, Format format)
 	{
 		MG_CORE_ASSERT(!IsLoaded(name), "Texture '{0}' is already loaded.");
-		mTextures[name] = Ref<Texture2D>(Texture2D::Create(name, sRGB));
+		mTextures[name] = Ref<Texture2D>(Texture2D::Create(name, format));
 	}
 
-	const Ref<Texture2D>& TextureLibrary::Get(const std::string& name, bool sRGB)
+	const Ref<Texture2D>& TextureLibrary::Get(const std::string& name, Format format)
 	{
 		if (!IsLoaded(name))
-			Load(name, sRGB);
+			Load(name, format);
 
 		return mTextures[name];
 	}

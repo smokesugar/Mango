@@ -29,10 +29,16 @@ namespace Mango {
         props.EventFn = MG_BIND_FN(Application::EventCallback);
         mWindow = Scope<Window>(Window::Create(props));
         mWindow->CreateSwapChain();
+
+		ImGuiContext::Init();
+		Renderer::Init();
     }
 
     Application::~Application()
-    {
+	{
+		ImGuiContext::Shutdown();
+		Renderer::Shutdown();
+
         sInstance = nullptr;
         for (auto layer : mLayerStack)
             delete layer;
@@ -40,9 +46,6 @@ namespace Mango {
 
     void Application::Run()
     {
-        ImGuiContext::Init();
-        Renderer::Init();
-
         while (mRunning) {
             static double lastTime = GetTime();
             double time = GetTime();
@@ -61,9 +64,6 @@ namespace Mango {
 
             mWindow->OnUpdate();
         }
-        
-        ImGuiContext::Shutdown();
-        Renderer::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)

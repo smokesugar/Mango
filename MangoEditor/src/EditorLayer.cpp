@@ -16,7 +16,9 @@ namespace Mango {
 		props.Format = Format::RGBA16_FLOAT;
 		mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
-		mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png", false));
+		auto skybox = Ref<Cubemap>(Cubemap::Create("assets/textures/env/urban_street_01_8k.hdr", 2048));
+		Renderer::InitializeCubemap(skybox);
+		Renderer::SetSkybox(skybox);
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {

@@ -98,7 +98,9 @@ project "Sandbox"
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/Shaders/**.hlsl",
+        "%{prj.name}/src/Shaders/**_vs.hlsl",
+        "%{prj.name}/src/Shaders/**_gs.hlsl",
+        "%{prj.name}/src/Shaders/**_ps.hlsl",
     }
 
     libdirs {
@@ -158,7 +160,9 @@ project "MangoEditor"
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/Shaders/**.hlsl",
+        "%{prj.name}/src/Shaders/**_vs.hlsl",
+        "%{prj.name}/src/Shaders/**_gs.hlsl",
+        "%{prj.name}/src/Shaders/**_ps.hlsl",
         "%{prj.name}/vendor/ImGuizmo/*.h",
         "%{prj.name}/vendor/ImGuizmo/*.cpp",
     }
@@ -221,7 +225,9 @@ project "Tests"
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/Shaders/**.hlsl"
+        "%{prj.name}/src/Shaders/**_vs.hlsl",
+        "%{prj.name}/src/Shaders/**_gs.hlsl",
+        "%{prj.name}/src/Shaders/**_ps.hlsl",
     }
 
     includedirs {

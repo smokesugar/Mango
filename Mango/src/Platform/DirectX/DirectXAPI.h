@@ -11,7 +11,7 @@ namespace Mango {
 		virtual void EnableBlending() override;
 		virtual void DisableBlending() override;
 		virtual void DefaultRasterizerState() override;
-		virtual void ShadowRasterizerState() override;
+		virtual void DisableCulling() override;
 		virtual void EnableInvertedDepthTesting() override;
 	};
 

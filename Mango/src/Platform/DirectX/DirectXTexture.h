@@ -10,7 +10,7 @@ namespace Mango {
 	class DirectXTexture2D : public Texture2D {
 	public:
 		DirectXTexture2D(void* data, uint32_t width, uint32_t height);
-		DirectXTexture2D(const std::string& filePath, bool sRGB);
+		DirectXTexture2D(const std::string& filePath, Format format);
 
 		inline virtual const std::string& GetPath() const override { return mPath; }
 
@@ -19,10 +19,28 @@ namespace Mango {
 
 		virtual void Bind(size_t slot) const override;
 	private:
-		void Create(void* data, bool sRGB);
+		void Create(void* data, Format format);
 	private:
 		std::string mPath;
 		uint32_t mWidth, mHeight;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
+	};
+
+	class DirectXCubemap : public Cubemap {
+	public:
+		DirectXCubemap(const std::string& path, uint32_t size);
+
+		inline virtual const std::string& GetPath() const override { return mPath; }
+
+		inline virtual uint32_t GetWidth() const override { return mWidth; }
+		inline virtual uint32_t GetHeight() const override { return mHeight; }
+
+		virtual void BindAsRenderTarget() const override;
+		virtual void Bind(size_t slot) const override;
+	private:
+		std::string mPath;
+		uint32_t mWidth, mHeight;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
 	};
 

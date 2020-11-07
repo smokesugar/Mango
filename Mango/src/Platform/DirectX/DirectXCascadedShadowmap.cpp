@@ -70,7 +70,7 @@ namespace Mango {
 	void DirectXCascadedShadowmap::BindAsTexture(size_t slot) const
 	{
 		auto& context = RetrieveContext();
-		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources(slot, 1, mSRV.GetAddressOf()));
+		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
 	}
 
 }

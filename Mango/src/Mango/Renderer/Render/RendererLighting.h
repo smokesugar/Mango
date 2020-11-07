@@ -15,5 +15,9 @@ namespace Mango {
 		void SubmitDirectionalLight(const float3& direction, const float3& color);
 		void SubmitPointLight(const float3& position, const float3& color);
 
+		void SetSkybox(const Ref<Cubemap>& skybox);
+		const Ref<Cubemap>& GetSkybox();
+
+		void InitializeCubemap(const Ref<Cubemap>& cubemap);
 	}
 }

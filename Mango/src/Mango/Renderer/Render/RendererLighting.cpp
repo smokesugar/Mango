@@ -11,6 +11,8 @@
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
 #define NUM_SHADOW_CASCADES 4
+#define SHADOW_RESOLUTION 1024
+#define SKYBOX_RESOLUTION 1024
 
 namespace Mango {
 
@@ -33,16 +35,33 @@ namespace Mango {
 		float CascadeEnds[NUM_SHADOW_CASCADES];
 	};
 
+	struct HDRiData {
+		xmmatrix MVP[6];
+	};
+
+	struct SkyboxData {
+		xmmatrix ViewMatrix;
+		xmmatrix ProjectionMatrix;
+	};
+
 	struct RenderDataLighting {
 		Ref<SamplerState> ShadowSampler;
 		Ref<CascadedShadowmap> DirectionalShadowmaps[MAX_DIRECTIONAL_LIGHTS];
 
 		Ref<Shader> LightingShader;
 		Ref<Shader> DirectionalShadowmapShader;
+		Ref<Shader> SkyboxShader;
+		Ref<Shader> HDRiShader;
+
+		Ref<Cubemap> Skybox;
 
 		Mango::LightingData LightingData;
 		Ref<UniformBuffer> LightingUniforms;
 		Scope<UniformBuffer> CascadedUniforms;
+		Scope<UniformBuffer> SkyboxUniforms;
+		Scope<UniformBuffer> HDRiUniforms;
+
+		Ref<VertexArray> CubeVA;
 	};
 
 	struct CSMData {
@@ -59,12 +78,76 @@ namespace Mango {
 
 		sData->LightingShader = Ref<Shader>(Shader::Create("assets/shaders/Lighting_vs.cso", "assets/shaders/Lighting_ps.cso"));
 		sData->DirectionalShadowmapShader = Ref<Shader>(Shader::Create("assets/shaders/DirectionalShadowmap_vs.cso", "assets/shaders/DirectionalShadowmap_gs.cso", "assets/shaders/DirectionalShadowmap_ps.cso"));
-		
+		sData->SkyboxShader = Ref<Shader>(Shader::Create("assets/shaders/Skybox_vs.cso", "assets/shaders/Skybox_ps.cso"));
+		sData->HDRiShader = Ref<Shader>(Shader::Create("assets/shaders/HDRi_vs.cso", "assets/shaders/HDRi_gs.cso", "assets/shaders/HDRi_ps.cso"));
+
 		sData->LightingUniforms = Scope<UniformBuffer>(UniformBuffer::Create<LightingData>());
 		sData->CascadedUniforms = Scope<UniformBuffer>(UniformBuffer::Create<CSMData>());
+		sData->SkyboxUniforms = Scope<UniformBuffer>(UniformBuffer::Create<SkyboxData>());
+		sData->HDRiUniforms = Scope<UniformBuffer>(UniformBuffer::Create<HDRiData>());
+
+		xmmatrix captureProjection = XMMatrixPerspectiveFovLH(ToRadians(90.0f), 1.0f, 10.0f, 0.1f);
+		HDRiData hdriData;
+		hdriData.MVP[0] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 1.0f,  0.0f,  0.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
+		hdriData.MVP[1] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {-1.0f,  0.0f,  0.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
+		hdriData.MVP[2] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f, -1.0f,  0.0f }, { 0.0f,  0.0f, 1.0f }) * captureProjection;
+		hdriData.MVP[3] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f,  1.0f,  0.0f }, { 0.0f,  0.0f,-1.0f }) * captureProjection;
+		hdriData.MVP[4] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f, -1.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
+		hdriData.MVP[5] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f,  1.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
+
+		sData->HDRiUniforms->SetData(hdriData);
 
 		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++)
-			sData->DirectionalShadowmaps[i] = Ref<CascadedShadowmap>(CascadedShadowmap::Create(1024, 1024, NUM_SHADOW_CASCADES));
+			sData->DirectionalShadowmaps[i] = Ref<CascadedShadowmap>(CascadedShadowmap::Create(SHADOW_RESOLUTION, SHADOW_RESOLUTION, NUM_SHADOW_CASCADES));
+
+		float vertices[] = {
+			-0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+			 0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+			 0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+			 0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+
+			-0.5f, -0.5f,  0.5f,   0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+			 0.5f, -0.5f,  0.5f,   0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+			 0.5f,  0.5f,  0.5f,   0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,   0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+			-0.5f,  0.5f,  0.5f,   0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,   0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+
+			-0.5f,  0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+			 0.5f,  0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+			 0.5f, -0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+			 0.5f,  0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+			 0.5f, -0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+			 0.5f, -0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+
+
+			-0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+			 0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+			 0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+			 0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+			-0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+
+			-0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+			 0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+			-0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+			 0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+		};
+
+		auto vb = Ref<VertexBuffer>(VertexBuffer::Create(vertices, std::size(vertices) / 8, 8 * sizeof(float)));
+
+		sData->CubeVA = CreateRef<VertexArray>(vb, Ref<IndexBuffer>());
 	}
 
 	void Renderer::ShutdownLighting()
@@ -91,7 +174,7 @@ namespace Mango {
 
 	void Renderer::ShadowmapPass(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue)
 	{
-		RenderCommand::ShadowRasterizerState();
+		RenderCommand::DisableCulling();
 		sData->DirectionalShadowmapShader->Bind();
 		sData->CascadedUniforms->GSBind(0);
 
@@ -114,13 +197,27 @@ namespace Mango {
 				}
 			}
 		}
-		RenderCommand::DefaultRasterizerState();
+		RenderCommand::EnableCulling();
 	}
 
 	void Renderer::LightingPass(const Ref<ColorBuffer>& color, const Ref<ColorBuffer>& normal, const Ref<DepthBuffer>& depth, const Ref<ColorBuffer>& rendertarget)
 	{
 		BindRenderTargets({ rendertarget });
 		rendertarget->Clear(RENDERER_CLEAR_COLOR);
+
+		if (sData->Skybox)
+		{
+			LinearSampler().Bind(0);
+			sData->Skybox->Bind(0);
+			sData->SkyboxUniforms->SetData<SkyboxData>({ GetViewMatrix(), GetProjectionMatrix() });
+			sData->SkyboxUniforms->VSBind(0);
+			sData->SkyboxShader->Bind();
+
+			sData->CubeVA->Bind();
+			RenderCommand::DisableCulling();
+			RenderCommand::Draw(sData->CubeVA->GetDrawCount(), 0);
+			RenderCommand::EnableCulling();
+		}
 
 		PointSampler().Bind(0);
 		sData->ShadowSampler->Bind(1);
@@ -147,7 +244,7 @@ namespace Mango {
 		if (sData->LightingData.NumDirectionalLights < MAX_DIRECTIONAL_LIGHTS)
 		{
 			int index = sData->LightingData.NumDirectionalLights++;
-			auto matrices = CascadedShadowmap::GenerateMatrices(direction, GetViewMatrix(), GetProjectionMatrix(), NUM_SHADOW_CASCADES);
+			auto matrices = CascadedShadowmap::GenerateMatrices(direction, GetViewMatrix(), GetProjectionMatrix(), NUM_SHADOW_CASCADES, SHADOW_RESOLUTION);
 			for (int i = 0; i < NUM_SHADOW_CASCADES; i++) {
 				sData->LightingData.DirectionalMatrices[index * NUM_SHADOW_CASCADES + i] = matrices[i];
 			}
@@ -159,6 +256,31 @@ namespace Mango {
 	{
 		if (sData->LightingData.NumPointLights < MAX_POINT_LIGHTS)
 			sData->LightingData.PointLights[sData->LightingData.NumPointLights++] = { position, 0.0f, color };
+	}
+
+	void Renderer::SetSkybox(const Ref<Cubemap>& skybox)
+	{
+		sData->Skybox = skybox;
+	}
+
+	const Ref<Cubemap>& Renderer::GetSkybox()
+	{
+		return sData->Skybox;
+	}
+
+	void Renderer::InitializeCubemap(const Ref<Cubemap>& cubemap)
+	{
+		Scope<Texture2D> hdri = Scope<Texture2D>(Texture2D::Create(cubemap->GetPath(), Format::RGBA32_FLOAT));
+
+		RenderCommand::DisableCulling();
+		cubemap->BindAsRenderTarget();
+		sData->HDRiUniforms->GSBind(0);
+		sData->HDRiShader->Bind();
+		hdri->Bind(0);
+		LinearSampler().Bind(0);
+		sData->CubeVA->Bind();
+		RenderCommand::Draw(sData->CubeVA->GetDrawCount(), 0);
+		RenderCommand::EnableCulling();
 	}
 
 }

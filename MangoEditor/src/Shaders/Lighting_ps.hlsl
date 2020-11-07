@@ -1,3 +1,4 @@
+#include "ACES.hlsl"
 
 Texture2D color : register(t0);
 Texture2D normal : register(t1);
@@ -212,15 +213,15 @@ float CalculateShadow(float depth, float3 worldPos, int lightIndex)
         float shadowValue = 0.0f;
         float2 texelSize = 1.0f / GetSizeOfDirectionalShadowmap(lightIndex);
     
-        for (int x = -1; x <= 1; x++)
+        for (int x = -2; x <= 2; x++)
         {
-            for (int y = -1; y <= 1; y++)
+            for (int y = -2; y <= 2; y++)
             {
                 shadowValue += SampleDirectionalShadowmap(lightIndex, float3(uv + float2(x, y) * texelSize, cascadeIndex), position.z).r;
             }
         }
     
-        return shadowValue / 9.0f;
+        return shadowValue / 25.0f;
     }
 }
 
@@ -230,8 +231,8 @@ float4 main (VSOut vso): SV_Target
 {
     float4 normalSample = normal.Sample(sampler0, vso.uv);
     float3 norm = normalSample.xyz;
-    //if (dot(norm, norm) == 0.0f)
-    //    discard;
+    if (dot(norm, norm) == 0.0f)
+        discard;
     
     float metallic = normalSample.w;
     float4 colorSample = color.Sample(sampler0, vso.uv);
@@ -282,8 +283,7 @@ float4 main (VSOut vso): SV_Target
     
     float3 fragColor = Lo;
    
-    // HDR Tonemap
-    fragColor = fragColor / (fragColor+1.0f);
+    fragColor = ACESFitted(fragColor);
     
     float gamma = 2.2f;
     fragColor = pow(fragColor, (1.0f / gamma).xxx);

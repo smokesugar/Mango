@@ -6,15 +6,6 @@
 
 namespace Mango {
 
-	static DXGI_FORMAT DXGIFormatFromMangoFormat(Format format) {
-		switch (format) {
-			case Format::RGBA16_FLOAT:
-				return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			default:
-				return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		}
-	}
-
 	ColorBuffer* ColorBuffer::Create(const ColorBufferProperties& props) {
 		return new DirectXColorBuffer(props);
 	}

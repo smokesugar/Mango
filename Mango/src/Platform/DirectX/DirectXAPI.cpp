@@ -60,7 +60,7 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->RSSetState(state.Get()));
 	}
 
-	void DirectXAPI::ShadowRasterizerState()
+	void DirectXAPI::DisableCulling()
 	{
 		auto& context = RetrieveContext();
 

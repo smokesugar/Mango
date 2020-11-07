@@ -17,8 +17,8 @@ namespace Mango {
 		float nearPlane = XMVectorGetZ(zNear) / XMVectorGetW(zNear);
 		float farPlane = XMVectorGetZ(zFar) / XMVectorGetW(zFar);
 
-		std::vector<float> cascadeEnds(numCascades + 1);
-		for (int i = 0; i < numCascades; i++) {
+		std::vector<float> cascadeEnds((size_t)numCascades + 1);
+		for (uint32_t i = 0; i < numCascades; i++) {
 			float IDM = i / float(numCascades);
 			float log = nearPlane * powf(farPlane / nearPlane, IDM);
 			float uniform = nearPlane + (farPlane - nearPlane) * IDM;
@@ -28,7 +28,7 @@ namespace Mango {
 		cascadeEnds[numCascades] = farPlane;
 		return cascadeEnds;
 	}
-	std::vector<xmmatrix> CascadedShadowmap::GenerateMatrices(const float3& direction, const xmmatrix& view, const xmmatrix& projection, uint32_t numCascades)
+	std::vector<xmmatrix> CascadedShadowmap::GenerateMatrices(const float3& direction, const xmmatrix& view, const xmmatrix& projection, uint32_t numCascades, uint32_t textureSize)
 	{
 		xmmatrix invProj = XMMatrixInverse(nullptr, projection);
 		xmmatrix invViewProjection = XMMatrixInverse(nullptr, view * projection);
@@ -83,7 +83,20 @@ namespace Mango {
 			}
 
 			xmmatrix lightProj = XMMatrixOrthographicOffCenterLH(minCorner.x, maxCorner.x, minCorner.y, maxCorner.y, maxCorner.z, minCorner.z);
-			matrices[cascade] = lightView * lightProj;
+			xmmatrix lightViewProj = lightView * lightProj;
+
+			// Rounding - reduces shimmer
+			xmvector shadowOrigin = XMVector4Transform({0.0f, 0.0f, 0.0f, 1.0f}, lightViewProj);
+			shadowOrigin /= XMVectorGetW(shadowOrigin);
+			shadowOrigin *= (float)textureSize / 2.0f;
+			float3 origin; XMStoreFloat3(&origin, shadowOrigin);
+			float2 roundedOrigin = float2(round(origin.x), round(origin.y));
+			float2 rounding = {roundedOrigin.x - origin.x, roundedOrigin.y - origin.y};
+			rounding = float2(rounding.x/(textureSize/2.0f), rounding.y / (textureSize / 2.0f));
+			
+			xmmatrix roundMatrix = XMMatrixTranslation(rounding.x, rounding.y, 0.0f);
+
+			matrices[cascade] = lightViewProj*roundMatrix;
 		}
 
 		return matrices;

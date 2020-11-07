@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Mango/Core/Base.h"
+#include "Formats.h"
 
 namespace Mango {
 
@@ -25,8 +26,18 @@ namespace Mango {
 
 		virtual const std::string& GetPath() const = 0;
 
-		static Texture2D* Create(const std::string& filePath, bool sRGB);
+		static Texture2D* Create(const std::string& filePath, Format format);
 		static Texture2D* Create(void* data, uint32_t width, uint32_t height);
+	};
+
+	class Cubemap : public Texture {
+	public:
+		virtual ~Cubemap() {}
+
+		virtual void BindAsRenderTarget() const = 0;
+		virtual const std::string& GetPath() const = 0;
+
+		static Cubemap* Create(const std::string& filePath, uint32_t size);
 	};
 
 	class SamplerState {
@@ -51,8 +62,8 @@ namespace Mango {
 	class TextureLibrary {
 	public:
 		TextureLibrary() = default;
-		void Load(const std::string& name, bool sRGB);
-		const Ref<Texture2D>& Get(const std::string& name, bool sRGB);
+		void Load(const std::string& name, Format format);
+		const Ref<Texture2D>& Get(const std::string& name, Format format);
 		bool IsLoaded(const std::string& name);
 		void ClearUnused();
 	private:

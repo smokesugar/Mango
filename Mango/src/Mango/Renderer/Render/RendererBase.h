@@ -5,7 +5,7 @@
 
 namespace Mango {
 
-	static constexpr float4 RENDERER_CLEAR_COLOR = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	static constexpr float4 RENDERER_CLEAR_COLOR = float4(1.0f, 0.0f, 1.0f, 1.0f);
 
 	namespace Renderer {
 
