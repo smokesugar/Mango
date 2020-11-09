@@ -26,7 +26,7 @@ namespace Mango {
 
 		virtual const std::string& GetPath() const = 0;
 
-		static Texture2D* Create(const std::string& filePath, Format format);
+		static Texture2D* Create(const std::string& filePath, Format format, bool mipMap = true);
 		static Texture2D* Create(void* data, uint32_t width, uint32_t height);
 	};
 
@@ -34,8 +34,11 @@ namespace Mango {
 	public:
 		virtual ~Cubemap() {}
 
-		virtual void BindAsRenderTarget() const = 0;
+		virtual void BindAsRenderTarget(size_t mip = 0) const = 0;
 		virtual const std::string& GetPath() const = 0;
+
+		virtual void GenerateMips() = 0;
+		virtual uint32_t GetMipLevels() const = 0;
 
 		static Cubemap* Create(const std::string& filePath, uint32_t size);
 	};

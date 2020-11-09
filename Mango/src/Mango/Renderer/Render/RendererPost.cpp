@@ -18,7 +18,7 @@ namespace Mango {
 	{
 		sData = new RenderDataPost();
 
-		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/TAA_vs.cso", "assets/shaders/TAA_ps.cso"));
+		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/Fullscreen_vs.cso", "assets/shaders/TAA_ps.cso"));
 
 		ColorBufferProperties props;
 		props.Width = 800;

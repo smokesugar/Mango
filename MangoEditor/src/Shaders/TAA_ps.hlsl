@@ -7,7 +7,6 @@ SamplerState sampler0 : register(s0);
 
 struct VSOut
 {
-    float3 pos : Position;
     float2 uv : TexCoord;
     float4 svpos : SV_Position;
 };

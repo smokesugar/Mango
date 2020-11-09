@@ -35,7 +35,7 @@ namespace Mango {
 		float CascadeEnds[NUM_SHADOW_CASCADES];
 	};
 
-	struct HDRiData {
+	struct RenderToCubemapMatrices {
 		xmmatrix MVP[6];
 	};
 
@@ -51,15 +51,21 @@ namespace Mango {
 		Ref<Shader> LightingShader;
 		Ref<Shader> DirectionalShadowmapShader;
 		Ref<Shader> SkyboxShader;
-		Ref<Shader> HDRiShader;
+		Ref<Shader> EquiToCubemapShader;
+		Ref<Shader> ConvolutionShader;
+		Ref<Shader> PrefilterShader;
 
 		Ref<Cubemap> Skybox;
+		Ref<Cubemap> IrradianceMap;
+		Ref<Cubemap> PrefilteredCubemap;
+		Ref<ColorBuffer> BRDFLUT;
 
 		Mango::LightingData LightingData;
 		Ref<UniformBuffer> LightingUniforms;
 		Scope<UniformBuffer> CascadedUniforms;
 		Scope<UniformBuffer> SkyboxUniforms;
-		Scope<UniformBuffer> HDRiUniforms;
+		Scope<UniformBuffer> RenderToCubemapUniforms;
+		Scope<UniformBuffer> PrefilterUniforms;
 
 		Ref<VertexArray> CubeVA;
 	};
@@ -70,32 +76,53 @@ namespace Mango {
 	
 	static RenderDataLighting* sData;
 
+	static void CreateBRDFLookup() {
+		auto shader = Scope<Shader>(Shader::Create("assets/shaders/Fullscreen_vs.cso", "assets/shaders/BRDF_ps.cso"));
+		
+		BindRenderTargets({ sData->BRDFLUT });
+		sData->BRDFLUT->Clear(RENDERER_CLEAR_COLOR);
+		shader->Bind();
+		Renderer::DrawScreenQuad();
+	}
+
 	void Renderer::InitLighting()
 	{
 		sData = new RenderDataLighting();
 
 		sData->ShadowSampler = Scope<SamplerState>(SamplerState::Create(SamplerState::Filter::Linear, SamplerState::Address::Border, true));
 
-		sData->LightingShader = Ref<Shader>(Shader::Create("assets/shaders/Lighting_vs.cso", "assets/shaders/Lighting_ps.cso"));
+		sData->LightingShader = Ref<Shader>(Shader::Create("assets/shaders/Fullscreen_vs.cso", "assets/shaders/Lighting_ps.cso"));
 		sData->DirectionalShadowmapShader = Ref<Shader>(Shader::Create("assets/shaders/DirectionalShadowmap_vs.cso", "assets/shaders/DirectionalShadowmap_gs.cso", "assets/shaders/DirectionalShadowmap_ps.cso"));
 		sData->SkyboxShader = Ref<Shader>(Shader::Create("assets/shaders/Skybox_vs.cso", "assets/shaders/Skybox_ps.cso"));
-		sData->HDRiShader = Ref<Shader>(Shader::Create("assets/shaders/HDRi_vs.cso", "assets/shaders/HDRi_gs.cso", "assets/shaders/HDRi_ps.cso"));
+		sData->EquiToCubemapShader = Ref<Shader>(Shader::Create("assets/shaders/RenderToCubemap_vs.cso", "assets/shaders/RenderToCubemap_gs.cso", "assets/shaders/EquiToCubemap_ps.cso"));
+		sData->ConvolutionShader = Ref<Shader>(Shader::Create("assets/shaders/RenderToCubemap_vs.cso", "assets/shaders/RenderToCubemap_gs.cso", "assets/shaders/Convolution_ps.cso"));
+		sData->PrefilterShader = Ref<Shader>(Shader::Create("assets/shaders/RenderToCubemap_vs.cso", "assets/shaders/RenderToCubemap_gs.cso", "assets/shaders/CubemapPrefilter_ps.cso"));
 
 		sData->LightingUniforms = Scope<UniformBuffer>(UniformBuffer::Create<LightingData>());
 		sData->CascadedUniforms = Scope<UniformBuffer>(UniformBuffer::Create<CSMData>());
 		sData->SkyboxUniforms = Scope<UniformBuffer>(UniformBuffer::Create<SkyboxData>());
-		sData->HDRiUniforms = Scope<UniformBuffer>(UniformBuffer::Create<HDRiData>());
+		sData->RenderToCubemapUniforms = Scope<UniformBuffer>(UniformBuffer::Create<RenderToCubemapMatrices>());
+		sData->PrefilterUniforms = Scope<UniformBuffer>(UniformBuffer::Create<float4>());
 
 		xmmatrix captureProjection = XMMatrixPerspectiveFovLH(ToRadians(90.0f), 1.0f, 10.0f, 0.1f);
-		HDRiData hdriData;
-		hdriData.MVP[0] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 1.0f,  0.0f,  0.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
-		hdriData.MVP[1] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {-1.0f,  0.0f,  0.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
-		hdriData.MVP[2] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f, -1.0f,  0.0f }, { 0.0f,  0.0f, 1.0f }) * captureProjection;
-		hdriData.MVP[3] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f,  1.0f,  0.0f }, { 0.0f,  0.0f,-1.0f }) * captureProjection;
-		hdriData.MVP[4] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f, -1.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
-		hdriData.MVP[5] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f,  1.0f }, { 0.0f, -1.0f, 0.0f }) * captureProjection;
+		RenderToCubemapMatrices hdriData;
+		hdriData.MVP[0] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {  1.0f,  0.0f,  0.0f }, { 0.0f,  1.0f, 0.0f }) * captureProjection;
+		hdriData.MVP[1] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, { -1.0f,  0.0f,  0.0f }, { 0.0f,  1.0f, 0.0f }) * captureProjection;
+		hdriData.MVP[2] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {  0.0f,  1.0f,  0.0f }, { 0.0f,  0.0f,-1.0f }) * captureProjection;
+		hdriData.MVP[3] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {  0.0f, -1.0f,  0.0f }, { 0.0f,  0.0f, 1.0f }) * captureProjection;
+		hdriData.MVP[4] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {  0.0f,  0.0f,  1.0f }, { 0.0f,  1.0f, 0.0f }) * captureProjection;
+		hdriData.MVP[5] = XMMatrixLookAtLH({ 0.0f, 0.0f, 0.0f }, {  0.0f,  0.0f, -1.0f }, { 0.0f,  1.0f, 0.0f }) * captureProjection;
 
-		sData->HDRiUniforms->SetData(hdriData);
+		sData->RenderToCubemapUniforms->SetData(hdriData);
+		sData->IrradianceMap = Ref<Cubemap>(Cubemap::Create("", 32));
+		sData->PrefilteredCubemap = Ref<Cubemap>(Cubemap::Create("", 512));
+
+		ColorBufferProperties props;
+		props.Width = 512;
+		props.Height = 512;
+		props.Format = Format::RGBA16_FLOAT;
+		sData->BRDFLUT = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		CreateBRDFLookup();
 
 		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++)
 			sData->DirectionalShadowmaps[i] = Ref<CascadedShadowmap>(CascadedShadowmap::Create(SHADOW_RESOLUTION, SHADOW_RESOLUTION, NUM_SHADOW_CASCADES));
@@ -220,10 +247,15 @@ namespace Mango {
 		}
 
 		PointSampler().Bind(0);
-		sData->ShadowSampler->Bind(1);
+		LinearSampler().Bind(1);
+		LinearSamplerClamp().Bind(2);
+		sData->ShadowSampler->Bind(3);
 		color->BindAsTexture(0);
 		normal->BindAsTexture(1);
 		depth->BindAsTexture(2);
+		sData->IrradianceMap->Bind(8);
+		sData->PrefilteredCubemap->Bind(9);
+		sData->BRDFLUT->BindAsTexture(10);
 		sData->LightingShader->Bind();
 
 		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++) {
@@ -261,6 +293,34 @@ namespace Mango {
 	void Renderer::SetSkybox(const Ref<Cubemap>& skybox)
 	{
 		sData->Skybox = skybox;
+
+		RenderCommand::DisableCulling();
+
+		// Irradiance
+		sData->IrradianceMap->BindAsRenderTarget();
+		sData->RenderToCubemapUniforms->GSBind(0);
+		sData->ConvolutionShader->Bind();
+		skybox->Bind(0);
+		LinearSampler().Bind(0);
+		sData->CubeVA->Bind();
+		RenderCommand::Draw(sData->CubeVA->GetDrawCount(), 0);
+
+		// Prefiltering
+		sData->RenderToCubemapUniforms->GSBind(0);
+		sData->PrefilterUniforms->PSBind(0);
+		sData->PrefilterShader->Bind();
+		skybox->Bind(0);
+		LinearSampler().Bind(0);
+		sData->CubeVA->Bind();
+		uint32_t mipLevels = sData->PrefilteredCubemap->GetMipLevels();
+		for (uint32_t i = 0; i < mipLevels; i++) {
+			sData->PrefilteredCubemap->BindAsRenderTarget(i);
+			float roughness = (float)i / ((float)mipLevels - 1.0f);
+			sData->PrefilterUniforms->SetData(float4(roughness, 0.0f, 0.0f, 0.0f));
+			RenderCommand::Draw(sData->CubeVA->GetDrawCount(), 0);
+		}
+
+		RenderCommand::EnableCulling();
 	}
 
 	const Ref<Cubemap>& Renderer::GetSkybox()
@@ -273,13 +333,17 @@ namespace Mango {
 		Scope<Texture2D> hdri = Scope<Texture2D>(Texture2D::Create(cubemap->GetPath(), Format::RGBA32_FLOAT));
 
 		RenderCommand::DisableCulling();
+
 		cubemap->BindAsRenderTarget();
-		sData->HDRiUniforms->GSBind(0);
-		sData->HDRiShader->Bind();
+		sData->RenderToCubemapUniforms->GSBind(0);
+		sData->EquiToCubemapShader->Bind();
 		hdri->Bind(0);
 		LinearSampler().Bind(0);
 		sData->CubeVA->Bind();
 		RenderCommand::Draw(sData->CubeVA->GetDrawCount(), 0);
+
+		cubemap->GenerateMips();
+
 		RenderCommand::EnableCulling();
 	}
 

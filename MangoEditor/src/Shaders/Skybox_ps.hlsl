@@ -1,18 +1,11 @@
 #include "ACES.hlsl"
 
-struct VSOut
-{
-    float3 pos : Position;
-    float2 uv : TexCoord;
-    float4 svpos : SV_Position;
-};
-
 TextureCube skybox : register(t0);
 SamplerState sampler0 : register(s0);
 
-float4 main(VSOut vso) : SV_Target
+float4 main(float3 pos : Position) : SV_Target
 {
-    float3 fragColor = skybox.Sample(sampler0, normalize(vso.pos)).rgb;
+    float3 fragColor = skybox.SampleLevel(sampler0, normalize(pos), 0).rgb;
     fragColor = ACESFitted(fragColor);
     
     float gamma = 2.2f;

@@ -74,6 +74,7 @@ namespace Mango {
 			DrawQuad(prevTransform, transform, texture, color);
 			queue.pop();
 		}
+		RenderCommand::DisableBlending();
 	}
 
 }

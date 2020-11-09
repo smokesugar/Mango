@@ -5,9 +5,10 @@ SamplerState sampler0 : register(s0);
 const static float2 invAtan = float2(0.1591, 0.3183);
 float2 SampleSphericalMap(float3 v)
 {
-    float2 uv = float2(atan2(v.z, v.x), asin(v.y));
+    float2 uv = float2(atan2(-v.z, v.x), asin(v.y));
     uv *= invAtan;
     uv += 0.5;
+    uv.y = 1.0f - uv.y;
     return uv;
 }
 

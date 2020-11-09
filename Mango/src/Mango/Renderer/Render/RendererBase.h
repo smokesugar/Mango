@@ -14,6 +14,7 @@ namespace Mango {
 		void DrawScreenQuad();
 
 		SamplerState& LinearSampler();
+		SamplerState& LinearSamplerClamp();
 		SamplerState& PointSampler();
 
 		void StoreViewMatrix(const xmmatrix& view);

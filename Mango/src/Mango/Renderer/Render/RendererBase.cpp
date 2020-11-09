@@ -15,6 +15,7 @@ namespace Mango {
 
 		Ref<VertexArray> Quad;
 		Scope<SamplerState> LinearSampler;
+		Scope<SamplerState> LinearSamplerClamp;
 		Scope<SamplerState> PointSampler;
 	};
 
@@ -24,6 +25,7 @@ namespace Mango {
 		sData = new RenderDataBase();
 
 		sData->LinearSampler = Scope<SamplerState>(SamplerState::Create(SamplerState::Filter::Linear));
+		sData->LinearSamplerClamp = Scope<SamplerState>(SamplerState::Create(SamplerState::Filter::Linear, SamplerState::Address::Clamp));
 		sData->PointSampler =  Scope<SamplerState>(SamplerState::Create(SamplerState::Filter::Point));
 
 		float vertices[] = {
@@ -56,6 +58,11 @@ namespace Mango {
 	SamplerState& Renderer::LinearSampler()
 	{
 		return *sData->LinearSampler;
+	}
+
+	SamplerState& Renderer::LinearSamplerClamp()
+	{
+		return *sData->LinearSamplerClamp;
 	}
 
 	SamplerState& Renderer::PointSampler()

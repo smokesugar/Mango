@@ -1,4 +1,5 @@
 #include "ACES.hlsl"
+#include "PBRFunctions.hlsl"
 
 Texture2D color : register(t0);
 Texture2D normal : register(t1);
@@ -10,10 +11,14 @@ Texture2DArray<float> directionalShadowmap2 : register(t5);
 Texture2DArray<float> directionalShadowmap3 : register(t6);
 Texture2DArray<float> directionalShadowmap4 : register(t7);
 
-SamplerState sampler0 : register(s0);
-SamplerComparisonState shadowSampler : register(s1);
+TextureCube irradianceMap : register(t8);
+TextureCube prefilteredMap : register(t9);
+Texture2D brdfLUT : register(t10);
 
-#define PI 3.14159265359
+SamplerState sampler0 : register(s0);
+SamplerState sampler1 : register(s1);
+SamplerState linearSampleClamp : register(s2);
+SamplerComparisonState shadowSampler : register(s3);
 
 struct VSOut
 {
@@ -118,46 +123,6 @@ float3 GetPosition(float2 uv, float linearDepth)
 
 // ---------------------------------------------
 
-float3 fresnelSchlick(float cosTheta, float3 F0)
-{
-    return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
-}
-
-float DistributionGGX(float3 N, float3 H, float roughness)
-{
-    float a = roughness * roughness;
-    float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
-	
-    float num = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-	
-    return num / denom;
-}
-
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
-
-    float num = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-	
-    return num / denom;
-}
-
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-	
-    return ggx1 * ggx2;
-}
-
 float3 CalculateLighting(float3 N, float3 V, float3 L, float3 H, float attenuation, float3 lightColor, float3 albedo, float roughness, float metallic)
 {
     float3 radiance = lightColor * attenuation;
@@ -243,11 +208,33 @@ float4 main (VSOut vso): SV_Target
     float z = LinearizeDepth(nonLinearDepth);
     float3 worldPos = GetPosition(vso.uv, z);
     float3 eye = mul(invView, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
-    
-    // Lighting -------------------------------------------------------
-    
+
     float3 N = normalize(norm);
     float3 V = normalize(eye - worldPos);
+    float3 R = reflect(-V, N);
+    
+    // IBL --------------------------------------------------------
+    
+    float3 F0 = 0.04.xxx;
+    F0 = lerp(F0, albedo, metallic);
+    float NdotV = max(dot(N, V), 0.0f);
+    float3 F = fresnelSchlickRoughness(NdotV, F0, roughness);
+    float3 kS = F;
+    float3 kD = 1.0f - kS;
+    kD *= 1.0f - metallic;
+    
+    float3 irradiance = irradianceMap.SampleLevel(sampler1, N, 0).rgb;
+    float3 diffuse = irradiance * albedo;
+    
+    float w, h, mips;
+    prefilteredMap.GetDimensions(0, w, h, mips);
+    float3 prefilteredColor = prefilteredMap.SampleLevel(sampler1, R, roughness * mips).rgb;
+    float2 envBRDF = brdfLUT.Sample(linearSampleClamp, float2(NdotV, roughness)).rg;
+    float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+    
+    float3 ambient = kD * diffuse + specular;
+    
+    // Lighting -------------------------------------------------------
     
     float3 Lo = 0.0f.xxx;
     
@@ -281,7 +268,7 @@ float4 main (VSOut vso): SV_Target
     
     // ----------------------------------------------------------------
     
-    float3 fragColor = Lo;
+    float3 fragColor = Lo + ambient;
    
     fragColor = ACESFitted(fragColor);
     
