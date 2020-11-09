@@ -11,44 +11,86 @@
                                 1.0,
                                 1.0
                             ],
-                            "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\MetalPanelRectangular001_COL_3K_SPECULAR.jpg",
-                            "metalness": 0.10000000149011612,
-                            "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\MetalPanelRectangular001_NRM_3K_SPECULAR.jpg",
-                            "roughnessTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\testGround\\textures\\MetalPanelRectangular001_GLOSS_3K_SPECULAR.jpg",
-                            "roughnessValue": 0.46000000834465027
-                        },
-                        {
-                            "albedoColor": [
-                                0.800000011920929,
-                                0.3069469928741455,
-                                0.15806299448013306
-                            ],
+                            "albedoTexture": "assets\\models\\as-val\\textures/M_bullet_baseColor.png",
                             "metalness": 1.0,
-                            "roughnessValue": 0.4300000071525574
+                            "normalTexture": "assets\\models\\as-val\\textures/M_bullet_normal.png",
+                            "roughnessTexture": "assets\\models\\as-val\\textures/M_bullet_metallicRoughness.png",
+                            "roughnessValue": 0.12999999523162842
                         },
                         {
                             "albedoColor": [
-                                0.800000011920929,
-                                0.5730940103530884,
-                                0.21723000705242157
-                            ],
-                            "metalness": 0.10000000149011612,
-                            "roughnessValue": 0.15000000596046448
-                        },
-                        {
-                            "albedoColor": [
-                                0.33185839653015137,
-                                0.590410590171814,
+                                1.0,
+                                1.0,
                                 1.0
                             ],
-                            "metalness": 0.10000000149011612,
-                            "roughnessValue": 0.5
+                            "albedoTexture": "assets\\models\\as-val\\textures/M_externals_baseColor.png",
+                            "metalness": 0.9599999785423279,
+                            "normalTexture": "assets\\models\\as-val\\textures/M_externals_normal.png",
+                            "roughnessTexture": "assets\\models\\as-val\\textures/M_externals_metallicRoughness.png",
+                            "roughnessValue": 0.3499999940395355
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "albedoTexture": "assets\\models\\as-val\\textures/M_internals_baseColor.png",
+                            "metalness": 1.0,
+                            "normalTexture": "assets\\models\\as-val\\textures/M_internals_normal.png",
+                            "roughnessTexture": "assets\\models\\as-val\\textures/M_internals_metallicRoughness.png",
+                            "roughnessValue": 1.0
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "albedoTexture": "assets\\models\\as-val\\textures/M_stock_baseColor.png",
+                            "metalness": 1.0,
+                            "normalTexture": "assets\\models\\as-val\\textures/M_stock_normal.png",
+                            "roughnessTexture": "assets\\models\\as-val\\textures/M_stock_metallicRoughness.png",
+                            "roughnessValue": 0.27000001072883606
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "albedoTexture": "assets\\models\\as-val\\textures/M_springs_baseColor.png",
+                            "metalness": 1.0,
+                            "normalTexture": "assets\\models\\as-val\\textures/M_springs_normal.png",
+                            "roughnessTexture": "assets\\models\\as-val\\textures/M_springs_metallicRoughness.png",
+                            "roughnessValue": 0.30000001192092896
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "albedoTexture": "assets\\models\\as-val\\textures/M_magazine_baseColor.png",
+                            "metalness": 1.0,
+                            "normalTexture": "assets\\models\\as-val\\textures/M_magazine_normal.png",
+                            "roughnessTexture": "assets\\models\\as-val\\textures/M_magazine_metallicRoughness.png",
+                            "roughnessValue": 0.44999998807907104
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "metalness": 1.0,
+                            "roughnessValue": 0.0
                         }
                     ],
-                    "path": "assets\\models\\testScene.fbx",
+                    "path": "assets\\models\\as-val\\scene.gltf",
                     "type": "model"
                 },
-                "tag": "Test Scene",
+                "tag": "AS-VAL",
                 "transform": {
                     "rotation": [
                         0.0,
@@ -56,9 +98,9 @@
                         0.0
                     ],
                     "scale": [
-                        0.019999999552965164,
-                        0.019999999552965164,
-                        0.019999999552965164
+                        1.0,
+                        1.0,
+                        1.0
                     ],
                     "translation": [
                         0.0,
@@ -82,148 +124,42 @@
                     },
                     "type": "cube"
                 },
-                "tag": "Cube",
+                "tag": "Ground",
                 "transform": {
                     "rotation": [
-                        -35.70000076293945,
-                        10.800000190734863,
+                        0.0,
+                        0.0,
                         0.0
                     ],
                     "scale": [
-                        1.0,
-                        1.0,
-                        1.0
+                        10.0,
+                        0.04100000113248825,
+                        10.0
                     ],
                     "translation": [
-                        2.690000057220459,
-                        1.7699999809265137,
-                        2.2899999618530273
+                        0.0,
+                        -1.6399999856948853,
+                        0.0
                     ]
                 }
             }
         },
         "2": {
             "components": {
-                "spriteRenderer": {
-                    "texturePath": "assets\\textures\\Chicken.jpg",
-                    "usesTexture": true
-                },
-                "tag": "Sprite",
-                "transform": {
-                    "rotation": [
-                        26.200000762939453,
-                        0.0,
-                        -28.100000381469727
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "translation": [
-                        0.0,
-                        0.5199999809265137,
-                        1.7999999523162842
-                    ]
-                }
-            }
-        },
-        "3": {
-            "components": {
-                "mesh": {
-                    "materials": [
-                        {
-                            "albedoColor": [
-                                0.6000000238418579,
-                                0.6000000238418579,
-                                0.6000000238418579
-                            ],
-                            "metalness": 0.10000000149011612,
-                            "roughnessValue": 0.5
-                        },
-                        {
-                            "albedoColor": [
-                                1.0,
-                                1.0,
-                                1.0
-                            ],
-                            "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
-                            "metalness": 0.10000000149011612,
-                            "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
-                            "roughnessTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Glossiness.png",
-                            "roughnessValue": 0.550000011920929
-                        }
-                    ],
-                    "path": "assets\\models\\regency\\regency.obj",
-                    "type": "model"
-                },
-                "tag": "Couch",
-                "transform": {
-                    "rotation": [
-                        0.0,
-                        68.5999984741211,
-                        0.0
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "translation": [
-                        1.2699999809265137,
-                        -0.28999999165534973,
-                        -1.090000033378601
-                    ]
-                }
-            }
-        },
-        "4": {
-            "components": {
                 "light": {
                     "color": [
-                        0.4203540086746216,
-                        0.5376787185668945,
-                        1.0
-                    ],
-                    "intensity": 1.0,
-                    "type": "point"
-                },
-                "tag": "Point Light",
-                "transform": {
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
                         1.0,
-                        1.0,
-                        1.0
+                        0.9999899864196777,
+                        0.9999899864196777
                     ],
-                    "translation": [
-                        -1.7699999809265137,
-                        1.059999942779541,
-                        -1.1100000143051147
-                    ]
-                }
-            }
-        },
-        "5": {
-            "components": {
-                "light": {
-                    "color": [
-                        0.6460176706314087,
-                        0.8121049404144287,
-                        1.0
-                    ],
-                    "intensity": 2.0,
+                    "intensity": 18.0,
                     "type": "directional"
                 },
-                "tag": "Directional Light",
+                "tag": "Sun",
                 "transform": {
                     "rotation": [
-                        43.900001525878906,
-                        29.799999237060547,
+                        58.400001525878906,
+                        27.399999618530273,
                         0.0
                     ],
                     "scale": [
@@ -232,7 +168,7 @@
                         1.0
                     ],
                     "translation": [
-                        0.5,
+                        0.0,
                         0.0,
                         0.0
                     ]

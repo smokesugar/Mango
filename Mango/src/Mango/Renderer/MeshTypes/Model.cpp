@@ -109,7 +109,7 @@ namespace Mango {
 					roughness = 1.0f;
 				
 				float metalness;
-				if (!material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metalness) == aiReturn_FAILURE)
+				if (material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metalness) == aiReturn_FAILURE)
 					metalness = 0.1f;
 
 				sMaterials.push_back(CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughness, metalness));
