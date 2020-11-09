@@ -25,7 +25,7 @@ void main(triangle VSOut input[3], inout TriangleStream<GSOut> outputStream)
         {
             GSOut gso;
             gso.svpos = mul(mvp[j], input[i].svpos);
-            gso.pos = input[i].svpos;
+            gso.pos = input[i].svpos.xyz;
             gso.arrayIndex = j;
             outputStream.Append(gso);
         }

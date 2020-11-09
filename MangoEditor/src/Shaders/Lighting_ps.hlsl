@@ -202,7 +202,7 @@ float4 main (VSOut vso): SV_Target
     float metallic = normalSample.w;
     float4 colorSample = color.Sample(sampler0, vso.uv);
     float3 albedo = colorSample.rgb;
-    float roughness = colorSample.a;
+    float roughness = clamp(colorSample.a, 0.01f, 1.0f);
   
     float nonLinearDepth = depthBuffer.Sample(sampler0, vso.uv).r;
     float z = LinearizeDepth(nonLinearDepth);
@@ -228,6 +228,7 @@ float4 main (VSOut vso): SV_Target
     
     float w, h, mips;
     prefilteredMap.GetDimensions(0, w, h, mips);
+    mips -= 1.0f;
     float3 prefilteredColor = prefilteredMap.SampleLevel(sampler1, R, roughness * mips).rgb;
     float2 envBRDF = brdfLUT.Sample(linearSampleClamp, float2(NdotV, roughness)).rg;
     float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);

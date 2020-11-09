@@ -16,7 +16,7 @@ namespace Mango {
 		props.Format = Format::RGBA16_FLOAT;
 		mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
-		auto skybox = Ref<Cubemap>(Cubemap::Create("assets/textures/env/Newport_Loft_Ref.hdr", 2048));
+		auto skybox = Ref<Cubemap>(Cubemap::Create("assets/textures/env/urban_street_01_8k.hdr", 2048));
 		Renderer::InitializeCubemap(skybox);
 		Renderer::SetSkybox(skybox);
 	}

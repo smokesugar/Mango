@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/pbrmaterial.h>
 
 namespace Mango {
 
@@ -48,7 +49,7 @@ namespace Mango {
 	static Node ProcessNode(aiNode* ainode, const aiScene* scene)
 	{
 		float4x4 transform = *(float4x4*)&ainode->mTransformation;
-		Node node(XMLoadFloat4x4(&transform));
+		Node node(XMMatrixTranspose(XMLoadFloat4x4(&transform)));
 
 		for (size_t i = 0; i < ainode->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[ainode->mMeshes[i]];
@@ -76,7 +77,7 @@ namespace Mango {
 	Mesh Mesh::CreateModel(const std::vector<Ref<Material>>& materials, TextureLibrary& textureLibrary, const std::string& file)
 	{
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder | aiProcess_FlipUVs);
+		const aiScene* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder | aiProcess_FlipUVs | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_ValidateDataStructure);
 		MG_CORE_ASSERT(scene && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && scene->mRootNode, "Failed to load 3D model '{0}'.", file);
 
 		std::string directory = file.substr(0, file.find_last_of('\\'));
@@ -91,16 +92,25 @@ namespace Mango {
 
 				Ref<Texture2D> albedoTexture = GetTexturePath(path, aiTextureType_DIFFUSE, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM_SRGB) : Renderer::GetWhiteTexture();
 				Ref<Texture2D> normalTexture = GetTexturePath(path, aiTextureType_NORMALS, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM) : nullptr;
-				Ref<Texture2D> roughnessTexture = GetTexturePath(path, aiTextureType_SPECULAR, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM) : Renderer::GetWhiteTexture();
+				Ref<Texture2D> roughnessTexture = GetTexturePath(path, aiTextureType_UNKNOWN, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM) : Renderer::GetWhiteTexture();
 
 				float3 albedoColor;
 				if (albedoTexture == Renderer::GetWhiteTexture())
 					material->Get(AI_MATKEY_COLOR_DIFFUSE, *(aiColor3D*)&albedoColor);
 				else
 					albedoColor = float3(1.0f, 1.0f, 1.0f);
+
+				float roughness;
+				if (roughnessTexture == Renderer::GetWhiteTexture()) {
+					if (material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, roughness) == aiReturn_FAILURE)
+						roughness = 0.5f;
+				}
+				else
+					roughness = 1.0f;
 				
-				float roughness = roughnessTexture == Renderer::GetWhiteTexture() ? 0.5f : 1.0f;
-				float metalness = 0.1f;
+				float metalness;
+				if (!material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metalness) == aiReturn_FAILURE)
+					metalness = 0.1f;
 
 				sMaterials.push_back(CreateRef<Material>(albedoTexture, normalTexture, roughnessTexture, albedoColor, roughness, metalness));
 			}
