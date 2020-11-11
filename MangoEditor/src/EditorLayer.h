@@ -17,6 +17,8 @@ namespace Mango {
 		void OnEvent(Event& e);
 		void OnImGuiRender();
 	private:
+		bool OnKeyDown(KeyDownEvent& e);
+	private:
 		bool mScenePlaying = false;
 		Ref<Scene> mScene;
 
@@ -29,6 +31,8 @@ namespace Mango {
 		float2 mViewportSize = { 800.0f, 600.0f };
 		bool mViewportFocused = false;
 		EditorCamera mEditorCamera;
+
+		ImGuizmo::OPERATION mGizmoOperation = ImGuizmo::TRANSLATE;
 	};
 
 }

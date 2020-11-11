@@ -53,6 +53,7 @@ namespace Mango {
 
 	void DirectXSwapChain::Resize(uint32_t width, uint32_t height)
 	{
+		mRTV.Reset();
 		HR_CALL(mInternal->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0));
 		CreateRenderTargetView(width, height);
 	}

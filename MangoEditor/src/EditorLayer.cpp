@@ -25,6 +25,8 @@ namespace Mango {
 
 	void EditorLayer::OnEvent(Event& e)
 	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<KeyDownEvent>(MG_BIND_FN(EditorLayer::OnKeyDown));
 		mEditorCamera.OnEvent(e);
 	}
 
@@ -84,12 +86,42 @@ namespace Mango {
 		mViewportSize = *(float2*)&size;
 		ImGui::Image(mFramebuffer->GetNativeTexture(), size);
 		mEditorCamera.SetAcceptingInput(ImGui::IsWindowHovered());
+
+		if (mScene->GetRegistry().Valid(mSceneHierarchyPanel.GetSelectedEntity()) && !mScenePlaying) {
+			ImGuizmo::BeginFrame();
+			ImVec2 pos = ImGui::GetWindowPos();
+			ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
+			ImGuizmo::SetDrawlist();
+
+			auto& transformComp = mScene->GetRegistry().Get<TransformComponent>(mSceneHierarchyPanel.GetSelectedEntity());
+
+			float4x4 view; XMStoreFloat4x4(&view, XMMatrixInverse(nullptr, mEditorCamera.GetTransform()));
+			float4x4 proj; XMStoreFloat4x4(&proj, mEditorCamera.GetProjectionMatrixNotInverted(size.x/size.y));
+			float4x4 transform; XMStoreFloat4x4(&transform, transformComp.GetMatrix());
+
+			if (ImGuizmo::Manipulate(ValuePtr(view), ValuePtr(proj), mGizmoOperation, ImGuizmo::LOCAL, ValuePtr(transform))) {
+				DecomposeMatrix(&transformComp.Translation, &transformComp.Rotation, &transformComp.Scale, XMLoadFloat4x4(&transform));
+			}
+		}
+
 		ImGui::End();
 		ImGui::PopStyleVar();
 
 		mSceneHierarchyPanel.OnImGuiRender();
 
 		Dockspace::End();
+	}
+
+	bool EditorLayer::OnKeyDown(KeyDownEvent& e)
+	{
+		if (e.GetKeycode() == KeyCode::E)
+			mGizmoOperation = ImGuizmo::TRANSLATE;
+		if (e.GetKeycode() == KeyCode::R)
+			mGizmoOperation = ImGuizmo::ROTATE;
+		if (e.GetKeycode() == KeyCode::T)
+			mGizmoOperation = ImGuizmo::SCALE;
+
+		return false;
 	}
 
 }
