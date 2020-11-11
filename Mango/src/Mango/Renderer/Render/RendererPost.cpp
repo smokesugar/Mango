@@ -9,7 +9,7 @@ namespace Mango {
 
 	struct RenderDataPost {
 		Ref<Shader> TAAShader;
-		Ref<ColorBuffer> PreviousFrame;
+		Ref<Texture> PreviousFrame;
 	};
 
 	static RenderDataPost* sData;
@@ -20,11 +20,7 @@ namespace Mango {
 
 		sData->TAAShader = Ref<Shader>(Shader::Create("assets/shaders/Fullscreen_vs.cso", "assets/shaders/TAA_ps.cso"));
 
-		ColorBufferProperties props;
-		props.Width = 800;
-		props.Height = 600;
-		props.Format = Format::RGBA16_FLOAT;
-		sData->PreviousFrame = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->PreviousFrame = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 	}
 
 	void Renderer::ShutdownPost()
@@ -32,19 +28,19 @@ namespace Mango {
 		delete sData;
 	}
 
-	void Renderer::TAAPass(const Ref<ColorBuffer>& aliasedFrame, const Ref<ColorBuffer>& velocityBuffer, const Ref<ColorBuffer>& rendertarget)
+	void Renderer::TAAPass(const Ref<Texture>& aliasedFrame, const Ref<Texture>& velocityBuffer, const Ref<Texture>& rendertarget)
 	{
 		sData->PreviousFrame->EnsureSize(aliasedFrame->GetWidth(), aliasedFrame->GetHeight());
 		BindRenderTargets({ rendertarget });
 
 		PointSampler().Bind(0);
 		sData->TAAShader->Bind();
-		aliasedFrame->BindAsTexture(0);
-		sData->PreviousFrame->BindAsTexture(1);
-		velocityBuffer->BindAsTexture(2);
+		aliasedFrame->Bind(0);
+		sData->PreviousFrame->Bind(1);
+		velocityBuffer->Bind(2);
 		DrawScreenQuad();
 
-		ColorBuffer::Blit(sData->PreviousFrame, rendertarget);
+		BlitTexture(sData->PreviousFrame, rendertarget);
 	}
 
 }

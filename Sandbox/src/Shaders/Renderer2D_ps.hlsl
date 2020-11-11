@@ -6,7 +6,7 @@ struct VSOut {
 	float4 svpos : SV_Position;
 };
 
-Texture2D tex0 : register(t0);
+Texture tex0 : register(t0);
 SamplerState sampler0 : register(s0);
 
 float4 main(VSOut vso) : SV_Target{

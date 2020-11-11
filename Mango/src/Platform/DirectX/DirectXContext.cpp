@@ -5,7 +5,7 @@
 
 #include "Mango/Core/Application.h"
 #include "Mango/ImGui/ImGuiContext.h"
-#include "DirectXFramebuffer.h"
+#include "DirectXRenderTarget.h"
 #include "DXDebug.h"
 
 namespace Mango {
@@ -26,8 +26,7 @@ namespace Mango {
 	void ImGuiContext::RendererAPI_End() {
 		auto& context = RetrieveContext();
 
-		auto rtv = std::static_pointer_cast<DirectXColorBuffer>(Application::Get().GetWindow().GetSwapChain().GetFramebuffer())->GetRenderTargetView();
-		context.GetDeviceContext()->OMSetRenderTargets(1, &rtv, nullptr);
+		Application::Get().GetWindow().GetSwapChain().BindAsRenderTarget();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		// Update and Render additional Platform Windows

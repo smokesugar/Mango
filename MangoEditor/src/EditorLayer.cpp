@@ -10,11 +10,7 @@ namespace Mango {
 
 		mSceneHierarchyPanel.SetScene(mScene.get());
 
-		ColorBufferProperties props;
-		props.Width = 800;
-		props.Height = 600;
-		props.Format = Format::RGBA16_FLOAT;
-		mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		mFramebuffer = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
@@ -86,7 +82,7 @@ namespace Mango {
 		mViewportFocused = ImGui::IsWindowFocused();
 		ImVec2 size = ImGui::GetContentRegionAvail();
 		mViewportSize = *(float2*)&size;
-		ImGui::Image(mFramebuffer->GetTextureAttachment(), size);
+		ImGui::Image(mFramebuffer->GetNativeTexture(), size);
 		mEditorCamera.SetAcceptingInput(ImGui::IsWindowHovered());
 		ImGui::End();
 		ImGui::PopStyleVar();

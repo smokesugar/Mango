@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Mango/Renderer/Framebuffer.h"
+#include "Mango/Renderer/RenderTarget.h"
 
 namespace Mango {
 	namespace Renderer {
@@ -8,7 +8,7 @@ namespace Mango {
 		void InitPost();
 		void ShutdownPost();
 
-		void TAAPass(const Ref<ColorBuffer>& aliasedFrame, const Ref<ColorBuffer>& velocityBuffer, const Ref<ColorBuffer>& rendertarget);
+		void TAAPass(const Ref<Texture>& aliasedFrame, const Ref<Texture>& velocityBuffer, const Ref<Texture>& rendertarget);
 
 	}
 }

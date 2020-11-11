@@ -60,7 +60,7 @@ namespace Mango {
 		Ref<Cubemap> Skybox;
 		Ref<Cubemap> IrradianceMap;
 		Ref<Cubemap> PrefilteredCubemap;
-		Ref<ColorBuffer> BRDFLUT;
+		Ref<Texture> BRDFLUT;
 
 		Mango::LightingData LightingData;
 		Ref<UniformBuffer> LightingUniforms;
@@ -119,11 +119,7 @@ namespace Mango {
 		sData->IrradianceMap = Ref<Cubemap>(Cubemap::Create("", 32));
 		sData->PrefilteredCubemap = Ref<Cubemap>(Cubemap::Create("", 512));
 
-		ColorBufferProperties props;
-		props.Width = 512;
-		props.Height = 512;
-		props.Format = Format::RGBA16_FLOAT;
-		sData->BRDFLUT = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->BRDFLUT = Ref<Texture>(Texture::Create(nullptr, 512, 512, Format::RGBA16_FLOAT, Texture_RenderTarget));
 		CreateBRDFLookup();
 
 		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++)
@@ -229,7 +225,7 @@ namespace Mango {
 		RenderCommand::EnableCulling();
 	}
 
-	void Renderer::LightingPass(const Ref<ColorBuffer>& color, const Ref<ColorBuffer>& normal, const Ref<DepthBuffer>& depth, const Ref<ColorBuffer>& rendertarget)
+	void Renderer::LightingPass(const Ref<Texture>& color, const Ref<Texture>& normal, const Ref<DepthBuffer>& depth, const Ref<Texture>& rendertarget)
 	{
 		BindRenderTargets({ rendertarget });
 		rendertarget->Clear(RENDERER_CLEAR_COLOR);
@@ -237,7 +233,7 @@ namespace Mango {
 		if (sData->Skybox)
 		{
 			LinearSampler().Bind(0);
-			sData->Skybox->Bind(0);
+			sData->Skybox->BindAsShaderResource(0);
 			sData->SkyboxUniforms->SetData<SkyboxData>({ GetViewMatrix(), GetProjectionMatrix(), sData->LightingData.EnvironmentStrength });
 			sData->SkyboxUniforms->VSBind(0);
 			sData->SkyboxShader->Bind();
@@ -252,12 +248,12 @@ namespace Mango {
 		LinearSampler().Bind(1);
 		LinearSamplerClamp().Bind(2);
 		sData->ShadowSampler->Bind(3);
-		color->BindAsTexture(0);
-		normal->BindAsTexture(1);
+		color->Bind(0);
+		normal->Bind(1);
 		depth->BindAsTexture(2);
-		sData->IrradianceMap->Bind(8);
-		sData->PrefilteredCubemap->Bind(9);
-		sData->BRDFLUT->BindAsTexture(10);
+		sData->IrradianceMap->BindAsShaderResource(8);
+		sData->PrefilteredCubemap->BindAsShaderResource(9);
+		sData->BRDFLUT->Bind(10);
 		sData->LightingShader->Bind();
 
 		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++) {
@@ -305,7 +301,7 @@ namespace Mango {
 		sData->IrradianceMap->BindAsRenderTarget();
 		sData->RenderToCubemapUniforms->GSBind(0);
 		sData->ConvolutionShader->Bind();
-		skybox->Bind(0);
+		skybox->BindAsShaderResource(0);
 		LinearSampler().Bind(0);
 		sData->CubeVA->Bind();
 		RenderCommand::Draw(sData->CubeVA->GetDrawCount(), 0);
@@ -314,7 +310,7 @@ namespace Mango {
 		sData->RenderToCubemapUniforms->GSBind(0);
 		sData->PrefilterUniforms->PSBind(0);
 		sData->PrefilterShader->Bind();
-		skybox->Bind(0);
+		skybox->BindAsShaderResource(0);
 		LinearSampler().Bind(0);
 		sData->CubeVA->Bind();
 		uint32_t mipLevels = sData->PrefilteredCubemap->GetMipLevels();
@@ -340,7 +336,7 @@ namespace Mango {
 
 	void Renderer::InitializeCubemap(const Ref<Cubemap>& cubemap)
 	{
-		Scope<Texture2D> hdri = Scope<Texture2D>(Texture2D::Create(cubemap->GetPath(), Format::RGBA32_FLOAT));
+		Scope<Texture> hdri = Scope<Texture>(Texture::Create(cubemap->GetPath(), Format::RGBA32_FLOAT, 0));
 
 		RenderCommand::DisableCulling();
 

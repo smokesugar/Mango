@@ -36,7 +36,7 @@ namespace Mango {
 
 		HR_CALL(factory->CreateSwapChain(context.GetDevice(), &desc, &mInternal));
 
-		CreateInternalFramebuffer(width, height);
+		CreateRenderTargetView(width, height);
 	}
 
 
@@ -45,23 +45,25 @@ namespace Mango {
 		HR_CALL(mInternal->Present(0, 0));
 	}
 
-	Ref<ColorBuffer> DirectXSwapChain::GetFramebuffer()
+	void DirectXSwapChain::BindAsRenderTarget()
 	{
-		return std::static_pointer_cast<ColorBuffer>(mFramebuffer);
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr));
 	}
 
 	void DirectXSwapChain::Resize(uint32_t width, uint32_t height)
 	{
-		mFramebuffer.reset();
 		HR_CALL(mInternal->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0));
-		CreateInternalFramebuffer(width, height);
+		CreateRenderTargetView(width, height);
 	}
 
-	void DirectXSwapChain::CreateInternalFramebuffer(uint32_t width, uint32_t height)
+	void DirectXSwapChain::CreateRenderTargetView(uint32_t width, uint32_t height)
 	{
+		auto& context = RetrieveContext();
+
 		Microsoft::WRL::ComPtr<ID3D11Resource> backbuffer;
 		HR_CALL(mInternal->GetBuffer(0, __uuidof(ID3D11Resource), &backbuffer));
-		mFramebuffer = CreateRef<DirectXColorBuffer>(backbuffer.Get(), width, height);
+		HR_CALL(context.GetDevice()->CreateRenderTargetView(backbuffer.Get(), nullptr, &mRTV));
 	}
 
 }

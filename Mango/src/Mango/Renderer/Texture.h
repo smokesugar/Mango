@@ -4,38 +4,51 @@
 #include <string>
 
 #include "Mango/Core/Base.h"
+#include "Mango/Core/Math.h"
 #include "Formats.h"
 
 namespace Mango {
+
+	using TextureFlags = int;
+	enum _TextureFlags {
+		Texture_Trilinear = BIT(0),
+		Texture_RenderTarget = BIT(1)
+	};
 
 	class Texture {
 	public:
 		virtual ~Texture() {}
 
-		virtual uint32_t GetWidth() const = 0;
-		virtual uint32_t GetHeight() const = 0;
-
 		virtual void Bind(size_t slot) const = 0;
-		static void Unbind(size_t slot);
-
-	};
-
-	class Texture2D : public Texture {
-	public:
-		virtual ~Texture2D() {}
 
 		virtual const std::string& GetPath() const = 0;
+		virtual uint32_t GetWidth() const = 0;
+		virtual uint32_t GetHeight() const = 0;
+		virtual void* GetNativeTexture() const = 0;
 
-		static Texture2D* Create(const std::string& filePath, Format format, bool mipMap = true);
-		static Texture2D* Create(void* data, uint32_t width, uint32_t height);
+		virtual void EnsureSize(uint32_t width, uint32_t height) = 0;
+		virtual void Resize(uint32_t width, uint32_t height) = 0;
+
+		virtual void Clear(float4 color) = 0;
+
+		static Texture* Create(const std::string& filePath, Format format, TextureFlags flags);
+		static Texture* Create(void* data, uint32_t width, uint32_t height, Format format, TextureFlags flags);
+
+		static void Unbind(size_t slot);
 	};
 
-	class Cubemap : public Texture {
+	void BlitTexture(const Ref<Texture>& dest, const Ref<Texture>& src);
+
+	class Cubemap {
 	public:
 		virtual ~Cubemap() {}
 
+		virtual void BindAsShaderResource(size_t slot) const = 0;
 		virtual void BindAsRenderTarget(size_t mip = 0) const = 0;
+
 		virtual const std::string& GetPath() const = 0;
+		virtual uint32_t GetWidth() const = 0;
+		virtual uint32_t GetHeight() const = 0;
 
 		virtual void GenerateMips() = 0;
 		virtual uint32_t GetMipLevels() const = 0;
@@ -65,12 +78,12 @@ namespace Mango {
 	class TextureLibrary {
 	public:
 		TextureLibrary() = default;
-		void Load(const std::string& name, Format format);
-		const Ref<Texture2D>& Get(const std::string& name, Format format);
+		void Load(const std::string& name, Format format, TextureFlags flags);
+		const Ref<Texture>& Get(const std::string& name, Format format, TextureFlags flags);
 		bool IsLoaded(const std::string& name);
 		void ClearUnused();
 	private:
-		std::unordered_map<std::string, Ref<Texture2D>> mTextures;
+		std::unordered_map<std::string, Ref<Texture>> mTextures;
 	};
 
 }

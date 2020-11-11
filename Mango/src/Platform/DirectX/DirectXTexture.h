@@ -7,23 +7,35 @@
 
 namespace Mango {
 	
-	class DirectXTexture2D : public Texture2D {
+	class DirectXTexture : public Texture {
 	public:
-		DirectXTexture2D(void* data, uint32_t width, uint32_t height);
-		DirectXTexture2D(const std::string& filePath, Format format, bool mipMap);
+		DirectXTexture(void* data, uint32_t width, uint32_t height, Format format, TextureFlags flags);
+		DirectXTexture(const std::string& filePath, Format format, TextureFlags flags);
 
 		inline virtual const std::string& GetPath() const override { return mPath; }
-
 		inline virtual uint32_t GetWidth() const override { return mWidth; }
 		inline virtual uint32_t GetHeight() const override { return mHeight; }
+		inline virtual void* GetNativeTexture() const override { return mSRV.Get(); }
+
+		virtual void EnsureSize(uint32_t width, uint32_t height) override;
+		virtual void Resize(uint32_t width, uint32_t height) override;
+
+		virtual void Clear(float4 color) override;
 
 		virtual void Bind(size_t slot) const override;
+
+		inline ID3D11RenderTargetView* GetRenderTargetView() const { return mRTV.Get(); }
+		inline ID3D11Texture2D* GetInternalTexture() const { return mTexture.Get(); }
 	private:
-		void Create(void* data, Format format, bool mipMap);
+		void Create(void* data);
 	private:
+		TextureFlags mFlags;
 		std::string mPath;
 		uint32_t mWidth, mHeight;
+		Format mFormat;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> mTexture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 	};
 
 	class DirectXCubemap : public Cubemap {
@@ -39,7 +51,7 @@ namespace Mango {
 		virtual uint32_t GetMipLevels() const override;
 
 		virtual void BindAsRenderTarget(size_t mip) const override;
-		virtual void Bind(size_t slot) const override;
+		virtual void BindAsShaderResource(size_t slot) const override;
 	private:
 		uint32_t mMipLevels;
 		std::string mPath;

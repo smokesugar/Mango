@@ -148,7 +148,7 @@ namespace Mango {
 						if (ImGui::Button("...##0")) {
 							std::string newPath;
 							if (OpenTextureFileDialog(newPath))
-								material->AlbedoTexture = mScene->GetTextureLibrary().Get(newPath, Format::RGBA8_UNORM_SRGB);
+								material->AlbedoTexture = mScene->GetTextureLibrary().Get(newPath, Format::RGBA8_UNORM_SRGB, Texture_Trilinear);
 						}
 					}
 					
@@ -174,7 +174,7 @@ namespace Mango {
 						if (ImGui::Button("...##1")) {
 							std::string newPath;
 							if (OpenTextureFileDialog(newPath))
-								material->RoughnessTexture = mScene->GetTextureLibrary().Get(newPath, Format::RGBA8_UNORM);
+								material->RoughnessTexture = mScene->GetTextureLibrary().Get(newPath, Format::RGBA8_UNORM, Texture_Trilinear);
 						}
 					}
 					ImGui::DragFloat("##material_roughnessValue", &material->RoughnessValue, 0.01f, 0.0f, 1.0f);
@@ -195,7 +195,7 @@ namespace Mango {
 					if (ImGui::Button("...##2")) {
 						std::string newPath;
 						if (OpenTextureFileDialog(newPath))
-							material->NormalTexture = mScene->GetTextureLibrary().Get(newPath, Format::RGBA8_UNORM);
+							material->NormalTexture = mScene->GetTextureLibrary().Get(newPath, Format::RGBA8_UNORM, Texture_Trilinear);
 					}
 
 					ImGui::Columns(1);
@@ -344,7 +344,7 @@ namespace Mango {
 
 				if (ImGui::BeginCombo("##sprite_type", sprite.UsesTexture ? "Texture" : "Color")) {
 					if (ImGui::Selectable("Texture", sprite.UsesTexture) && !sprite.UsesTexture)
-						sprite = SpriteRendererComponent(Ref<Texture2D>());
+						sprite = SpriteRendererComponent(Ref<Texture>());
 					if (ImGui::Selectable("Color", !sprite.UsesTexture) && sprite.UsesTexture)
 						sprite = SpriteRendererComponent(float4(1.0f, 1.0f, 1.0f, 1.0f));
 					ImGui::EndCombo();
@@ -362,7 +362,7 @@ namespace Mango {
 					{
 						std::string path;
 						if (OpenTextureFileDialog(path)) {
-							sprite.Texture = mScene->GetTextureLibrary().Get(path, Format::RGBA8_UNORM);
+							sprite.Texture = mScene->GetTextureLibrary().Get(path, Format::RGBA8_UNORM, Texture_Trilinear);
 						}
 					}
 					ImGui::PushItemWidth(-1.0f);

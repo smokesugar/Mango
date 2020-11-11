@@ -6,7 +6,7 @@
 #include <wrl.h>
 
 #include "Mango/Renderer/SwapChain.h"
-#include "DirectXFramebuffer.h"
+#include "DirectXRenderTarget.h"
 
 namespace Mango {
 	
@@ -14,12 +14,12 @@ namespace Mango {
 	public:
 		DirectXSwapChain();
 		virtual void Present() override;
-		virtual Ref<ColorBuffer> GetFramebuffer() override;
+		virtual void BindAsRenderTarget() override;
 		virtual void Resize(uint32_t width, uint32_t height) override;
 	private:
-		void CreateInternalFramebuffer(uint32_t width, uint32_t height);
+		void CreateRenderTargetView(uint32_t width, uint32_t height);
 	private:
-		Ref<DirectXColorBuffer> mFramebuffer;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> mInternal;
 	};
 

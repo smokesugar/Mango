@@ -12,7 +12,7 @@ SandboxLayer::SandboxLayer()
 	props.Depth = true;
 	mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
 
-	mTexture = Ref<Texture2D>(Texture2D::Create("assets/textures/Mango.png"));
+	mTexture = Ref<Texture>(Texture::Create("assets/textures/Mango.png"));
 }
 
 inline void SandboxLayer::OnUpdate(float dt) {

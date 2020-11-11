@@ -4,7 +4,7 @@
 
 #include "Mango/Core/Math.h"
 #include "Mango/Renderer/Texture.h"
-#include "Mango/Renderer/Framebuffer.h"
+#include "Mango/Renderer/RenderTarget.h"
 
 namespace Mango {
 	namespace Renderer {
@@ -12,7 +12,7 @@ namespace Mango {
 		void InitSprite();
 		void ShutdownSprite();
 	
-		void FlushSpriteQueue(std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture2D>, float4>>& queue, const std::vector<Ref<ColorBuffer>>& rendertargets, const Ref<DepthBuffer>& depthbuffer);
+		void FlushSpriteQueue(std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture>, float4>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthbuffer);
 
 	}
 }

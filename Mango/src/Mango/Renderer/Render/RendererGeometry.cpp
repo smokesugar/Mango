@@ -46,7 +46,7 @@ namespace Mango {
 		delete sData;
 	}
 
-	void Renderer::RenderToGBuffer(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue, const std::vector<Ref<ColorBuffer>>& rendertargets, const Ref<DepthBuffer>& depthBuffer)
+	void Renderer::RenderToGBuffer(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthBuffer)
 	{
 		RenderCommand::DisableBlending();
 		BindRenderTargets(rendertargets, depthBuffer);

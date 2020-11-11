@@ -22,7 +22,7 @@ namespace Mango {
 
 		SceneHierarchyPanel mSceneHierarchyPanel;
 
-		Ref<ColorBuffer> mFramebuffer;
+		Ref<Texture> mFramebuffer;
 
 		float mFPS = 0.0f;
 

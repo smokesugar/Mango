@@ -53,7 +53,7 @@ namespace Mango {
 		delete sData;
 	}
 
-	static void DrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color) {
+	static void DrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture>& texture, const float4& color) {
 		texture->Bind(0);
 		xmmatrix prevMVP = previousTransform * Renderer::GetPrevViewMatrix() * Renderer::GetPrevProjectionMatrix() * Renderer::GetJitterMatrix();
 		xmmatrix MVP = transform * Renderer::GetViewMatrix() * Renderer::GetProjectionMatrix() * Renderer::GetJitterMatrix();
@@ -61,7 +61,7 @@ namespace Mango {
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);
 	}
 
-	void Renderer::FlushSpriteQueue(std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture2D>, float4>>& queue, const std::vector<Ref<ColorBuffer>>& rendertargets, const Ref<DepthBuffer>& depthbuffer)
+	void Renderer::FlushSpriteQueue(std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture>, float4>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthbuffer)
 	{
 		BindRenderTargets(rendertargets, depthbuffer);
 		RenderCommand::EnableBlending();

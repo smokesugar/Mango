@@ -2,7 +2,7 @@
 
 #include "Mango/Core/ECS.h"
 #include "Mango/Renderer/Texture.h"
-#include "Mango/Renderer/Framebuffer.h"
+#include "Mango/Renderer/RenderTarget.h"
 
 namespace Mango {
 
@@ -14,8 +14,8 @@ namespace Mango {
 
 		ECS::Entity Create(const std::string& name = "Unnamed Entity");
 
-		void OnUpdate(float dt, const Ref<ColorBuffer>& rendertarget);
-		void OnUpdate(float dt, const Ref<ColorBuffer>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
+		void OnUpdate(float dt, const Ref<Texture>& rendertarget);
+		void OnUpdate(float dt, const Ref<Texture>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
 
 		void SetActiveCamera(ECS::Entity entity);
 		ECS::Entity GetActiveCameraEntity();

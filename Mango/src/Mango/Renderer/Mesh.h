@@ -8,14 +8,14 @@
 namespace Mango {
 	
 	struct Material {
-		Ref<Texture2D> AlbedoTexture;
-		Ref<Texture2D> NormalTexture;
-		Ref<Texture2D> RoughnessTexture;
+		Ref<Texture> AlbedoTexture;
+		Ref<Texture> NormalTexture;
+		Ref<Texture> RoughnessTexture;
 		float3 AlbedoColor;
 		float RoughnessValue;
 		float Metalness;
 
-		Material(const Ref<Texture2D>& albedoTex, const Ref<Texture2D>& normalTex, const Ref<Texture2D>& roughnessTex, const float3& color, float roughness, float metalness)
+		Material(const Ref<Texture>& albedoTex, const Ref<Texture>& normalTex, const Ref<Texture>& roughnessTex, const float3& color, float roughness, float metalness)
 			: AlbedoTexture(albedoTex), NormalTexture(normalTex), RoughnessTexture(roughnessTex), AlbedoColor(color), RoughnessValue(roughness), Metalness(metalness)
 		{}
 	};

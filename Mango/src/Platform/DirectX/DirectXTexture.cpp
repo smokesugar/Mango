@@ -10,12 +10,12 @@
 
 namespace Mango {
 
-	Texture2D* Texture2D::Create(const std::string& filePath, Format format, bool mipMap) {
-		return new DirectXTexture2D(filePath, format, mipMap);
+	Texture* Texture::Create(const std::string& filePath, Format format, TextureFlags flags) {
+		return new DirectXTexture(filePath, format, flags);
 	}
 
-	Texture2D* Texture2D::Create(void* data, uint32_t width, uint32_t height) {
-		return new DirectXTexture2D(data, width, height);
+	Texture* Texture::Create(void* data, uint32_t width, uint32_t height, Format format, TextureFlags flags) {
+		return new DirectXTexture(data, width, height, format, flags);
 	}
 
 	void Texture::Unbind(size_t slot) {
@@ -24,20 +24,19 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, pp));
 	}
 
-	DirectXTexture2D::DirectXTexture2D(void* data, uint32_t width, uint32_t height)
-		: mWidth(width), mHeight(height)
+	DirectXTexture::DirectXTexture(void* data, uint32_t width, uint32_t height, Format format, TextureFlags flags)
+		: mWidth(width), mHeight(height), mFlags(flags), mFormat(format)
 	{
-		Create(data, Format::RGBA8_UNORM, false);
+		Create(data);
 	}
 
-	DirectXTexture2D::DirectXTexture2D(const std::string& filePath, Format format, bool mipMap)
-		: mWidth(0), mHeight(0), mPath(filePath)
+	DirectXTexture::DirectXTexture(const std::string& filePath, Format format, TextureFlags flags)
+		: mWidth(0), mHeight(0), mPath(filePath), mFlags(flags), mFormat(format)
 	{
 		int width, height;
 		void* data;
-		if (IsFormatFloatingPoint(format)) {
+		if (IsFormatFloatingPoint(mFormat)) {
 			data = stbi_loadf(filePath.c_str(), &width, &height, nullptr, 4);
-			MG_CORE_INFO("Loading floating point image.");
 		}
 		else
 			data = stbi_load(filePath.c_str(), &width, &height, nullptr, 4);
@@ -45,38 +44,75 @@ namespace Mango {
 		MG_CORE_ASSERT(data, "Could not load texture '{0}'.", filePath);
 		mWidth = (uint32_t)width;
 		mHeight = (uint32_t)height;
-		Create(data, format, mipMap);
+		Create(data);
 		stbi_image_free(data);
 	}
 
-	void DirectXTexture2D::Bind(size_t slot) const
+	void DirectXTexture::EnsureSize(uint32_t width, uint32_t height)
+	{
+		if (mWidth != width || mHeight != height)
+			Resize(width, height);
+	}
+
+	void DirectXTexture::Resize(uint32_t width, uint32_t height)
+	{
+		mWidth = width;
+		mHeight = height;
+
+		if (mRTV) mRTV.Reset();
+		mSRV.Reset();
+		Create(nullptr);
+	}
+
+	void DirectXTexture::Clear(float4 color)
+	{
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->ClearRenderTargetView(mRTV.Get(), ValuePtr(color)));
+	}
+
+	void DirectXTexture::Bind(size_t slot) const
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));
 	}
 
-	void DirectXTexture2D::Create(void* data, Format format, bool mipMap)
+	void DirectXTexture::Create(void* data)
 	{
 		auto& context = RetrieveContext();
 
 		D3D11_TEXTURE2D_DESC desc = {};
 		desc.Width = mWidth;
 		desc.Height = mHeight;
-		desc.MipLevels = mipMap ? 0 : 1;
+		desc.MipLevels = (mFlags & Texture_Trilinear ? 0 : 1);
 		desc.ArraySize = 1;
-		desc.Format = DXGIFormatFromMangoFormat(format);
+		desc.Format = DXGIFormatFromMangoFormat(mFormat);
 		desc.SampleDesc = {1, 0};
 		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		UINT bindFlags = D3D11_BIND_SHADER_RESOURCE | (mFlags & Texture_RenderTarget || mFlags & Texture_Trilinear ? D3D11_BIND_RENDER_TARGET : 0);
+		desc.BindFlags = bindFlags;
 		desc.CPUAccessFlags = 0;
-		desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+		UINT miscFlags = (mFlags & Texture_Trilinear ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+		desc.MiscFlags = miscFlags;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
-		HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &texture));
-		VOID_CALL(context.GetDeviceContext()->UpdateSubresource(texture.Get(), 0, nullptr, data, mWidth*FormatSize(format), 0));
-		HR_CALL(context.GetDevice()->CreateShaderResourceView(texture.Get(), nullptr, &mSRV));
-		if(mipMap)
+		HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture));
+		HR_CALL(context.GetDevice()->CreateShaderResourceView(mTexture.Get(), nullptr, &mSRV));
+
+		if(data)
+			VOID_CALL(context.GetDeviceContext()->UpdateSubresource(mTexture.Get(), 0, nullptr, data, mWidth*(uint32_t)FormatSize(mFormat), 0));
+
+		if(mFlags & Texture_Trilinear)
 			VOID_CALL(context.GetDeviceContext()->GenerateMips(mSRV.Get()));
+
+		if (mFlags & Texture_RenderTarget)
+			HR_CALL(context.GetDevice()->CreateRenderTargetView(mTexture.Get(), nullptr, &mRTV));
+	}
+
+	void BlitTexture(const Ref<Texture>& dest, const Ref<Texture>& src)
+	{
+		auto& context = RetrieveContext();
+		auto d = std::static_pointer_cast<DirectXTexture>(dest);
+		auto s = std::static_pointer_cast<DirectXTexture>(src);
+		context.GetDeviceContext()->CopyResource(d->GetInternalTexture(), s->GetInternalTexture());
 	}
 
 	SamplerState* SamplerState::Create(Filter mode, Address address, bool comparison) {
@@ -174,7 +210,7 @@ namespace Mango {
 		mMipLevels = retrievedDesc.MipLevels;
 		mRTVs.resize(mMipLevels);
 
-		for (int i = 0; i < mMipLevels; i++) {
+		for (uint32_t i = 0; i < mMipLevels; i++) {
 			D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 			rtvDesc.Format = format;
 			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -215,7 +251,7 @@ namespace Mango {
 		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets(1, mRTVs[mip].GetAddressOf(), nullptr));
 	}
 
-	void DirectXCubemap::Bind(size_t slot) const
+	void DirectXCubemap::BindAsShaderResource(size_t slot) const
 	{
 		auto& context = RetrieveContext();
 		VOID_CALL(context.GetDeviceContext()->PSSetShaderResources((uint32_t)slot, 1, mSRV.GetAddressOf()));

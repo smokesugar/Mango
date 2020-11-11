@@ -14,5 +14,5 @@ private:
 
 	OrthographicCamera mCamera;
 	Ref<ColorBuffer> mFramebuffer;
-	Ref<Texture2D> mTexture;
+	Ref<Texture> mTexture;
 };

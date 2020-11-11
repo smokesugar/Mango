@@ -51,14 +51,14 @@ namespace Mango {
 	struct SpriteRendererComponent {
 		bool UsesTexture;
 		float4 Color;
-		Ref<Texture2D> Texture;
+		Ref<Mango::Texture> Texture;
 
 		SpriteRendererComponent() : Color(1.0f, 1.0f, 1.0f, 1.0f), UsesTexture(false) {}
 		SpriteRendererComponent(const SpriteRendererComponent& other) = default;
 		SpriteRendererComponent(const float4& color)
 			: Color(color), UsesTexture(false)
 		{}
-		SpriteRendererComponent(const Ref<Texture2D>& texture)
+		SpriteRendererComponent(const Ref<Mango::Texture>& texture)
 			: Texture(texture), Color(1.0f, 1.0f, 1.0f, 1.0f), UsesTexture(true)
 		{}
 	};

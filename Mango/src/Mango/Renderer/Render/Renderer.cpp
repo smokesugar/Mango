@@ -16,20 +16,20 @@
 namespace Mango {
 
 	struct RendererData {
-		Ref<Texture2D> WhiteTexture;
-		Ref<Texture2D> BlackTexture;
+		Ref<Texture> WhiteTexture;
+		Ref<Texture> BlackTexture;
 
 		struct {
-			Ref<ColorBuffer> Color;
-			Ref<ColorBuffer> Normal;
-			Ref<ColorBuffer> Velocity;
+			Ref<Texture> Color;
+			Ref<Texture> Normal;
+			Ref<Texture> Velocity;
 		} GBuffer;
-		Ref<ColorBuffer> ImmediateTarget;
+		Ref<Texture> ImmediateTarget;
 		Ref<Mango::DepthBuffer> DepthBuffer;
 
 		bool TAAEnabled = true;
 
-		std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture2D>, float4>> RenderQueue2D;
+		std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture>, float4>> RenderQueue2D;
 		std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>> RenderQueue3D;
 	};
 
@@ -48,24 +48,19 @@ namespace Mango {
 
 		// Framebuffers ------------------------------------------------------------------------------
 
-		ColorBufferProperties props;
-		props.Width = 800;
-		props.Height = 600;
-		props.Format = Format::RGBA16_FLOAT;
-
-		sData->GBuffer.Velocity = Ref<ColorBuffer>(ColorBuffer::Create(props));
-		sData->GBuffer.Normal = Ref<ColorBuffer>(ColorBuffer::Create(props));
-		sData->GBuffer.Color = Ref<ColorBuffer>(ColorBuffer::Create(props));
-		sData->ImmediateTarget = Ref<ColorBuffer>(ColorBuffer::Create(props));
+		sData->GBuffer.Velocity = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
+		sData->GBuffer.Normal   = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
+		sData->GBuffer.Color    = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
+		sData->ImmediateTarget  = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 
 		sData->DepthBuffer = Ref<DepthBuffer>(DepthBuffer::Create(800, 600));
 
 		// Textures ----------------------------------------------------------------------------------
 
 		uint32_t color = 0xffffffff;
-		sData->WhiteTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
+		sData->WhiteTexture = Ref<Texture>(Texture::Create(&color, 1, 1, Format::RGBA8_UNORM, 0));
 		color = 0;
-		sData->BlackTexture = Ref<Texture2D>(Texture2D::Create(&color, 1, 1));
+		sData->BlackTexture = Ref<Texture>(Texture::Create(&color, 1, 1, Format::RGBA8_UNORM, 0));
 	}
 
 	void Renderer::Shutdown()
@@ -83,12 +78,12 @@ namespace Mango {
 		return sData->TAAEnabled;
 	}
 
-	const Ref<Texture2D>& Renderer::GetWhiteTexture()
+	const Ref<Texture>& Renderer::GetWhiteTexture()
 	{
 		return sData->WhiteTexture;
 	}
 
-	const Ref<Texture2D>& Renderer::GetBlackTexture()
+	const Ref<Texture>& Renderer::GetBlackTexture()
 	{
 		return sData->BlackTexture;
 	}
@@ -132,7 +127,7 @@ namespace Mango {
 		}
 	}
 
-	void Renderer::EndScene(const Ref<ColorBuffer>& target)
+	void Renderer::EndScene(const Ref<Texture>& target)
 	{
 		// Render Scene --------------------------------------------------------------------------------
 		
@@ -160,7 +155,7 @@ namespace Mango {
 		TAAPass(sData->ImmediateTarget, sData->GBuffer.Velocity, target);
 	}
 
-	void Renderer::SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture2D>& texture, const float4& color)
+	void Renderer::SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture>& texture, const float4& color)
 	{
 		sData->RenderQueue2D.push({ previousFrameTransform, transform, texture, color });
 	}

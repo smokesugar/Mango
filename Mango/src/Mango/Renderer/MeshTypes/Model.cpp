@@ -90,9 +90,9 @@ namespace Mango {
 				aiMaterial* material = scene->mMaterials[i];
 				std::string path;
 
-				Ref<Texture2D> albedoTexture = GetTexturePath(path, aiTextureType_DIFFUSE, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM_SRGB) : Renderer::GetWhiteTexture();
-				Ref<Texture2D> normalTexture = GetTexturePath(path, aiTextureType_NORMALS, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM) : nullptr;
-				Ref<Texture2D> roughnessTexture = GetTexturePath(path, aiTextureType_UNKNOWN, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM) : Renderer::GetWhiteTexture();
+				Ref<Texture> albedoTexture = GetTexturePath(path, aiTextureType_DIFFUSE, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM_SRGB, Texture_Trilinear) : Renderer::GetWhiteTexture();
+				Ref<Texture> normalTexture = GetTexturePath(path, aiTextureType_NORMALS, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM, Texture_Trilinear) : nullptr;
+				Ref<Texture> roughnessTexture = GetTexturePath(path, aiTextureType_UNKNOWN, material) ? textureLibrary.Get(directory + path, Format::RGBA8_UNORM, Texture_Trilinear) : Renderer::GetWhiteTexture();
 
 				float3 albedoColor;
 				if (albedoTexture == Renderer::GetWhiteTexture())

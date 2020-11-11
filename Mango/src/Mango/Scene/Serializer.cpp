@@ -27,19 +27,19 @@ namespace Mango {
 	}
 
 	static Ref<Material> LoadMaterial(json& j, TextureLibrary& library) {
-		Ref<Texture2D> albedoTexture;
+		Ref<Texture> albedoTexture;
 		if (j.find("albedoTexture") != j.end())
-			albedoTexture = library.Get(j["albedoTexture"], Format::RGBA8_UNORM_SRGB);
+			albedoTexture = library.Get(j["albedoTexture"], Format::RGBA8_UNORM_SRGB, Texture_Trilinear);
 		else
 			albedoTexture = Renderer::GetWhiteTexture();
 
-		Ref<Texture2D> normalTexture;
+		Ref<Texture> normalTexture;
 		if (j.find("normalTexture") != j.end())
-			normalTexture = library.Get(j["normalTexture"], Format::RGBA8_UNORM);
+			normalTexture = library.Get(j["normalTexture"], Format::RGBA8_UNORM, Texture_Trilinear);
 
-		Ref<Texture2D> roughnessTexture;
+		Ref<Texture> roughnessTexture;
 		if (j.find("roughnessTexture") != j.end())
-			roughnessTexture = library.Get(j["roughnessTexture"], Format::RGBA8_UNORM);
+			roughnessTexture = library.Get(j["roughnessTexture"], Format::RGBA8_UNORM, Texture_Trilinear);
 		else
 			roughnessTexture = Renderer::GetWhiteTexture();
 
@@ -236,7 +236,7 @@ namespace Mango {
 					bool usesTexture = sprite["usesTexture"];
 					if (usesTexture) {
 						std::string path = sprite["texturePath"];
-						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path, Format::RGBA8_UNORM));
+						reg.Emplace<SpriteRendererComponent>(entity, scene->GetTextureLibrary().Get(path, Format::RGBA8_UNORM, Texture_Trilinear));
 					}
 					else
 					{
