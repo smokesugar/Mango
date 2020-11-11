@@ -59,6 +59,9 @@ namespace Mango {
 		auto query = reg.QueryE<>();
 
 		j["activeCamera"] = (uint32_t)scene->GetActiveCameraEntity();
+		if (Renderer::GetSkybox())
+			j["skybox"] = Renderer::GetSkybox()->GetPath();
+		j["envStrength"] = Renderer::EnvironmentStrength();
 
 		for (const auto& [size, entities] : query)
 		{
@@ -174,6 +177,14 @@ namespace Mango {
 		json j = json::parse(scenestring);
 
 		ECS::Entity activeCamera = j["activeCamera"];
+
+		Renderer::EnvironmentStrength() = j["envStrength"];
+		if (j.find("skybox") != j.end()) {
+			std::string path = j["skybox"];
+			Ref<Cubemap> newHdri = Ref<Cubemap>(Cubemap::Create(path, SKYBOX_RESOLUTION));
+			Renderer::InitializeCubemap(newHdri);
+			Renderer::SetSkybox(newHdri);
+		}
 
 		json& entities = j["entities"];
 		for (auto& [id, e] : entities.items())

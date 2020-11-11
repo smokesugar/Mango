@@ -46,7 +46,8 @@ cbuffer LightingData : register(b0)
     matrix directionalMatrices[MAX_DIRECTIONAL_LIGHTS * NUM_SHADOW_CASCADES];
     int numDirectionalLights;
     int numPointLights;
-    float2 padding;
+    float environmentStrength;
+    float padding;
     float4 perspectiveValues;
     float4 cascadeEnds;
 };
@@ -223,13 +224,13 @@ float4 main (VSOut vso): SV_Target
     float3 kD = 1.0f - kS;
     kD *= 1.0f - metallic;
     
-    float3 irradiance = irradianceMap.SampleLevel(sampler1, N, 0).rgb;
+    float3 irradiance = irradianceMap.SampleLevel(sampler1, N, 0).rgb * environmentStrength;
     float3 diffuse = irradiance * albedo;
     
     float w, h, mips;
     prefilteredMap.GetDimensions(0, w, h, mips);
     mips -= 1.0f;
-    float3 prefilteredColor = prefilteredMap.SampleLevel(sampler1, R, roughness * mips).rgb;
+    float3 prefilteredColor = prefilteredMap.SampleLevel(sampler1, R, roughness * mips).rgb * environmentStrength;
     float2 envBRDF = brdfLUT.Sample(linearSampleClamp, float2(NdotV, roughness)).rg;
     float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
     
@@ -270,7 +271,6 @@ float4 main (VSOut vso): SV_Target
     // ----------------------------------------------------------------
     
     float3 fragColor = Lo + ambient;
-   
     fragColor = ACESFitted(fragColor);
     
     float gamma = 2.2f;

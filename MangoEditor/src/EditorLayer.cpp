@@ -15,10 +15,6 @@ namespace Mango {
 		props.Height = 600;
 		props.Format = Format::RGBA16_FLOAT;
 		mFramebuffer = Ref<ColorBuffer>(ColorBuffer::Create(props));
-
-		auto skybox = Ref<Cubemap>(Cubemap::Create("assets/textures/env/urban_street_01_8k.hdr", 2048));
-		Renderer::InitializeCubemap(skybox);
-		Renderer::SetSkybox(skybox);
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
@@ -45,6 +41,15 @@ namespace Mango {
 		ImGui::Text("FPS: %f", mFPS);
 		ImGui::Checkbox("TAA", &b);
 		ImGui::Checkbox("Scene Playing", &mScenePlaying);
+		ImGui::DragFloat("Environment Strength", &Renderer::EnvironmentStrength(), 0.01f, 0.0f, 100.0f);
+		if (ImGui::Button("Select HDRi")) {
+			std::string path;
+			if (FileDialog::Open(path, L"HDR Texture\0*.hdr\0All\0*.*\0")) {
+				Ref<Cubemap> newHdri = Ref<Cubemap>(Cubemap::Create(path, SKYBOX_RESOLUTION));
+				Renderer::InitializeCubemap(newHdri);
+				Renderer::SetSkybox(newHdri);
+			}
+		}
 		ImGui::End();
 
 		// Menu bar

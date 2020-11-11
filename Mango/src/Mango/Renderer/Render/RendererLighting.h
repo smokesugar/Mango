@@ -3,6 +3,8 @@
 #include "Mango/Renderer/Framebuffer.h"
 #include "Mango/Renderer/Mesh.h"
 
+#define SKYBOX_RESOLUTION 2048
+
 namespace Mango {
 	namespace Renderer {
 		
@@ -17,6 +19,8 @@ namespace Mango {
 
 		void SetSkybox(const Ref<Cubemap>& skybox);
 		const Ref<Cubemap>& GetSkybox();
+
+		float& EnvironmentStrength();
 
 		void InitializeCubemap(const Ref<Cubemap>& cubemap);
 	}

@@ -12,7 +12,6 @@
 #define MAX_POINT_LIGHTS 16
 #define NUM_SHADOW_CASCADES 4
 #define SHADOW_RESOLUTION 1024
-#define SKYBOX_RESOLUTION 1024
 
 namespace Mango {
 
@@ -30,7 +29,8 @@ namespace Mango {
 		xmmatrix DirectionalMatrices[MAX_DIRECTIONAL_LIGHTS * NUM_SHADOW_CASCADES];
 		int NumDirectionalLights = 0;
 		int NumPointLights = 0;
-		float2 padding;
+		float EnvironmentStrength = 1.0f;
+		float padding;
 		float4 PerspectiveValues;
 		float CascadeEnds[NUM_SHADOW_CASCADES];
 	};
@@ -42,6 +42,8 @@ namespace Mango {
 	struct SkyboxData {
 		xmmatrix ViewMatrix;
 		xmmatrix ProjectionMatrix;
+		float EnvironmentStrength;
+		float3 padding;
 	};
 
 	struct RenderDataLighting {
@@ -236,7 +238,7 @@ namespace Mango {
 		{
 			LinearSampler().Bind(0);
 			sData->Skybox->Bind(0);
-			sData->SkyboxUniforms->SetData<SkyboxData>({ GetViewMatrix(), GetProjectionMatrix() });
+			sData->SkyboxUniforms->SetData<SkyboxData>({ GetViewMatrix(), GetProjectionMatrix(), sData->LightingData.EnvironmentStrength });
 			sData->SkyboxUniforms->VSBind(0);
 			sData->SkyboxShader->Bind();
 
@@ -296,6 +298,9 @@ namespace Mango {
 
 		RenderCommand::DisableCulling();
 
+		Texture::Unbind(8);
+		Texture::Unbind(9);
+
 		// Irradiance
 		sData->IrradianceMap->BindAsRenderTarget();
 		sData->RenderToCubemapUniforms->GSBind(0);
@@ -326,6 +331,11 @@ namespace Mango {
 	const Ref<Cubemap>& Renderer::GetSkybox()
 	{
 		return sData->Skybox;
+	}
+
+	float& Renderer::EnvironmentStrength()
+	{
+		return sData->LightingData.EnvironmentStrength;
 	}
 
 	void Renderer::InitializeCubemap(const Ref<Cubemap>& cubemap)
