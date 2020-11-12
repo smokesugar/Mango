@@ -64,6 +64,27 @@ namespace Mango {
 		Create(nullptr);
 	}
 
+	void DirectXTexture::GetData(uint32_t x, uint32_t y, const Ref<Texture>& stagingTexture, void* buffer, size_t size)
+	{
+		auto& context = RetrieveContext();
+
+		D3D11_BOX srcBox;
+		srcBox.left = x;
+		srcBox.right = srcBox.left + 1;
+		srcBox.top = y;
+		srcBox.bottom = srcBox.top + 1;
+		srcBox.front = 0;
+		srcBox.back = 1;
+
+		auto stagingTex = std::static_pointer_cast<DirectXTexture>(stagingTexture);
+		VOID_CALL(context.GetDeviceContext()->CopySubresourceRegion(stagingTex->mTexture.Get(), 0, 0, 0, 0, mTexture.Get(), 0, &srcBox));
+
+		D3D11_MAPPED_SUBRESOURCE sr;
+		HR_CALL(context.GetDeviceContext()->Map(stagingTex->mTexture.Get(), 0, D3D11_MAP_READ, 0, &sr));
+		memcpy(buffer, sr.pData, size);
+		VOID_CALL(context.GetDeviceContext()->Unmap(stagingTex->mTexture.Get(), 0));
+	}
+
 	void DirectXTexture::Clear(float4 color)
 	{
 		auto& context = RetrieveContext();
@@ -87,15 +108,21 @@ namespace Mango {
 		desc.ArraySize = 1;
 		desc.Format = DXGIFormatFromMangoFormat(mFormat);
 		desc.SampleDesc = {1, 0};
-		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.Usage = (mFlags & Texture_CPU ? D3D11_USAGE_STAGING : D3D11_USAGE_DEFAULT);
 		UINT bindFlags = D3D11_BIND_SHADER_RESOURCE | (mFlags & Texture_RenderTarget || mFlags & Texture_Trilinear ? D3D11_BIND_RENDER_TARGET : 0);
+		if (mFlags & Texture_CPU)
+			bindFlags = 0;
 		desc.BindFlags = bindFlags;
-		desc.CPUAccessFlags = 0;
+		desc.CPUAccessFlags = (mFlags & Texture_CPU ? D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE : 0);
 		UINT miscFlags = (mFlags & Texture_Trilinear ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+		if (mFlags & Texture_CPU)
+			miscFlags = 0;
 		desc.MiscFlags = miscFlags;
 
 		HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture));
-		HR_CALL(context.GetDevice()->CreateShaderResourceView(mTexture.Get(), nullptr, &mSRV));
+		
+		if(!(mFlags & Texture_CPU))
+			HR_CALL(context.GetDevice()->CreateShaderResourceView(mTexture.Get(), nullptr, &mSRV));
 
 		if(data)
 			VOID_CALL(context.GetDeviceContext()->UpdateSubresource(mTexture.Get(), 0, nullptr, data, mWidth*(uint32_t)FormatSize(mFormat), 0));

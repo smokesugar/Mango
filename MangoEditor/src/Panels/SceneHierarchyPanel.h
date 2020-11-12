@@ -12,6 +12,7 @@ namespace Mango {
 		inline void ResetSelectedEntity() { mSelectedEntity = ECS::Null; }
 
 		inline ECS::Entity GetSelectedEntity() const { return mSelectedEntity; }
+		inline void SetSelectedEntity(ECS::Entity entity) { mSelectedEntity = entity; }
 
 		void OnImGuiRender();
 	private:

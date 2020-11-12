@@ -15,11 +15,170 @@
                     },
                     "type": "sphere"
                 },
-                "tag": "Unnamed Entity",
+                "tag": "Sphere",
                 "transform": {
                     "rotation": [
                         0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        0.10637465119361877,
+                        -9.238719940185547e-07,
+                        0.3816367983818054
+                    ]
+                }
+            }
+        },
+        "2": {
+            "components": {
+                "mesh": {
+                    "material": {
+                        "albedoColor": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "metalness": 0.10000000149011612,
+                        "roughnessValue": 0.5
+                    },
+                    "type": "cube"
+                },
+                "tag": "Cube",
+                "transform": {
+                    "rotation": [
                         0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        6.14706563949585,
+                        0.06560000032186508,
+                        6.14706563949585
+                    ],
+                    "translation": [
+                        0.6297184228897095,
+                        -0.803208589553833,
+                        -0.10484731197357178
+                    ]
+                }
+            }
+        },
+        "3": {
+            "components": {
+                "mesh": {
+                    "materials": [
+                        {
+                            "albedoColor": [
+                                0.6000000238418579,
+                                0.6000000238418579,
+                                0.6000000238418579
+                            ],
+                            "metalness": 0.10000000149011612,
+                            "roughnessValue": 0.5
+                        },
+                        {
+                            "albedoColor": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
+                            "metalness": 0.10000000149011612,
+                            "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
+                            "roughnessValue": 0.5
+                        }
+                    ],
+                    "path": "assets\\models\\regency\\regency.obj",
+                    "type": "model"
+                },
+                "tag": "Couch",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        0.8310349583625793,
+                        0.2976134419441223,
+                        0.0
+                    ]
+                }
+            }
+        },
+        "4": {
+            "components": {
+                "mesh": {
+                    "materials": [
+                        {
+                            "albedoColor": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ],
+                            "metalness": 0.10000000149011612,
+                            "roughnessValue": 0.5
+                        },
+                        {
+                            "albedoColor": [
+                                0.699999988079071,
+                                0.6934942007064819,
+                                0.6513369083404541
+                            ],
+                            "metalness": 0.10000000149011612,
+                            "roughnessValue": 0.5
+                        }
+                    ],
+                    "path": "assets\\models\\bayonet\\sketchfab_export.fbx",
+                    "type": "model"
+                },
+                "tag": "Bayonets",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        0.0010000000474974513,
+                        0.0010000000474974513,
+                        0.0010000000474974513
+                    ],
+                    "translation": [
+                        0.5912513732910156,
+                        1.7261343002319336,
+                        0.49496692419052124
+                    ]
+                }
+            }
+        },
+        "5": {
+            "components": {
+                "light": {
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "intensity": 1.0,
+                    "type": "directional"
+                },
+                "tag": "Sun",
+                "transform": {
+                    "rotation": [
+                        19.71498680114746,
+                        -0.0,
                         0.0
                     ],
                     "scale": [
@@ -29,8 +188,8 @@
                     ],
                     "translation": [
                         0.0,
-                        0.0,
-                        0.0
+                        1.2011830806732178,
+                        -0.5051657557487488
                     ]
                 }
             }

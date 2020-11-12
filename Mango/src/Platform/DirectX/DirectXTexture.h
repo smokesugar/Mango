@@ -16,9 +16,11 @@ namespace Mango {
 		inline virtual uint32_t GetWidth() const override { return mWidth; }
 		inline virtual uint32_t GetHeight() const override { return mHeight; }
 		inline virtual void* GetNativeTexture() const override { return mSRV.Get(); }
+		inline virtual Format GetFormat() const override { return mFormat; }
 
 		virtual void EnsureSize(uint32_t width, uint32_t height) override;
 		virtual void Resize(uint32_t width, uint32_t height) override;
+		virtual void GetData(uint32_t x, uint32_t y, const Ref<Texture>& stagingTexture, void* buffer, size_t size) override;
 
 		virtual void Clear(float4 color) override;
 

@@ -12,7 +12,8 @@ namespace Mango {
 	using TextureFlags = int;
 	enum _TextureFlags {
 		Texture_Trilinear = BIT(0),
-		Texture_RenderTarget = BIT(1)
+		Texture_RenderTarget = BIT(1),
+		Texture_CPU = BIT(2)
 	};
 
 	class Texture {
@@ -24,10 +25,12 @@ namespace Mango {
 		virtual const std::string& GetPath() const = 0;
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+		virtual Format GetFormat() const = 0;
 		virtual void* GetNativeTexture() const = 0;
 
 		virtual void EnsureSize(uint32_t width, uint32_t height) = 0;
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
+		virtual void GetData(uint32_t x, uint32_t y, const Ref<Texture>& stagingTexture, void* buffer, size_t size) = 0;
 
 		virtual void Clear(float4 color) = 0;
 
