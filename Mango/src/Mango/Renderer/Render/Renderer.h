@@ -8,6 +8,7 @@
 #include "Mango/Renderer/RenderTarget.h"
 
 #include "RendererBase.h"
+#include "RendererSprite.h"
 #include "RendererLighting.h"
 
 namespace Mango {

@@ -12,6 +12,7 @@ namespace Mango {
 	class EditorLayer : public Layer {
 	public:
 		EditorLayer();
+		~EditorLayer();
 
 		void OnUpdate(float dt);
 		void OnEvent(Event& e);
@@ -19,7 +20,6 @@ namespace Mango {
 	private:
 		bool OnKeyDown(KeyDownEvent& e);
 		bool OnMouseButtonDown(MouseButtonDownEvent& e);
-		void RenderNode(const Node& node, const xmmatrix& parentTransform, float3 color);
 	private:
 		bool mScenePlaying = false;
 		Ref<Scene> mScene;
@@ -38,12 +38,6 @@ namespace Mango {
 		float2 mViewportMousePosition = {0.0f, 0.0f};
 
 		EditorCamera mEditorCamera;
-
-		Ref<Texture> mMousePickerTexture;
-		Ref<DepthBuffer> mMousePickerDepthBuffer;
-		Ref<Texture> mMousePickerTextureStaging;
-		Ref<Shader> mMousePickerShader;
-		Ref<UniformBuffer> mMousePickerUniforms;
 	};
 
 }

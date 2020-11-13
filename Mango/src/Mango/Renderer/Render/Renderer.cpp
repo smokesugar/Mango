@@ -9,7 +9,6 @@
 #include "Mango/Renderer/Halton.h"
 
 #include "RendererBase.h"
-#include "RendererSprite.h"
 #include "RendererGeometry.h"
 #include "RendererPost.h"
 

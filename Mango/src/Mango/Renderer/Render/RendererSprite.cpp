@@ -1,7 +1,6 @@
 #include "mgpch.h"
 #include "RendererSprite.h"
 
-#include "Mango/Renderer/VertexArray.h"
 #include "Mango/Renderer/Shader.h"
 #include "Mango/Renderer/RenderCommand.h"
 #include "Mango/Renderer/Buffer.h"
@@ -51,6 +50,11 @@ namespace Mango {
 	void Renderer::ShutdownSprite()
 	{
 		delete sData;
+	}
+
+	const Ref<VertexArray>& Renderer::GetSpriteQuadVertexArray()
+	{
+		return sData->Quad;
 	}
 
 	static void DrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture>& texture, const float4& color) {

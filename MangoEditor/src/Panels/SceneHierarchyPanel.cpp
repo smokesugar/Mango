@@ -66,7 +66,7 @@ namespace Mango {
 
 				bool remove = false;
 				if (ImGui::BeginPopupContextItem()) {
-					if (ImGui::MenuItem("Delete"))
+					if (ImGui::MenuItem("Delete Entity"))
 						remove = true;
 					ImGui::EndPopup();
 				}
@@ -85,8 +85,9 @@ namespace Mango {
 			mSelectedEntity = ECS::Null;
 
 		if (ImGui::BeginPopupContextWindow(0, 1, false)) {
-			if (ImGui::MenuItem("Create Empty"))
-				mScene->Create();
+			if (ImGui::MenuItem("Create Empty")) {
+				mSelectedEntity = mScene->Create();
+			}
 			ImGui::EndPopup();
 		}
 

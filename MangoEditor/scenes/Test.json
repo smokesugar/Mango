@@ -35,7 +35,7 @@
                 }
             }
         },
-        "2": {
+        "1": {
             "components": {
                 "mesh": {
                     "material": {
@@ -69,7 +69,7 @@
                 }
             }
         },
-        "3": {
+        "2": {
             "components": {
                 "mesh": {
                     "materials": [
@@ -117,7 +117,7 @@
                 }
             }
         },
-        "4": {
+        "3": {
             "components": {
                 "mesh": {
                     "materials": [
@@ -163,7 +163,7 @@
                 }
             }
         },
-        "5": {
+        "4": {
             "components": {
                 "light": {
                     "color": [
@@ -190,6 +190,32 @@
                         0.0,
                         1.2011830806732178,
                         -0.5051657557487488
+                    ]
+                }
+            }
+        },
+        "5": {
+            "components": {
+                "spriteRenderer": {
+                    "texturePath": "assets\\textures\\Chicken.jpg",
+                    "usesTexture": true
+                },
+                "tag": "Unnamed Entity",
+                "transform": {
+                    "rotation": [
+                        0.153218612074852,
+                        -19.38934898376465,
+                        -10.594615936279297
+                    ],
+                    "scale": [
+                        0.7971554398536682,
+                        0.509776771068573,
+                        1.0000001192092896
+                    ],
+                    "translation": [
+                        0.0,
+                        1.0599329471588135,
+                        1.2025169134140015
                     ]
                 }
             }
