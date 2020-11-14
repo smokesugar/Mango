@@ -107,7 +107,7 @@ namespace Mango {
 		desc.MipLevels = (mFlags & Texture_Trilinear ? 0 : 1);
 		desc.ArraySize = 1;
 		desc.Format = DXGIFormatFromMangoFormat(mFormat);
-		desc.SampleDesc = {1, 0};
+		desc.SampleDesc = DXGI_SAMPLE_DESC{1u, 0u};
 		desc.Usage = (mFlags & Texture_CPU ? D3D11_USAGE_STAGING : D3D11_USAGE_DEFAULT);
 		UINT bindFlags = D3D11_BIND_SHADER_RESOURCE | (mFlags & Texture_RenderTarget || mFlags & Texture_Trilinear ? D3D11_BIND_RENDER_TARGET : 0);
 		if (mFlags & Texture_CPU)
@@ -121,7 +121,7 @@ namespace Mango {
 
 		HR_CALL(context.GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture));
 		
-		if(!(mFlags & Texture_CPU))
+		if (!(mFlags & Texture_CPU))
 			HR_CALL(context.GetDevice()->CreateShaderResourceView(mTexture.Get(), nullptr, &mSRV));
 
 		if(data)
@@ -139,7 +139,7 @@ namespace Mango {
 		auto& context = RetrieveContext();
 		auto d = std::static_pointer_cast<DirectXTexture>(dest);
 		auto s = std::static_pointer_cast<DirectXTexture>(src);
-		context.GetDeviceContext()->CopyResource(d->GetInternalTexture(), s->GetInternalTexture());
+		VOID_CALL(context.GetDeviceContext()->CopyResource(d->GetInternalTexture(), s->GetInternalTexture()));
 	}
 
 	SamplerState* SamplerState::Create(Filter mode, Address address, bool comparison) {

@@ -2,36 +2,45 @@
 Texture2D texture0 : register(t0);
 SamplerState sampler0 : register(s0);
 
-float4 main(float2 uv : TexCoord) : SV_Target
+cbuffer ColorBuffer : register(b0)
 {
-    float3 samples[9];
+    float3 color;
+    float padding;
+};
+
+float SampleTexture(float2 uv, float2 pixeloffset)
+{
+    float samples[9];
     
     uint width, height;
     texture0.GetDimensions(width, height);
     float2 pixelSize = 1.0f / float2(width, height);
-   
-    samples[4] = texture0.Sample(sampler0, uv + float2(+0, +0) * pixelSize).rgb;
     
-    if (any(samples[4] != float3(0.0f, 0.0f, 0.0f)))
-        discard;
+    samples[0] = texture0.Sample(sampler0, uv + (float2(-1, -1)+pixeloffset) * pixelSize).r;
+    samples[1] = texture0.Sample(sampler0, uv + (float2(+0, -1)+pixeloffset) * pixelSize).r;
+    samples[2] = texture0.Sample(sampler0, uv + (float2(+1, -1)+pixeloffset) * pixelSize).r;
+    samples[3] = texture0.Sample(sampler0, uv + (float2(-1, +0)+pixeloffset) * pixelSize).r;
+    samples[4] = texture0.Sample(sampler0, uv + (float2(+0, +0)+pixeloffset) * pixelSize).r;
+    samples[5] = texture0.Sample(sampler0, uv + (float2(+1, +0)+pixeloffset) * pixelSize).r;
+    samples[6] = texture0.Sample(sampler0, uv + (float2(-1, +1)+pixeloffset) * pixelSize).r;
+    samples[7] = texture0.Sample(sampler0, uv + (float2(+0, +1)+pixeloffset) * pixelSize).r;
+    samples[8] = texture0.Sample(sampler0, uv + (float2(+1, +1)+pixeloffset) * pixelSize).r;
     
-    samples[0] = texture0.Sample(sampler0, uv + float2(-1, -1) * pixelSize).rgb;
-    samples[1] = texture0.Sample(sampler0, uv + float2(+0, -1) * pixelSize).rgb;
-    samples[2] = texture0.Sample(sampler0, uv + float2(+1, -1) * pixelSize).rgb;
-    samples[3] = texture0.Sample(sampler0, uv + float2(-1, +0) * pixelSize).rgb;
-    samples[5] = texture0.Sample(sampler0, uv + float2(+1, +0) * pixelSize).rgb;
-    samples[6] = texture0.Sample(sampler0, uv + float2(-1, +1) * pixelSize).rgb;
-    samples[7] = texture0.Sample(sampler0, uv + float2(+0, +1) * pixelSize).rgb;
-    samples[8] = texture0.Sample(sampler0, uv + float2(+1, +1) * pixelSize).rgb;
-    
-    float3 maxCol = float3(0.0f, 0.0f, 0.0f);
+    float maxVal = 0.0f;
     for (int i = 0; i < 9; i++)
     {
-        maxCol = max(maxCol, samples[i]);
+        maxVal = max(maxVal, samples[i]);
     }
     
-    if (all(maxCol == float3(0.0f, 0.0f, 0.0f)))
-        discard;
-        
-    return float4(maxCol, 1.0f);
+    return maxVal;
+}
+
+float4 main(float2 uv : TexCoord) : SV_Target
+{
+    float val = 0.0f;
+    val += SampleTexture(uv, 0.0f.xx);
+    
+    float multiplier = 1.0f - texture0.Sample(sampler0, uv).r;
+    val *= multiplier;
+    return float4(color, val);
 }

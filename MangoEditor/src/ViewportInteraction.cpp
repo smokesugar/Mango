@@ -15,6 +15,7 @@ namespace Mango {
 		Ref<Shader> SolidColorShader;
 		Ref<Shader> OutlineShader;
 		Ref<UniformBuffer> SolidColorUniforms;
+		Ref<UniformBuffer> OutlineUniforms;
 	};
 
 	static MyData* sData;
@@ -28,6 +29,7 @@ namespace Mango {
 		sData->SolidColorShader = Ref<Shader>(Shader::Create("assets/shaders/SolidColor_vs.cso", "assets/shaders/SolidColor_ps.cso"));
 		sData->OutlineShader = Ref<Shader>(Shader::Create("assets/shaders/Fullscreen_vs.cso", "assets/shaders/Outline_ps.cso"));
 		sData->SolidColorUniforms = Ref<UniformBuffer>(UniformBuffer::Create<SolidColorShaderData>());
+		sData->OutlineUniforms = Ref<UniformBuffer>(UniformBuffer::Create<float4>());
 	}
 
 	void ViewportInteraction::Shutdown()
@@ -150,20 +152,18 @@ namespace Mango {
 		sData->SolidColorShader->Bind();
 		sData->SolidColorUniforms->VSBind(0);
 
-		float3 color = float3(1.0f, 0.6f, 0.0f);
-
 		if (reg.Has<MeshComponent>(entity)) {
 			auto& mesh = reg.Get<MeshComponent>(entity);
 			auto& transform = reg.Get<TransformComponent>(entity);
 
-			RenderNode(mesh.Mesh.RootNode, transform.GetMatrix(), viewProjection, color);
+			RenderNode(mesh.Mesh.RootNode, transform.GetMatrix(), viewProjection, float3(1.0f, 1.0f, 1.0f));
 		}
 
 		if (reg.Has<SpriteRendererComponent>(entity)) {
 			auto& sprite = reg.Get<SpriteRendererComponent>(entity);
 			auto& transform = reg.Get<TransformComponent>(entity);
 			
-			sData->SolidColorUniforms->SetData<SolidColorShaderData>({ transform.GetMatrix() * viewProjection, color });
+			sData->SolidColorUniforms->SetData<SolidColorShaderData>({ transform.GetMatrix() * viewProjection, float3(1.0f, 1.0f, 1.0f) });
 			Renderer::GetSpriteQuadVertexArray()->Bind();
 			RenderCommand::DrawIndexed(Renderer::GetSpriteQuadVertexArray()->GetDrawCount(), 0);
 		}
@@ -171,8 +171,13 @@ namespace Mango {
 		BindRenderTargets({ rendertarget });
 		sData->OutlineShader->Bind();
 		sData->RenderTarget->Bind(0);
+		//sData->RenderTarget->Bind(0);
+		sData->OutlineUniforms->PSBind(0);
+		sData->OutlineUniforms->SetData(float4(1.0f, 0.6f, 0.0f, 1.0f));
 		Renderer::LinearSamplerClamp().Bind(0);
+		RenderCommand::EnableBlending();
 		Renderer::DrawScreenQuad();
+		RenderCommand::DisableBlending();
 		Texture::Unbind(0); // Unbind so you can render with the texture
 	}
 

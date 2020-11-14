@@ -37,6 +37,7 @@ namespace Mango {
 	void Renderer::Init()
 	{
 		RenderCommand::EnableInvertedDepthTesting();
+		RenderCommand::EnableCulling();
 
 		Renderer::InitBase();
 		Renderer::InitSprite();
