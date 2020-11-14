@@ -1,7 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Panels/Dockspace.h"
-#include "MousePicker.h"
+#include "ViewportInteraction.h"
 
 namespace Mango {
 
@@ -12,12 +12,12 @@ namespace Mango {
 		mSceneHierarchyPanel.SetScene(mScene.get());
 
 		mFramebuffer = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
-		MousePicker::Init();
+		ViewportInteraction::Init();
 	}
 
 	EditorLayer::~EditorLayer()
 	{
-		MousePicker::Shutdown();
+		ViewportInteraction::Shutdown();
 	}
 
 	inline void EditorLayer::OnUpdate(float dt) {
@@ -29,6 +29,11 @@ namespace Mango {
 			mScene->OnUpdate(dt, mFramebuffer);
 		else
 			mScene->OnUpdate(dt, mFramebuffer, mEditorCamera.GetProjectionMatrix(mViewportSize.x/mViewportSize.y), mEditorCamera.GetTransform());
+
+		if (!mScenePlaying && mScene->GetRegistry().Valid(mSceneHierarchyPanel.GetSelectedEntity())) {
+			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
+			ViewportInteraction::RenderSelectionOutline(mScene->GetRegistry(), mSceneHierarchyPanel.GetSelectedEntity(), viewProjection, mFramebuffer);
+		}
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -126,7 +131,7 @@ namespace Mango {
 		static bool selectedEntityHovered = ECS::Null;
 		if (!mScenePlaying && mViewportHovered && ImGui::IsMouseClicked(1)) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
-			ECS::Entity hoveredEntity = MousePicker::GetHoveredEntity(mScene->GetRegistry(), mViewportSize, mViewportMousePosition, viewProjection);
+			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene->GetRegistry(), mViewportSize, mViewportMousePosition, viewProjection);
 			selectedEntityHovered = mSceneHierarchyPanel.GetSelectedEntity() == hoveredEntity;
 			ImGui::OpenPopup("viewport_context_menu");
 		}
@@ -170,7 +175,7 @@ namespace Mango {
 	{
 		if (e.GetButton() == MouseCode::LBUTTON && !mScenePlaying && mViewportHovered && !mGizmoHovered) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
-			ECS::Entity hoveredEntity = MousePicker::GetHoveredEntity(mScene->GetRegistry(), mViewportSize, mViewportMousePosition, viewProjection);
+			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene->GetRegistry(), mViewportSize, mViewportMousePosition, viewProjection);
 			mSceneHierarchyPanel.SetSelectedEntity(hoveredEntity);
 		}
 		return false;
