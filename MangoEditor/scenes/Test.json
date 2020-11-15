@@ -4,18 +4,9 @@
         "0": {
             "components": {
                 "mesh": {
-                    "material": {
-                        "albedoColor": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "metalness": 0.10000000149011612,
-                        "roughnessValue": 0.5
-                    },
-                    "type": "sphere"
+                    "index": 0
                 },
-                "tag": "Sphere",
+                "tag": "Test Scene",
                 "transform": {
                     "rotation": [
                         0.0,
@@ -23,14 +14,14 @@
                         0.0
                     ],
                     "scale": [
-                        1.0,
-                        1.0,
-                        1.0
+                        0.03779999911785126,
+                        0.03779999911785126,
+                        0.03779999911785126
                     ],
                     "translation": [
-                        0.10637465119361877,
-                        -9.238719940185547e-07,
-                        0.3816367983818054
+                        0.0,
+                        0.0,
+                        0.0
                     ]
                 }
             }
@@ -38,33 +29,24 @@
         "1": {
             "components": {
                 "mesh": {
-                    "material": {
-                        "albedoColor": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
-                        "metalness": 0.10000000149011612,
-                        "roughnessValue": 0.5
-                    },
-                    "type": "cube"
+                    "index": 1
                 },
-                "tag": "Cube",
+                "tag": "Couch",
                 "transform": {
                     "rotation": [
                         0.0,
-                        -0.0,
+                        74.67040252685547,
                         0.0
                     ],
                     "scale": [
-                        6.14706563949585,
-                        0.06560000032186508,
-                        6.14706563949585
+                        2.0699996948242188,
+                        2.069999933242798,
+                        2.0699996948242188
                     ],
                     "translation": [
-                        0.6297184228897095,
-                        -0.803208589553833,
-                        -0.10484731197357178
+                        3.0478103160858154,
+                        -0.6349837183952332,
+                        -2.1570301055908203
                     ]
                 }
             }
@@ -72,78 +54,35 @@
         "2": {
             "components": {
                 "mesh": {
-                    "materials": [
-                        {
-                            "albedoColor": [
-                                0.6000000238418579,
-                                0.6000000238418579,
-                                0.6000000238418579
-                            ],
-                            "metalness": 0.10000000149011612,
-                            "roughnessValue": 0.5
-                        },
-                        {
-                            "albedoColor": [
-                                1.0,
-                                1.0,
-                                1.0
-                            ],
-                            "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
-                            "metalness": 0.10000000149011612,
-                            "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
-                            "roughnessValue": 0.5
-                        }
-                    ],
-                    "path": "assets\\models\\regency\\regency.obj",
-                    "type": "model"
+                    "index": 2
                 },
-                "tag": "Couch",
+                "tag": "Cube",
                 "transform": {
                     "rotation": [
-                        0.0,
-                        -0.0,
-                        0.0
+                        -10.16238021850586,
+                        23.172611236572266,
+                        8.66493053308659e-07
                     ],
                     "scale": [
-                        1.0,
-                        1.0,
-                        1.0
+                        2.0500004291534424,
+                        2.0500001907348633,
+                        2.0500006675720215
                     ],
                     "translation": [
-                        0.8310349583625793,
-                        0.2976134419441223,
-                        0.0
+                        4.117889881134033,
+                        2.514425039291382,
+                        4.170887470245361
                     ]
                 }
             }
         },
         "3": {
             "components": {
-                "mesh": {
-                    "materials": [
-                        {
-                            "albedoColor": [
-                                0.5,
-                                0.5,
-                                0.5
-                            ],
-                            "metalness": 0.10000000149011612,
-                            "roughnessValue": 0.5
-                        },
-                        {
-                            "albedoColor": [
-                                0.699999988079071,
-                                0.6934942007064819,
-                                0.6513369083404541
-                            ],
-                            "metalness": 0.10000000149011612,
-                            "roughnessValue": 0.5
-                        }
-                    ],
-                    "path": "assets\\models\\bayonet\\sketchfab_export.fbx",
-                    "type": "model"
+                "spriteRenderer": {
+                    "texturePath": "assets\\textures\\Mango.png",
+                    "usesTexture": true
                 },
-                "tag": "Bayonets",
+                "tag": "Sprite",
                 "transform": {
                     "rotation": [
                         0.0,
@@ -151,14 +90,14 @@
                         0.0
                     ],
                     "scale": [
-                        0.0010000000474974513,
-                        0.0010000000474974513,
-                        0.0010000000474974513
+                        2.25,
+                        2.25,
+                        2.25
                     ],
                     "translation": [
-                        0.5912513732910156,
-                        1.7261343002319336,
-                        0.49496692419052124
+                        -0.9322404861450195,
+                        3.0977091789245605,
+                        4.081377983093262
                     ]
                 }
             }
@@ -171,56 +110,117 @@
                         1.0,
                         1.0
                     ],
-                    "intensity": 1.0,
+                    "intensity": 0.07000000029802322,
                     "type": "directional"
                 },
                 "tag": "Sun",
                 "transform": {
                     "rotation": [
-                        19.71498680114746,
-                        -0.0,
+                        27.134077072143555,
+                        -6.539309024810791,
+                        12.211847305297852
+                    ],
+                    "scale": [
+                        1.0000001192092896,
+                        1.0000001192092896,
+                        0.9999998807907104
+                    ],
+                    "translation": [
+                        0.0,
+                        0.0,
                         0.0
-                    ],
-                    "scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "translation": [
-                        0.0,
-                        1.2011830806732178,
-                        -0.5051657557487488
-                    ]
-                }
-            }
-        },
-        "5": {
-            "components": {
-                "spriteRenderer": {
-                    "texturePath": "assets\\textures\\Chicken.jpg",
-                    "usesTexture": true
-                },
-                "tag": "Unnamed Entity",
-                "transform": {
-                    "rotation": [
-                        0.153218612074852,
-                        -19.38934898376465,
-                        -10.594615936279297
-                    ],
-                    "scale": [
-                        0.7971554398536682,
-                        0.509776771068573,
-                        1.0000001192092896
-                    ],
-                    "translation": [
-                        0.0,
-                        1.0599329471588135,
-                        1.2025169134140015
                     ]
                 }
             }
         }
     },
     "envStrength": 1.0,
-    "skybox": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\textures\\env\\bruh.hdr"
+    "meshes": [
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        0.7074059844017029,
+                        0.7074059844017029,
+                        0.7074059844017029
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        0.800000011920929,
+                        0.3069469928741455,
+                        0.15806299448013306
+                    ],
+                    "metalness": 1.0,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        0.800000011920929,
+                        0.5730940103530884,
+                        0.21723000705242157
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        0.3344709873199463,
+                        0.37123700976371765,
+                        0.6367740035057068
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Test Scene",
+            "path": "assets\\models\\testScene.fbx",
+            "type": "model"
+        },
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        0.6000000238418579,
+                        0.6000000238418579,
+                        0.6000000238418579
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
+                    "metalness": 0.10000000149011612,
+                    "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Couch",
+            "path": "assets\\models\\regency\\regency.obj",
+            "type": "model"
+        },
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Cube",
+            "type": "cube"
+        }
+    ],
+    "skybox": "assets\\textures\\env\\Newport_Loft_Ref.hdr"
 }

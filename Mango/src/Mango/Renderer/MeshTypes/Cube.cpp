@@ -4,7 +4,7 @@
 
 namespace Mango {
 
-	Mesh Mesh::CreateCube(const Ref<Material>& mat)
+	Ref<Mesh> Mesh::CreateCube(const Ref<Material>& mat)
 	{
 		float vertices[] = {
 			-0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
@@ -55,8 +55,8 @@ namespace Mango {
 
 		Node node;
 		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, Ref<IndexBuffer>()), mat });
-		Mesh mesh(node);
-		mesh.Materials.push_back(mat);
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Cube);
+		mesh->Materials.push_back(mat);
 
 		return mesh;
 	}

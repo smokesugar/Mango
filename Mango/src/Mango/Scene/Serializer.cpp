@@ -63,6 +63,34 @@ namespace Mango {
 			j["skybox"] = Renderer::GetSkybox()->GetPath();
 		j["envStrength"] = Renderer::EnvironmentStrength();
 
+		for (auto& [name, mesh] : scene->GetMeshLibrary()) {
+			json m;
+			m["name"] = name;
+			switch (mesh->Type) {
+			case MeshType_Empty:
+				m["type"] = "empty";
+			case MeshType_Capsule:
+				m["type"] = "capsule";
+				break;
+			case MeshType_Cube:
+				m["type"] = "cube";
+				break;
+			case MeshType_Sphere:
+				m["type"] = "sphere";
+				break;
+			case MeshType_Model:
+				m["type"] = "model";
+				m["path"] = mesh->Path;
+				break;
+			}
+			for (auto& mat : mesh->Materials) {
+				json material;
+				DumpMaterial(material, mat);
+				m["materials"].push_back(material);
+			}
+			j["meshes"].push_back(m);
+		}
+
 		for (const auto& [size, entities] : query)
 		{
 			for (size_t i = 0; i < size; i++)
@@ -118,31 +146,7 @@ namespace Mango {
 					if (reg.Has<MeshComponent>(entity))
 					{
 						auto& comp = reg.Get<MeshComponent>(entity);
-						auto& mesh = comp.Mesh;
-						if (comp.Type == MeshType::Empty) {
-							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "empty";
-						}
-						else if (comp.Type == MeshType::Cube) {
-							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "cube";
-							DumpMaterial(j["entities"][std::to_string(entity)]["components"]["mesh"]["material"], mesh.Materials[0]);
-						}
-						else if (comp.Type == MeshType::Sphere) {
-							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "sphere";
-							DumpMaterial(j["entities"][std::to_string(entity)]["components"]["mesh"]["material"], mesh.Materials[0]);
-						}
-						else if (comp.Type == MeshType::Capsule) {
-							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "capsule";
-							DumpMaterial(j["entities"][std::to_string(entity)]["components"]["mesh"]["material"], mesh.Materials[0]);
-						}
-						else if (comp.Type == MeshType::Model) {
-							j["entities"][std::to_string(entity)]["components"]["mesh"]["type"] = "model";
-							j["entities"][std::to_string(entity)]["components"]["mesh"]["path"] = comp.Path;
-							for (auto& mat : mesh.Materials) {
-								json jmat;
-								DumpMaterial(jmat, mat);
-								j["entities"][std::to_string(entity)]["components"]["mesh"]["materials"].push_back(jmat);
-							}
-						}
+						j["entities"][std::to_string(entity)]["components"]["mesh"]["index"] = comp.MeshIndex;
 					}
 				}
 
@@ -184,6 +188,34 @@ namespace Mango {
 			Ref<Cubemap> newHdri = Ref<Cubemap>(Cubemap::Create(path, SKYBOX_RESOLUTION));
 			Renderer::InitializeCubemap(newHdri);
 			Renderer::SetSkybox(newHdri);
+		}
+
+		for (auto& mesh : j["meshes"]) {
+			std::string name = mesh["name"];
+			std::string type = mesh["type"];
+			if (type == "empty") {
+				scene->GetMeshLibrary().Push(name, CreateRef<Mesh>());
+			}
+			if (type == "cube") {
+				auto mat = LoadMaterial(mesh["materials"][0], scene->GetTextureLibrary());
+				scene->GetMeshLibrary().Push(name, Mesh::CreateCube(mat));
+			}
+			if (type == "sphere") {
+				auto mat = LoadMaterial(mesh["materials"][0], scene->GetTextureLibrary());
+				scene->GetMeshLibrary().Push(name, Mesh::CreateCube(mat));
+			}
+			if (type == "capsule") {
+				auto mat = LoadMaterial(mesh["materials"][0], scene->GetTextureLibrary());
+				scene->GetMeshLibrary().Push(name, Mesh::CreateCube(mat));
+			}
+			if (type == "model") {
+				std::string path = mesh["path"];
+				std::vector<Ref<Material>> materials;
+				for (auto& m : mesh["materials"]) {
+					materials.push_back(LoadMaterial(m, scene->GetTextureLibrary()));
+				}
+				scene->GetMeshLibrary().Push(name, Mesh::CreateModel(materials, scene->GetTextureLibrary(), path));
+			}
 		}
 
 		json& entities = j["entities"];
@@ -253,28 +285,8 @@ namespace Mango {
 			{
 				if (components.find("mesh") != components.end()) {
 					json& mesh = components["mesh"];
-					if (mesh["type"] == "empty") {
-						reg.Emplace<MeshComponent>(entity);
-					}
-					else if (mesh["type"] == "cube") {
-						Ref<Material> mat = LoadMaterial(mesh["material"], scene->GetTextureLibrary());
-						reg.Emplace<MeshComponent>(entity, Mesh::CreateCube(mat), MeshType::Cube);
-					}
-					else if (mesh["type"] == "sphere") {
-						Ref<Material> mat = LoadMaterial(mesh["material"], scene->GetTextureLibrary());
-						reg.Emplace<MeshComponent>(entity, Mesh::CreateSphere(mat), MeshType::Sphere);
-					}
-					else if (mesh["type"] == "capsule") {
-						Ref<Material> mat = LoadMaterial(mesh["material"], scene->GetTextureLibrary());
-						reg.Emplace<MeshComponent>(entity, Mesh::CreateCapsule(mat), MeshType::Capsule);
-					}
-					else if (mesh["type"] == "model") {
-						std::string path = mesh["path"];
-						std::vector<Ref<Material>> mats;
-						for (auto& j : mesh["materials"])
-							mats.push_back(LoadMaterial(j, scene->GetTextureLibrary()));
-						reg.Emplace<MeshComponent>(entity, path.empty() ? Mesh() : Mesh::CreateModel(mats, scene->GetTextureLibrary(), path), MeshType::Model).Path = path;
-					}
+					int index = mesh["index"];
+					reg.Emplace<MeshComponent>(entity, index);
 				}
 			}
 

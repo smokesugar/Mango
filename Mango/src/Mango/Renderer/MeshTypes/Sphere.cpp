@@ -8,7 +8,7 @@ namespace Mango {
 
 	// Code straight up stolen from https://github.com/JoeyDeVries/Cell/blob/56726959fa85b4c087f9e87cc67d504db32ea41e/cell/mesh/sphere.cpp
 	
-	Mesh Mesh::CreateSphere(const Ref<Material>& mat, uint32_t xSegments, uint32_t ySegments)
+	Ref<Mesh> Mesh::CreateSphere(const Ref<Material>& mat, uint32_t xSegments, uint32_t ySegments)
 	{
 		std::vector<float> vertices;
 		for (uint32_t y = 0; y <= ySegments; y++)
@@ -61,8 +61,8 @@ namespace Mango {
 		Node node;
 		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
 
-		Mesh mesh(node);
-		mesh.Materials.push_back(mat);
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Sphere);
+		mesh->Materials.push_back(mat);
 
 		return mesh;
 	}

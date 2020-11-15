@@ -26,7 +26,7 @@ namespace Mango {
 		}
 	};
 
-	Mesh Mesh::CreateCapsule(const Ref<Material>& mat, uint32_t mantleSegments, uint32_t ellipsoidSegments) {
+	Ref<Mesh> Mesh::CreateCapsule(const Ref<Material>& mat, uint32_t mantleSegments, uint32_t ellipsoidSegments) {
 		const uint32_t segsHorz = Max(3u, mantleSegments);
 		const uint32_t segsVert = 1u;
 		const uint32_t segsV = Max(2u, ellipsoidSegments);
@@ -181,8 +181,8 @@ namespace Mango {
 
 		Node node;
 		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
-		Mesh mesh(node);
-		mesh.Materials.push_back(mat);
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Capsule);
+		mesh->Materials.push_back(mat);
 
 		return mesh;
 	}

@@ -32,19 +32,43 @@ namespace Mango {
 		Node(const Node& other) = default;
 	};
 
+	enum MeshType {
+		MeshType_Empty,
+		MeshType_Cube,
+		MeshType_Sphere,
+		MeshType_Capsule,
+		MeshType_Model
+	};
+
 	struct Mesh {
 		Node RootNode;
 		std::vector<Ref<Material>> Materials;
+		MeshType Type = MeshType_Empty;
+		std::string Path;
 
 		Mesh() = default;
-		Mesh(const Node& rootNode)
-			: RootNode(rootNode)
+		Mesh(const Node& rootNode, MeshType type, const std::string& path = "")
+			: RootNode(rootNode),
+			Type(type),
+			Path(path)
 		{}
 
-		static Mesh CreateCube(const Ref<Material>& material);
-		static Mesh CreateSphere(const Ref<Material>& material, uint32_t xSegments = 32, uint32_t ySegments = 16);
-		static Mesh CreateCapsule(const Ref<Material>& material, uint32_t mantleSegments = 20, uint32_t ellipsoidSegments = 5);
-		static Mesh CreateModel(const std::vector<Ref<Material>>& material, TextureLibrary& textureLibrary, const std::string& file);
+		static Ref<Mesh> CreateCube(const Ref<Material>& material);
+		static Ref<Mesh> CreateSphere(const Ref<Material>& material, uint32_t xSegments = 32, uint32_t ySegments = 16);
+		static Ref<Mesh> CreateCapsule(const Ref<Material>& material, uint32_t mantleSegments = 20, uint32_t ellipsoidSegments = 5);
+		static Ref<Mesh> CreateModel(const std::vector<Ref<Material>>& material, TextureLibrary& textureLibrary, const std::string& file);
+	};
+
+	class MeshLibrary {
+	public:
+		MeshLibrary() = default;
+		void Push(const std::string& name, const Ref<Mesh>& mesh);
+		inline std::pair<std::string, Ref<Mesh>>& operator[](size_t index) { return mMeshes[index]; }
+		inline size_t Size() const { return mMeshes.size(); }
+		inline auto begin() { return mMeshes.begin(); }
+		inline auto end() { return mMeshes.end(); }
+	private:
+		std::vector<std::pair<std::string, Ref<Mesh>>> mMeshes;
 	};
 
 }

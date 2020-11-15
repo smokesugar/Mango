@@ -86,7 +86,8 @@ namespace Mango {
 				auto transform = transforms[i].GetMatrix();
 				auto& prevTransform = previousTransforms[i].Transform;
 
-				Renderer::SubmitMesh(meshComp.Mesh, prevTransform, transform);
+				if(meshComp.MeshIndex != -1)
+					Renderer::SubmitMesh(*mMeshLibrary[meshComp.MeshIndex].second, prevTransform, transform);
 
 				prevTransform = transform;
 			}

@@ -2,6 +2,7 @@
 
 #include "Mango/Core/ECS.h"
 #include "Mango/Renderer/Texture.h"
+#include "Mango/Renderer/Mesh.h"
 #include "Mango/Renderer/RenderTarget.h"
 
 namespace Mango {
@@ -22,10 +23,12 @@ namespace Mango {
 		
 		inline ECS::Registry& GetRegistry() { return mRegistry; }
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
+		inline MeshLibrary& GetMeshLibrary() { return mMeshLibrary; }
 	private:
 		ECS::Registry mRegistry;
 		ECS::Entity mActiveCameraEntity = ECS::Null;
-		class TextureLibrary mTextureLibrary;
+		TextureLibrary mTextureLibrary;
+		MeshLibrary mMeshLibrary;
 	};
 
 }

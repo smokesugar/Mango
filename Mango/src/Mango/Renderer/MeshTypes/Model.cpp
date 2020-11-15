@@ -74,7 +74,7 @@ namespace Mango {
 			return false;
 	}
 
-	Mesh Mesh::CreateModel(const std::vector<Ref<Material>>& materials, TextureLibrary& textureLibrary, const std::string& file)
+	Ref<Mesh> Mesh::CreateModel(const std::vector<Ref<Material>>& materials, TextureLibrary& textureLibrary, const std::string& file)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder | aiProcess_FlipUVs | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_ValidateDataStructure);
@@ -116,8 +116,8 @@ namespace Mango {
 			}
 		}
 
-		Mesh mesh(ProcessNode(scene->mRootNode, scene));
-		mesh.Materials = sMaterials;
+		Ref<Mesh> mesh = CreateRef<Mesh>(ProcessNode(scene->mRootNode, scene), MeshType_Model, file);
+		mesh->Materials = sMaterials;
 
 		importer.FreeScene();
 		sMaterials.clear();

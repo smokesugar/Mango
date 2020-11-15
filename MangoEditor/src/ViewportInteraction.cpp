@@ -65,7 +65,7 @@ namespace Mango {
 		}
 	}
 
-	ECS::Entity ViewportInteraction::GetHoveredEntity(ECS::Registry& reg, const float2& viewportSize, const float2& mousePosition, const xmmatrix& viewProjection)
+	ECS::Entity ViewportInteraction::GetHoveredEntity(const Ref<Scene>& scene, const float2& viewportSize, const float2& mousePosition, const xmmatrix& viewProjection)
 	{
 		sData->RenderTarget->EnsureSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 		sData->DepthBuffer->EnsureSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
@@ -82,10 +82,12 @@ namespace Mango {
 		float3 col = float3(0.0f, 0.0f, 0.0f);
 		float increment = 1.0f / 255.0f;
 
+		auto& reg = scene->GetRegistry();
+
 		auto query0 = reg.QueryE<MeshComponent, TransformComponent>();
 		for (auto& [size, entities, meshes, transforms] : query0) {
 			for (size_t i = 0; i < size; i++) {
-				auto& mesh = meshes[i];
+				auto& comp = meshes[i];
 				auto& transform = transforms[i];
 
 				col.x += increment;
@@ -104,7 +106,10 @@ namespace Mango {
 				colorint.b = (uint8_t)(col.z * 255.0f);
 
 				valueEntityMap[colorint.raw] = entities[i];
-				RenderNode(mesh.Mesh.RootNode, transform.GetMatrix(), viewProjection, col);
+				if (comp.MeshIndex != -1) {
+					auto& mesh = scene->GetMeshLibrary()[comp.MeshIndex].second;
+					RenderNode(mesh->RootNode, transform.GetMatrix(), viewProjection, col);
+				}
 			}
 		}
 		Renderer::GetSpriteQuadVertexArray()->Bind();
@@ -144,7 +149,7 @@ namespace Mango {
 		return valueEntityMap[colorint.raw];
 	}
 
-	void ViewportInteraction::RenderSelectionOutline(ECS::Registry& reg, ECS::Entity entity, const xmmatrix& viewProjection, const Ref<Texture>& rendertarget)
+	void ViewportInteraction::RenderSelectionOutline(const Ref<Scene>& scene, ECS::Entity entity, const xmmatrix& viewProjection, const Ref<Texture>& rendertarget)
 	{
 		sData->RenderTarget->EnsureSize(rendertarget->GetWidth(), rendertarget->GetHeight());
 		BindRenderTargets({ sData->RenderTarget });
@@ -152,11 +157,16 @@ namespace Mango {
 		sData->SolidColorShader->Bind();
 		sData->SolidColorUniforms->VSBind(0);
 
+		auto& reg = scene->GetRegistry();
+
 		if (reg.Has<MeshComponent>(entity)) {
-			auto& mesh = reg.Get<MeshComponent>(entity);
+			auto& comp = reg.Get<MeshComponent>(entity);
 			auto& transform = reg.Get<TransformComponent>(entity);
 
-			RenderNode(mesh.Mesh.RootNode, transform.GetMatrix(), viewProjection, float3(1.0f, 1.0f, 1.0f));
+			if (comp.MeshIndex != -1) {
+				auto& mesh = scene->GetMeshLibrary()[comp.MeshIndex].second;
+				RenderNode(mesh->RootNode, transform.GetMatrix(), viewProjection, float3(1.0f, 1.0f, 1.0f));
+			}
 		}
 
 		if (reg.Has<SpriteRendererComponent>(entity)) {

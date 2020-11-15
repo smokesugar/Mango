@@ -63,19 +63,13 @@ namespace Mango {
 		{}
 	};
 
-	enum class MeshType {
-		Empty, Cube, Sphere, Capsule, Model
-	};
-
 	struct MeshComponent {
-		Mango::Mesh Mesh;
-		MeshType Type = MeshType::Empty;
-		std::string Path = "";
+		int MeshIndex;
 
-		MeshComponent() = default;
+		MeshComponent() : MeshIndex(-1) {}
 		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const Mango::Mesh& mesh, MeshType type)
-			: Mesh(mesh), Type(type)
+		MeshComponent(int meshIndex)
+			: MeshIndex(meshIndex)
 		{}
 	};
 

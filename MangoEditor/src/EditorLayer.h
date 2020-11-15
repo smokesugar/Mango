@@ -2,6 +2,7 @@
 
 #include "Mango.h"
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ModelLibraryPanel.h"
 #include "EditorCamera.h"
 
 #include <imgui.h>
@@ -25,6 +26,7 @@ namespace Mango {
 		Ref<Scene> mScene;
 
 		SceneHierarchyPanel mSceneHierarchyPanel;
+		ModelLibraryPanel mModelLibraryPanel;
 
 		Ref<Texture> mFramebuffer;
 

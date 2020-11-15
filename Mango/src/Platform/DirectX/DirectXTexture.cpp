@@ -34,18 +34,20 @@ namespace Mango {
 		: mWidth(0), mHeight(0), mPath(filePath), mFlags(flags), mFormat(format)
 	{
 		int width, height;
-		void* data;
+		void* data = nullptr;
 		if (IsFormatFloatingPoint(mFormat)) {
 			data = stbi_loadf(filePath.c_str(), &width, &height, nullptr, 4);
 		}
 		else
 			data = stbi_load(filePath.c_str(), &width, &height, nullptr, 4);
 
-		MG_CORE_ASSERT(data, "Could not load texture '{0}'.", filePath);
+		if (!data) MG_CORE_ERROR("Failed to load texture: {0}", filePath);
+
 		mWidth = (uint32_t)width;
 		mHeight = (uint32_t)height;
 		Create(data);
-		stbi_image_free(data);
+		
+		if(data) stbi_image_free(data);
 	}
 
 	void DirectXTexture::EnsureSize(uint32_t width, uint32_t height)

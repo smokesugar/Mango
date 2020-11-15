@@ -10,6 +10,7 @@ namespace Mango {
 		mScene = CreateRef<Scene>();
 
 		mSceneHierarchyPanel.SetScene(mScene.get());
+		mModelLibraryPanel.SetScene(mScene.get());
 
 		mFramebuffer = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 		ViewportInteraction::Init();
@@ -32,7 +33,7 @@ namespace Mango {
 
 		if (!mScenePlaying && mScene->GetRegistry().Valid(mSceneHierarchyPanel.GetSelectedEntity())) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
-			ViewportInteraction::RenderSelectionOutline(mScene->GetRegistry(), mSceneHierarchyPanel.GetSelectedEntity(), viewProjection, mFramebuffer);
+			ViewportInteraction::RenderSelectionOutline(mScene, mSceneHierarchyPanel.GetSelectedEntity(), viewProjection, mFramebuffer);
 		}
 	}
 
@@ -74,6 +75,7 @@ namespace Mango {
 					if (FileDialog::Open(path, L"Mango Scene\0*.json;*.mango\0All\0*.*\0")) {
 						mScene = Serializer::DeserializeScene(path);
 						mSceneHierarchyPanel.SetScene(mScene.get());
+						mModelLibraryPanel.SetScene(mScene.get());
 					}
 				}
 
@@ -131,7 +133,7 @@ namespace Mango {
 		static bool selectedEntityHovered = ECS::Null;
 		if (!mScenePlaying && mViewportHovered && ImGui::IsMouseClicked(1)) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
-			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene->GetRegistry(), mViewportSize, mViewportMousePosition, viewProjection);
+			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene, mViewportSize, mViewportMousePosition, viewProjection);
 			selectedEntityHovered = mSceneHierarchyPanel.GetSelectedEntity() == hoveredEntity;
 			ImGui::OpenPopup("viewport_context_menu");
 		}
@@ -151,8 +153,8 @@ namespace Mango {
 
 		ImGui::End();
 		
-
 		mSceneHierarchyPanel.OnImGuiRender();
+		mModelLibraryPanel.OnImGuiRender();
 
 		Dockspace::End();
 	}
@@ -175,7 +177,7 @@ namespace Mango {
 	{
 		if (e.GetButton() == MouseCode::LBUTTON && !mScenePlaying && mViewportHovered && !mGizmoHovered) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
-			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene->GetRegistry(), mViewportSize, mViewportMousePosition, viewProjection);
+			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene, mViewportSize, mViewportMousePosition, viewProjection);
 			mSceneHierarchyPanel.SetSelectedEntity(hoveredEntity);
 		}
 		return false;
