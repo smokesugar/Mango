@@ -17,6 +17,7 @@ Mango is a work in progress Game Engine. Future plans include an editor, scripti
 - PBR Shading
 - Image Based Lighting
 - Directional Shadows
+- Ambient Occlusion
 
 ## Future Features
 - Physics

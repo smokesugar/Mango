@@ -11,7 +11,10 @@ namespace Mango {
 
 	static std::vector<Ref<Material>> sMaterials;
 
-	static Ref<VertexArray> ProcessMesh(aiMesh* mesh, const aiScene* scene)
+	static float3 aabbMin;
+	static float3 aabbMax;
+
+	static Ref<VertexArray> ProcessMesh(aiMesh* mesh, const aiScene* scene, const xmmatrix& transform)
 	{
 		std::vector<float> vertices;
 		vertices.reserve(mesh->mNumVertices * 8);
@@ -23,6 +26,12 @@ namespace Mango {
 			vertices.push_back(mesh->mVertices[i].x);
 			vertices.push_back(mesh->mVertices[i].y);
 			vertices.push_back(mesh->mVertices[i].z);
+
+			xmvector transformed = XMVector4Transform({ mesh->mVertices[i].x ,mesh->mVertices[i].y,mesh->mVertices[i].z, 1.0f }, transform);
+			float3 transformedF; XMStoreFloat3(&transformedF, transformed);
+			aabbMin = Min(aabbMin, transformedF);
+			aabbMax = Max(aabbMax, transformedF);
+
 			vertices.push_back(mesh->mNormals[i].x);
 			vertices.push_back(mesh->mNormals[i].y);
 			vertices.push_back(mesh->mNormals[i].z);
@@ -46,18 +55,20 @@ namespace Mango {
 		return CreateRef<VertexArray>(Ref<VertexBuffer>(VertexBuffer::Create(vertices.data(), vertices.size()/8, 8*sizeof(float))), Ref<IndexBuffer>(IndexBuffer::Create(indices.data(), indices.size())));
 	}
 
-	static Node ProcessNode(aiNode* ainode, const aiScene* scene)
+	static Node ProcessNode(aiNode* ainode, const aiScene* scene, const xmmatrix& parentTransform)
 	{
 		float4x4 transform = *(float4x4*)&ainode->mTransformation;
 		Node node(XMMatrixTranspose(XMLoadFloat4x4(&transform)));
 
+		xmmatrix accumulatedTransform = node.Transform * parentTransform;
+
 		for (size_t i = 0; i < ainode->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[ainode->mMeshes[i]];
-			node.Submeshes.push_back({ ProcessMesh(mesh, scene), sMaterials[mesh->mMaterialIndex] });
+			node.Submeshes.push_back({ ProcessMesh(mesh, scene, accumulatedTransform), sMaterials[mesh->mMaterialIndex] });
 		}
 
 		for (size_t i = 0; i < ainode->mNumChildren; i++) {
-			node.Children.push_back(ProcessNode(ainode->mChildren[i], scene));
+			node.Children.push_back(ProcessNode(ainode->mChildren[i], scene, accumulatedTransform));
 		}
 
 		return node;
@@ -116,7 +127,12 @@ namespace Mango {
 			}
 		}
 
-		Ref<Mesh> mesh = CreateRef<Mesh>(ProcessNode(scene->mRootNode, scene), MeshType_Model, file);
+
+		aabbMin = float3(INFINITY, INFINITY, INFINITY);
+		aabbMax = float3(-INFINITY, -INFINITY, -INFINITY);
+
+		Node node = ProcessNode(scene->mRootNode, scene, XMMatrixIdentity());
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Model, BoundingBox(aabbMin, aabbMax), file);
 		mesh->Materials = sMaterials;
 
 		importer.FreeScene();

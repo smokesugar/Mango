@@ -50,6 +50,8 @@ namespace Mango {
 
 		auto& reg = mScene->GetRegistry();
 
+		std::queue<ECS::Entity> deletionQueue;
+
 		ImGui::Begin("Scene Hierarchy");
 		auto query = reg.QueryE<TagComponent>();
 		for (auto& [size, entities, tags] : query)
@@ -77,8 +79,13 @@ namespace Mango {
 				}
 
 				if (remove)
-					reg.Destroy(id);
+					deletionQueue.push(id);
 			}
+		}
+
+		while (!deletionQueue.empty()) {
+			reg.Destroy(deletionQueue.front());
+			deletionQueue.pop();
 		}
 
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0))
@@ -392,7 +399,7 @@ namespace Mango {
 				ImGui::InputText("##model_name", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 
 				if (ImGui::BeginDragDropTarget()) {
-					auto payload = ImGui::AcceptDragDropPayload("meshindex");
+					auto payload = ImGui::AcceptDragDropPayload("payload_meshindex");
 					if (payload) {
 						MG_ASSERT(payload->DataSize == sizeof(int), "Incorrect ImGui payload size.");
 						comp.MeshIndex = *(int*)payload->Data;

@@ -10,6 +10,9 @@ namespace Mango {
 	
 	Ref<Mesh> Mesh::CreateSphere(const Ref<Material>& mat, uint32_t xSegments, uint32_t ySegments)
 	{
+		float3 aabbMin(INFINITY, INFINITY, INFINITY);
+		float3 aabbMax(-INFINITY, -INFINITY, -INFINITY);
+
 		std::vector<float> vertices;
 		for (uint32_t y = 0; y <= ySegments; y++)
 		{
@@ -26,6 +29,9 @@ namespace Mango {
 				xPos /= len;
 				yPos /= len;
 				zPos /= len;
+
+				aabbMin = Min(aabbMin, float3(xPos / 2.0f, yPos / 2.0f, zPos / 2.0f));
+				aabbMax = Max(aabbMax, float3(xPos / 2.0f, yPos / 2.0f, zPos / 2.0f));
 
 				vertices.push_back(xPos / 2.0f);
 				vertices.push_back(yPos / 2.0f);
@@ -61,7 +67,7 @@ namespace Mango {
 		Node node;
 		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
 
-		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Sphere);
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Sphere, BoundingBox(aabbMin, aabbMax));
 		mesh->Materials.push_back(mat);
 
 		return mesh;

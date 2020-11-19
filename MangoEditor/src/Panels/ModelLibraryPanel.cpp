@@ -2,34 +2,77 @@
 
 #include <imgui.h>
 
+#define WIDGET_SIZE 78
+#define ICON_SIZE 64
+
 namespace Mango {
+
+	struct TransformBuffer {
+		xmmatrix Transform;
+		xmmatrix MVP;
+	};
+
+	ModelLibraryPanel::ModelLibraryPanel()
+	{
+		mShader = Ref<Shader>(Shader::Create("assets/shaders/MeshIcon_vs.cso", "assets/shaders/MeshIcon_ps.cso"));
+		mDepthBuffer = Ref<DepthBuffer>(DepthBuffer::Create(ICON_SIZE, ICON_SIZE));
+		mTransformBuffer = Ref<UniformBuffer>(UniformBuffer::Create<TransformBuffer>());
+	}
 
 	void ModelLibraryPanel::OnImGuiRender()
 	{
 		ImGui::Begin("Model Library");
-		uint32_t counter = 0;
 		auto& meshLib = mScene->GetMeshLibrary();
+
+		size_t columns = ImGui::GetContentRegionAvailWidth() / WIDGET_SIZE;
+		columns = Max(columns, (size_t)1u);
+
+		std::queue<int> deletionQueue;
+
+		ImGui::Columns(columns, 0, false);
 		for (int i = 0; i < meshLib.Size(); i++) {
 			auto& [name, mesh] = meshLib[i];
-			char buf[64];
-			memset(buf, 0, sizeof(buf));
-			memcpy(buf, name.c_str(), Min(sizeof(buf), name.size()));
-			if (ImGui::InputText(std::string("##mesh_name" + std::to_string(counter)).c_str(), buf, sizeof(buf)))
-				name = buf;
 
-			if(ImGui::BeginDragDropSource()) {
-				ImGui::SetDragDropPayload("meshindex", &i, sizeof(i), ImGuiCond_Once);
-				ImGui::Text(buf);
+			if (mIcons.find(mesh.get()) == mIcons.end())
+				CreateIcon(mesh.get());
+
+			auto& texture = mIcons[mesh.get()];
+			
+			ImGui::SetCursorPos({ ImGui::GetCursorPos().x +(float)WIDGET_SIZE / 2.0f - (float)ICON_SIZE / 2.0f , ImGui::GetCursorPos().y });
+			ImGui::Image(texture->GetNativeTexture(), { (float)texture->GetWidth(), (float)texture->GetHeight() });
+			if (ImGui::BeginPopupContextItem((const char*)mesh.get())) {
+				if (ImGui::MenuItem("Delete")) {
+					deletionQueue.push(i);
+				}
+				ImGui::EndPopup();
+			}
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+				ImGui::SetDragDropPayload("payload_meshindex", &i, sizeof(i), ImGuiCond_Once);
+				ImGui::Image(texture->GetNativeTexture(), { (float)texture->GetWidth(), (float)texture->GetHeight() });
 				ImGui::EndDragDropSource();
 			}
 
-			counter++;
+			char buf[64];
+			memset(buf, 0, sizeof(buf));
+			memcpy(buf, name.c_str(), Min(sizeof(buf), name.size()));
+			
+			float textWidth = ImGui::CalcTextSize(buf).x;
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (float)WIDGET_SIZE / 2 - textWidth / 2);
+			ImGui::Text(buf);
+
+			ImGui::NextColumn();
+		}
+		ImGui::Columns(1);
+
+		while (!deletionQueue.empty()) {
+			DeleteMesh(deletionQueue.front());
+			deletionQueue.pop();
 		}
 
-		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
-			ImGui::OpenPopup("context_menu");
+		if (ImGui::IsMouseClicked(1) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+			ImGui::OpenPopup("meshLibrary_popup");
 
-		if (ImGui::BeginPopup("context_menu")) {
+		if (ImGui::BeginPopup("meshLibrary_popup", ImGuiPopupFlags_NoOpenOverExistingPopup | 1)) {
 			if (ImGui::MenuItem("Create Cube")) {
 				meshLib.Push("Cube Mesh", Mesh::CreateCube(Renderer::CreateDefaultMaterial()));
 			}
@@ -48,6 +91,62 @@ namespace Mango {
 		}
 
 		ImGui::End();
+	}
+
+	void ModelLibraryPanel::RenderNode(const Node& node, const xmmatrix& parentTransform) {
+		xmmatrix transform = node.Transform * parentTransform;
+		mTransformBuffer->SetData<TransformBuffer>({transform, transform*mViewProjection});
+		for (auto& [mesh, mat] : node.Submeshes) {
+			mesh->Bind();
+			if (mesh->IsIndexed())
+				RenderCommand::DrawIndexed(mesh->GetDrawCount(), 0);
+			else
+				RenderCommand::Draw(mesh->GetDrawCount(), 0);
+		}
+		for (auto& child : node.Children)
+			RenderNode(child, transform);
+	}
+
+	void ModelLibraryPanel::DeleteMesh(size_t index)
+	{
+		mIcons.erase(mScene->GetMeshLibrary()[index].second.get());
+		mScene->GetMeshLibrary().Pop(index, mScene->GetRegistry());
+	}
+
+	void ModelLibraryPanel::CreateIcon(Mesh* mesh)
+	{
+		mIcons[mesh] = Ref<Texture>(Texture::Create(nullptr, ICON_SIZE, ICON_SIZE, Format::RGBA8_UNORM, Texture_RenderTarget));
+		BindRenderTargets({ mIcons[mesh] }, mDepthBuffer);
+		mIcons[mesh]->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+		mDepthBuffer->Clear(0.0f);
+		mTransformBuffer->VSBind(0);
+		mShader->Bind();
+
+		float minX = mesh->AABB.Min.x;
+		float maxX = mesh->AABB.Max.x;
+		float minY = mesh->AABB.Min.y;
+		float maxY = mesh->AABB.Max.y;
+		float minZ = mesh->AABB.Min.z;
+		float maxZ = mesh->AABB.Max.z;
+
+		float mx = minX + maxX;
+		float my = minY + maxY;
+		float mz = minZ + maxZ;
+		float3 aabbCenter = float3(mx/2.0f, my/2.0f, mz/2.0f);
+
+		float dx = minX - maxX;
+		float dy = minY - maxY;
+		float dz = minZ - maxZ;
+		float boundSphereRadius = sqrtf(dx * dx + dy * dy + dz * dz)/2.0f;
+
+		float fov = ToRadians(45.0f);
+		float camDistance = (boundSphereRadius) / tanf(fov / 2.0f);
+
+		xmmatrix view = XMMatrixLookAtLH({ aabbCenter.x, aabbCenter.y, aabbCenter.z - camDistance }, XMLoadFloat3(&aabbCenter), {0.0f, 1.0f, 0.0f});
+		xmmatrix projection = XMMatrixPerspectiveFovLH(fov, 1.0f, camDistance+boundSphereRadius, 0.1f);
+
+		mViewProjection = view * projection;
+		RenderNode(mesh->RootNode, XMMatrixIdentity());
 	}
 
 }

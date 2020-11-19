@@ -42,6 +42,9 @@ namespace Mango {
 		float3 coord, normal;
 		float2 texCoord;
 
+		float3 aabbMin = float3(INFINITY, INFINITY, INFINITY);
+		float3 aabbMax = float3(-INFINITY, -INFINITY, -INFINITY);
+
 		float angle = 0.0f;
 
 		std::vector<float> vertices;
@@ -68,6 +71,9 @@ namespace Mango {
 			for(uint32_t v = 0; v <= segsVert; v++) {
 				texCoord.y = (float)v * invVert;
 				coord.y = Lerp(halfHeight, -halfHeight, texCoord.y);
+
+				aabbMin = Min(aabbMin, float3(coord.x, coord.y, coord.z));
+				aabbMax = Max(aabbMax, float3(coord.x, coord.y, coord.z));
 
 				vertices.push_back(coord.x);
 				vertices.push_back(coord.y);
@@ -116,6 +122,9 @@ namespace Mango {
 					coord.z *= CAPSULE_RADIUS;
 
 					coord.y += halfHeight * coverSide[i];
+
+					aabbMin = Min(aabbMin, float3(coord.x, coord.y, coord.z));
+					aabbMax = Max(aabbMax, float3(coord.x, coord.y, coord.z));
 
 					vertices.push_back(coord.x);
 					vertices.push_back(coord.y);
@@ -181,7 +190,7 @@ namespace Mango {
 
 		Node node;
 		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
-		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Capsule);
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Capsule, BoundingBox(aabbMin, aabbMax));
 		mesh->Materials.push_back(mat);
 
 		return mesh;

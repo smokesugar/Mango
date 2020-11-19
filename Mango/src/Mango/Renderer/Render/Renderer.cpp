@@ -138,6 +138,16 @@ namespace Mango {
 		sData->GBuffer.Normal->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->GBuffer.Velocity->EnsureSize(target->GetWidth(), target->GetHeight());
 
+		ShadowmapPass(sData->RenderQueue3D);
+		RenderToGBuffer(sData->RenderQueue3D, {sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity}, sData->DepthBuffer);
+		LightingPass(sData->GBuffer.Color, sData->GBuffer.Normal, sData->DepthBuffer, sData->ImmediateTarget);
+		Texture::Unbind(2);
+		SSAOPass(sData->DepthBuffer, sData->GBuffer.Normal, sData->ImmediateTarget, target);
+		Texture::Unbind(0);
+		FlushSpriteQueue(sData->RenderQueue2D, { target, sData->GBuffer.Velocity }, sData->DepthBuffer);
+		TAAPass(target, sData->GBuffer.Velocity, sData->ImmediateTarget);
+		BlitTexture(target, sData->ImmediateTarget);
+
 		Texture::Unbind(0);
 		Texture::Unbind(1);
 		Texture::Unbind(2);
@@ -146,13 +156,6 @@ namespace Mango {
 		Texture::Unbind(5);
 		Texture::Unbind(6);
 		Texture::Unbind(7);
-
-		ShadowmapPass(sData->RenderQueue3D);
-		RenderToGBuffer(sData->RenderQueue3D, {sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity}, sData->DepthBuffer);
-		LightingPass(sData->GBuffer.Color, sData->GBuffer.Normal, sData->DepthBuffer, sData->ImmediateTarget);
-		Texture::Unbind(2);
-		FlushSpriteQueue(sData->RenderQueue2D, { sData->ImmediateTarget, sData->GBuffer.Velocity }, sData->DepthBuffer);
-		TAAPass(sData->ImmediateTarget, sData->GBuffer.Velocity, target);
 	}
 
 	void Renderer::SubmitQuad(const xmmatrix& previousFrameTransform, const xmmatrix& transform, const Ref<Texture>& texture, const float4& color)
