@@ -66,7 +66,7 @@ namespace Mango {
 				material->NormalTexture->Bind(1);
 			material->RoughnessTexture->Bind(2);
 
-			xmmatrix prevVP = GetPrevViewMatrix() * GetPrevProjectionMatrix() * GetJitterMatrix();
+			xmmatrix prevVP = GetPrevViewMatrix() * GetPrevProjectionMatrix();
 			xmmatrix VP = GetViewMatrix() * GetProjectionMatrix() * GetJitterMatrix();
 
 			for (auto& [va, prevT, transform] : submeshes) {

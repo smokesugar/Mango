@@ -59,7 +59,7 @@ namespace Mango {
 
 	static void DrawQuad(const xmmatrix& previousTransform, const xmmatrix& transform, const Ref<Texture>& texture, const float4& color) {
 		texture->Bind(0);
-		xmmatrix prevMVP = previousTransform * Renderer::GetPrevViewMatrix() * Renderer::GetPrevProjectionMatrix() * Renderer::GetJitterMatrix();
+		xmmatrix prevMVP = previousTransform * Renderer::GetPrevViewMatrix() * Renderer::GetPrevProjectionMatrix();
 		xmmatrix MVP = transform * Renderer::GetViewMatrix() * Renderer::GetProjectionMatrix() * Renderer::GetJitterMatrix();
 		sData->SpriteUniforms->SetData<SpriteData>({prevMVP, MVP, color});
 		RenderCommand::DrawIndexed(sData->Quad->GetDrawCount(), 0);

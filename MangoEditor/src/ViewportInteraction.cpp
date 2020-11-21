@@ -37,9 +37,14 @@ namespace Mango {
 		delete sData;
 	}
 
+	const Ref<Texture> ViewportInteraction::GetRenderTarget()
+	{
+		return sData->RenderTarget;
+	}
+
 	struct RGB32 {
 		union {
-			struct { uint8_t r, g, b; };
+			struct { uint8_t r, g, b, a; };
 			uint32_t raw;
 		};
 
@@ -104,8 +109,9 @@ namespace Mango {
 				colorint.r = (uint8_t)(col.x * 255.0f);
 				colorint.g = (uint8_t)(col.y * 255.0f);
 				colorint.b = (uint8_t)(col.z * 255.0f);
-
+				colorint.a = 1u;
 				valueEntityMap[colorint.raw] = entities[i];
+
 				if (comp.MeshIndex != -1) {
 					auto& mesh = scene->GetMeshLibrary()[comp.MeshIndex].second;
 					RenderNode(mesh->RootNode, transform.GetMatrix(), viewProjection, col);
@@ -132,6 +138,7 @@ namespace Mango {
 				colorint.r = (uint8_t)(col.x * 255.0f);
 				colorint.g = (uint8_t)(col.y * 255.0f);
 				colorint.b = (uint8_t)(col.z * 255.0f);
+				colorint.a = 1u;
 
 				valueEntityMap[colorint.raw] = entities[i];
 
@@ -145,6 +152,7 @@ namespace Mango {
 
 		RGB32 colorint;
 		memcpy(&colorint, color, sizeof(color));
+		colorint.a = 1u;
 
 		return valueEntityMap[colorint.raw];
 	}

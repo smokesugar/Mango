@@ -12,7 +12,6 @@ struct VSOut
 
 cbuffer constantBuffer : register(b0)
 {
-    matrix invView;
     matrix view;
     matrix projection;
     float4 perspectiveValues;
@@ -79,7 +78,7 @@ float4 main(VSOut vso) : SV_Target
     uint width, height;
     depthBuffer.GetDimensions(width, height);
     
-    float3 randomVec = GetRandomOrientation(vso.uv);
+    float3 randomVec = GetRandomOrientation(vso.uv*randSeed);
     float3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     float3 bitangent = cross(normal, tangent);
     float3x3 TBN = float3x3(tangent, bitangent, normal);

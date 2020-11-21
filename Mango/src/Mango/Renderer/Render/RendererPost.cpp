@@ -9,7 +9,6 @@
 namespace Mango {
 
 	struct SSAOData {
-		xmmatrix InvView;
 		xmmatrix View;
 		xmmatrix Projection;
 		float4 PerspectiveValues;
@@ -75,7 +74,6 @@ namespace Mango {
 		counter = counter % 1000 + 1;
 
 		SSAOData data;
-		data.InvView = XMMatrixInverse(nullptr, GetViewMatrix());
 		data.View = GetViewMatrix();
 		data.Projection = GetProjectionMatrix() * GetJitterMatrix();
 		data.randomSeed = (float)counter;

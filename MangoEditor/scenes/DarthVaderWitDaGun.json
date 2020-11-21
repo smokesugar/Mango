@@ -1,35 +1,10 @@
 {
     "activeCamera": 4294967295,
     "entities": {
-        "0": {
-            "components": {
-                "mesh": {
-                    "index": 0
-                },
-                "tag": "Vader",
-                "transform": {
-                    "rotation": [
-                        0.0,
-                        -0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        0.046000003814697266,
-                        0.046000003814697266,
-                        0.046000003814697266
-                    ],
-                    "translation": [
-                        0.0,
-                        -0.5239231586456299,
-                        0.0
-                    ]
-                }
-            }
-        },
         "1": {
             "components": {
                 "mesh": {
-                    "index": 1
+                    "index": 0
                 },
                 "tag": "Floor",
                 "transform": {
@@ -54,7 +29,7 @@
         "2": {
             "components": {
                 "mesh": {
-                    "index": 1
+                    "index": 0
                 },
                 "tag": "Wall",
                 "transform": {
@@ -76,27 +51,58 @@
                 }
             }
         },
-        "3": {
+        "4": {
             "components": {
                 "mesh": {
-                    "index": 2
+                    "index": 1
                 },
-                "tag": "Gun",
+                "tag": "Nurse",
                 "transform": {
                     "rotation": [
-                        180.0,
-                        -2.1960222721099854,
-                        180.0
+                        0.0,
+                        -0.0,
+                        0.0
                     ],
                     "scale": [
-                        0.007454994600266218,
-                        0.00745500810444355,
-                        0.007454994600266218
+                        0.014700014144182205,
+                        0.014700014144182205,
+                        0.014700014144182205
                     ],
                     "translation": [
-                        0.6081750392913818,
-                        1.0589702129364014,
-                        -0.5837681889533997
+                        0.0,
+                        -0.6066665649414063,
+                        -1.4607212543487549
+                    ]
+                }
+            }
+        },
+        "5": {
+            "components": {
+                "light": {
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "intensity": 1.0,
+                    "type": "directional"
+                },
+                "tag": "Sun",
+                "transform": {
+                    "rotation": [
+                        2.873429775238037,
+                        -35.0013427734375,
+                        21.956466674804688
+                    ],
+                    "scale": [
+                        0.9999997615814209,
+                        1.0,
+                        0.9999998807907104
+                    ],
+                    "translation": [
+                        0.0,
+                        0.0,
+                        0.0
                     ]
                 }
             }
@@ -104,80 +110,6 @@
     },
     "envStrength": 1.0,
     "meshes": [
-        {
-            "materials": [
-                {
-                    "albedoColor": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/default_baseColor.jpg",
-                    "metalness": 0.0,
-                    "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/default_normal.png",
-                    "roughnessTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/default_metallicRoughness.png",
-                    "roughnessValue": 0.23000000417232513
-                },
-                {
-                    "albedoColor": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/04_-_Default_baseColor.jpg",
-                    "metalness": 0.0,
-                    "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/04_-_Default_normal.png",
-                    "roughnessTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/04_-_Default_metallicRoughness.png",
-                    "roughnessValue": 0.5799999833106995
-                },
-                {
-                    "albedoColor": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/02_-_Default55_baseColor.jpg",
-                    "metalness": 0.0,
-                    "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/02_-_Default55_normal.png",
-                    "roughnessTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/02_-_Default55_metallicRoughness.png",
-                    "roughnessValue": 0.5
-                },
-                {
-                    "albedoColor": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/03_-_Default_baseColor.jpg",
-                    "metalness": 0.0,
-                    "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/03_-_Default_normal.png",
-                    "roughnessValue": 0.15000000596046448
-                },
-                {
-                    "albedoColor": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/02_-_Default_baseColor.jpg",
-                    "metalness": 0.0,
-                    "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\textures/02_-_Default_normal.png",
-                    "roughnessValue": 0.38999998569488525
-                },
-                {
-                    "albedoColor": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "metalness": 1.0,
-                    "roughnessValue": 0.5400000214576721
-                }
-            ],
-            "name": "Unnamed Mesh",
-            "path": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\darth_vader\\scene.gltf",
-            "type": "model"
-        },
         {
             "materials": [
                 {
@@ -201,14 +133,12 @@
                         1.0,
                         1.0
                     ],
-                    "albedoTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\cerberus\\Textures\\Cerberus_A.tga",
-                    "metalness": 0.10000000149011612,
-                    "normalTexture": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\cerberus\\Textures\\Raw\\Cerberus_N.tga",
-                    "roughnessValue": 0.17000000178813934
+                    "metalness": 1.0,
+                    "roughnessValue": 0.18000000715255737
                 }
             ],
             "name": "Unnamed Mesh",
-            "path": "..\\..\\..\\Users\\jerem\\Desktop\\Polymer\\Sandbox\\assets\\models\\cerberus\\Cerberus_LP.FBX",
+            "path": "..\\..\\..\\Users\\jerem\\Desktop\\MODEL\\032M_02SET_03SHOT.fbx",
             "type": "model"
         }
     ],
