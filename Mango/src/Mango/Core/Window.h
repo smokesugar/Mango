@@ -16,12 +16,13 @@ namespace Mango {
 		uint32_t Height;
 		std::string Title;
 		EventCallback EventFn;
+		bool Maximised;
 
 		WindowProperties()
-			: Width(1280), Height(720), Title("Mango Engine")
+			: Width(1280), Height(720), Title("Mango Engine"), Maximised(false)
 		{}
-		WindowProperties(uint32_t width, uint32_t height, const std::string& title)
-			: Width(width), Height(height), Title(title)
+		WindowProperties(uint32_t width, uint32_t height, const std::string& title, bool maximised)
+			: Width(width), Height(height), Title(title), Maximised(maximised)
 		{}
 	};
 	

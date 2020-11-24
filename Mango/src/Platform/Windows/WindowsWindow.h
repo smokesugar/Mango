@@ -26,6 +26,7 @@ namespace Mango {
 		uint32_t mWidth;
 		uint32_t mHeight;
 		std::string mTitle;
+		bool mMaximised;
 		EventCallback mEventCallback;
 	};
 

@@ -27,6 +27,7 @@ namespace Mango {
         props.Height = 720;
         props.Title = title;
         props.EventFn = MG_BIND_FN(Application::EventCallback);
+        props.Maximised = true;
         mWindow = Scope<Window>(Window::Create(props));
         mWindow->CreateSwapChain();
 

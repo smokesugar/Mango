@@ -35,6 +35,7 @@ namespace Mango {
 
 	WindowsWindow::WindowsWindow(const WindowProperties& props)
 		: mWidth(props.Width), mHeight(props.Height), mTitle(props.Title), mEventCallback(props.EventFn),
+		mMaximised(props.Maximised),
 		mHandle(nullptr)
 	{
 		Init();
@@ -208,7 +209,7 @@ namespace Mango {
 
 		mHandle = CreateWindowEx(0, window_class, WidenString(mTitle).c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr, hInstance, this);
 		MG_CORE_ASSERT(mHandle, "Failed to create window: {0}", Translate(GetLastError()));
-		ShowWindow(mHandle, SW_SHOWDEFAULT);
+		ShowWindow(mHandle,  mMaximised ? SW_SHOWMAXIMIZED : SW_SHOWDEFAULT);
 		UnregisterClass(window_class, hInstance);
 
 		RAWINPUTDEVICE rid[1];

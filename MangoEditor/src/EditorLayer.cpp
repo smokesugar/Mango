@@ -49,11 +49,15 @@ namespace Mango {
 	{
 		Dockspace::Begin();
 
-		ImGui::Begin("Temp Panel");
-		bool& b = Renderer::TAAEnabled();
+		ImGui::Begin("Runtime");
+		if (ImGui::Button(!mScenePlaying ? "Play" : "Stop")) mScenePlaying = !mScenePlaying;
+		ImGui::End();
+
+		ImGui::Begin("Performance");
 		ImGui::Text("FPS: %f", mFPS);
-		ImGui::Checkbox("TAA", &b);
-		ImGui::Checkbox("Scene Playing", &mScenePlaying);
+		ImGui::End();
+
+		ImGui::Begin("Scene Settings");
 		ImGui::DragFloat("Environment Strength", &Renderer::EnvironmentStrength(), 0.01f, 0.0f, 100.0f);
 		if (ImGui::Button("Select HDRi")) {
 			std::string path;
