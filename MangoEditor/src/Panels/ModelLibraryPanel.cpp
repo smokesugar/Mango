@@ -24,8 +24,30 @@ namespace Mango {
 		ImGui::Begin("Model Library");
 		auto& meshLib = mScene->GetMeshLibrary();
 
-		size_t columns = ImGui::GetContentRegionAvailWidth() / WIDGET_SIZE;
-		columns = Max(columns, (size_t)1u);
+		if (ImGui::BeginPopupContextWindow()) {
+			if (ImGui::MenuItem("Create Cube")) {
+				meshLib.Push("Cube Mesh", Mesh::CreateCube(Renderer::CreateDefaultMaterial()));
+			}
+			if (ImGui::MenuItem("Create Sphere")) {
+				meshLib.Push("Sphere Mesh", Mesh::CreateSphere(Renderer::CreateDefaultMaterial()));
+			}
+			if (ImGui::MenuItem("Create Capsule")) {
+				meshLib.Push("Capsule Mesh", Mesh::CreateCapsule(Renderer::CreateDefaultMaterial()));
+			}
+			if (ImGui::MenuItem("Create Model")) {
+				std::string path;
+				if (FileDialog::Open(path, L"3D Model\0*.gltf;*.obj;*.fbx;*.dae\0All*.*\0"))
+					meshLib.Push("Unnamed Mesh", Mesh::CreateModel({}, mScene->GetTextureLibrary(), path));
+			}
+			ImGui::EndPopup();
+		}
+
+		if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() || (mMeshNameBeingEdited && ImGui::IsKeyPressed(ImGuiKey_Enter, false))) {
+			mMeshNameBeingEdited = nullptr;
+		}
+
+		int columns = (int)(ImGui::GetContentRegionAvailWidth() / (float)WIDGET_SIZE);
+		columns = Max(columns, 1);
 
 		std::queue<int> deletionQueue;
 
@@ -56,9 +78,22 @@ namespace Mango {
 			memset(buf, 0, sizeof(buf));
 			memcpy(buf, name.c_str(), Min(sizeof(buf), name.size()));
 			
-			float textWidth = ImGui::CalcTextSize(buf).x;
-			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (float)WIDGET_SIZE / 2 - textWidth / 2);
-			ImGui::Text(buf);
+			if (mMeshNameBeingEdited == mesh.get())
+			{
+				float width = ImGui::CalcItemWidth();
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX()+WIDGET_SIZE/2-width/2);
+				if (ImGui::InputText("##editing_mesh", buf, sizeof(buf), ImGuiInputTextFlags_AutoSelectAll))
+					name = buf;
+			}
+			else
+			{
+				float textWidth = ImGui::CalcTextSize(buf).x;
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (float)WIDGET_SIZE / 2 - textWidth / 2);
+				ImGui::Text(buf);
+				if (ImGui::IsItemClicked()) {
+					mMeshNameBeingEdited = mesh.get();
+				}
+			}
 
 			ImGui::NextColumn();
 		}
@@ -67,27 +102,6 @@ namespace Mango {
 		while (!deletionQueue.empty()) {
 			DeleteMesh(deletionQueue.front());
 			deletionQueue.pop();
-		}
-
-		if (ImGui::IsMouseClicked(1) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
-			ImGui::OpenPopup("meshLibrary_popup");
-
-		if (ImGui::BeginPopup("meshLibrary_popup", ImGuiPopupFlags_NoOpenOverExistingPopup | 1)) {
-			if (ImGui::MenuItem("Create Cube")) {
-				meshLib.Push("Cube Mesh", Mesh::CreateCube(Renderer::CreateDefaultMaterial()));
-			}
-			if (ImGui::MenuItem("Create Sphere")) {
-				meshLib.Push("Sphere Mesh", Mesh::CreateSphere(Renderer::CreateDefaultMaterial()));
-			}
-			if (ImGui::MenuItem("Create Capsule")) {
-				meshLib.Push("Capsule Mesh", Mesh::CreateCapsule(Renderer::CreateDefaultMaterial()));
-			}
-			if (ImGui::MenuItem("Create Model")) {
-				std::string path;
-				if(FileDialog::Open(path, L"3D Model\0*.gltf;*.obj;*.fbx;*.dae\0All*.*\0"))
-					meshLib.Push("Unnamed Mesh", Mesh::CreateModel({}, mScene->GetTextureLibrary(), path));
-			}
-			ImGui::EndPopup();
 		}
 
 		ImGui::End();

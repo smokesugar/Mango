@@ -89,7 +89,11 @@ namespace Mango {
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder | aiProcess_FlipUVs | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_ValidateDataStructure);
-		MG_CORE_ASSERT(scene && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && scene->mRootNode, "Failed to load 3D model '{0}'.", file);
+		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+			MG_CORE_ERROR("Unable to load 3D model '{0}'.", file);
+			importer.FreeScene();
+			return CreateRef<Mesh>();
+		}
 
 		std::string directory = file.substr(0, file.find_last_of('\\'));
 		directory.append("\\");

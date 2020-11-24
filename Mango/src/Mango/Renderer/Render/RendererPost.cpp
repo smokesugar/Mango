@@ -13,19 +13,28 @@ namespace Mango {
 		xmmatrix Projection;
 		float4 PerspectiveValues;
 		float randomSeed;
-		float3 padding;
+		float radius = 1.0f;
+		float2 padding;
 	};
 
 	struct RenderDataPost {
 		Ref<Shader> TAAShader;
 		Ref<Shader> SSAOShader;
 		Ref<Shader> AOBlurShader;
+
+		SSAOData SSAOCbuffer;
 		Scope<UniformBuffer> SSAOUniforms;
+
 		Ref<Texture> PreviousFrame;
 		Ref<Texture> AOTexture;
 	};
 
 	static RenderDataPost* sData;
+
+	static float lerp(float a, float b, float f)
+	{
+		return a + f * (b - a);
+	}
 
 	void Renderer::InitPost()
 	{
@@ -73,18 +82,17 @@ namespace Mango {
 		counter++;
 		counter = counter % 1000 + 1;
 
-		SSAOData data;
-		data.View = GetViewMatrix();
-		data.Projection = GetProjectionMatrix() * GetJitterMatrix();
-		data.randomSeed = (float)counter;
+		sData->SSAOCbuffer.View = GetViewMatrix();
+		sData->SSAOCbuffer.Projection = GetProjectionMatrix();
+		sData->SSAOCbuffer.randomSeed = (float)counter;
 		float4x4 proj;
-		XMStoreFloat4x4(&proj, data.Projection);
-		data.PerspectiveValues.x = 1.0f / proj.m[0][0];
-		data.PerspectiveValues.y = 1.0f / proj.m[1][1];
-		data.PerspectiveValues.z = proj.m[3][2];
-		data.PerspectiveValues.w = -proj.m[2][2];
+		XMStoreFloat4x4(&proj, sData->SSAOCbuffer.Projection);
+		sData->SSAOCbuffer.PerspectiveValues.x = 1.0f / proj.m[0][0];
+		sData->SSAOCbuffer.PerspectiveValues.y = 1.0f / proj.m[1][1];
+		sData->SSAOCbuffer.PerspectiveValues.z = proj.m[3][2];
+		sData->SSAOCbuffer.PerspectiveValues.w = -proj.m[2][2];
 		sData->SSAOUniforms->PSBind(0);
-		sData->SSAOUniforms->SetData(data);
+		sData->SSAOUniforms->SetData(sData->SSAOCbuffer);
 			
 		LinearSamplerClamp().Bind(0);
 		sData->SSAOShader->Bind();

@@ -7,5 +7,4 @@ float4 main(float3 norm : Normal) : SV_Target
     float dif = max(dot(N, L), 0.0f);
     
     return float4(dif.xxx, 1.0f);
-
 }

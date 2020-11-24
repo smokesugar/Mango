@@ -16,7 +16,8 @@ cbuffer constantBuffer : register(b0)
     matrix projection;
     float4 perspectiveValues;
     float randomSeed;
-    float3 padding;
+    float radius;
+    float2 padding;
 };
 
 float LinearizeDepth(float depth)
@@ -84,13 +85,11 @@ float4 main(VSOut vso) : SV_Target
     float3x3 TBN = float3x3(tangent, bitangent, normal);
     
     const int kernelSize = 64;
-    const float radius = 1.0f;
-    const float bias = 0.025;
     
     float occlusion = 0.0f;
     for (int i = 0; i < kernelSize; i++)
     {
-        float3 samplePos = mul(GetRandomInHemisphere(float(i) / float(kernelSize), vso.uv * i * randSeed), TBN);
+        float3 samplePos = mul(GetRandomInHemisphere((float) i / (float)kernelSize, vso.uv*i*randomSeed), TBN);
         samplePos = fragPos + samplePos * radius;
         
         float4 offset = float4(samplePos, 1.0f);
@@ -101,8 +100,8 @@ float4 main(VSOut vso) : SV_Target
         
         float sampleDepth = depthBuffer.Sample(sampler0, offset.xy);
         sampleDepth = LinearizeDepth(sampleDepth);
-        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
-        occlusion += (sampleDepth <= samplePos.z - bias ? 1.0 : 0.0) * rangeCheck;
+        float rangeCheck = abs(z - sampleDepth) < radius ? 1.0 : 0.0;
+        occlusion += (sampleDepth < samplePos.z ? 1.0 : 0.0) * rangeCheck;
     }
     occlusion = 1.0f - (occlusion/kernelSize);
     

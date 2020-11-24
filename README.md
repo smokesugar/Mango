@@ -10,8 +10,6 @@ Mango is a work in progress Game Engine. Future plans include an editor, scripti
 - 2D Rendering
 - Textures
 - Editor
-- JSON Serialisation
-- Offscreen Rendering
 - 3D Rendering
 - Temporal Anti-aliasing
 - PBR Shading
@@ -20,8 +18,8 @@ Mango is a work in progress Game Engine. Future plans include an editor, scripti
 - Ambient Occlusion
 
 ## Future Features
+- Lua Scripting
 - Physics
-- C# Scripting
 - Networking
 - Global Illumination
 

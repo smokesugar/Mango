@@ -21,6 +21,7 @@ namespace Mango {
 		Ref<Shader> mShader;
 		Ref<UniformBuffer> mTransformBuffer;
 		xmmatrix mViewProjection;
+		Mesh* mMeshNameBeingEdited = nullptr;
 	};
 
 }

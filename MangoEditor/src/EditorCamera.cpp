@@ -5,7 +5,7 @@
 namespace Mango {
 
 	EditorCamera::EditorCamera()
-		: mFOV(ToRadians(45.0f)), mFocus({ 0.0f, 0.0f, 0.0f, 1.0f }), mOffset({ 0.0f, 0.0f, -5.0f, 1.0f }), mUp({ 0.0f, 1.0f, 0.0f, 0.0f }), mRight({1.0f, 0.0f, 0.0f, 0.0f})
+		: mFOV(ToRadians(45.0f)), mFocus({ 0.0f, 0.0f, 0.0f, 1.0f }), mOffset({ 0.0f, 3.0f, -5.0f, 1.0f }), mUp({ 0.0f, 1.0f, 0.0f, 0.0f }), mRight({ 1.0f, 0.0f, 0.0f, 0.0f })
 	{
 	}
 

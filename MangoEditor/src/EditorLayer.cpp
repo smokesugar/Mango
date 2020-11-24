@@ -161,7 +161,7 @@ namespace Mango {
 
 	bool EditorLayer::OnKeyDown(KeyDownEvent& e)
 	{
-		if (mViewportFocused) {
+		if (mViewportHovered || mViewportFocused) {
 			if (e.GetKeycode() == KeyCode::G)
 				mGizmoOperation = ImGuizmo::TRANSLATE;
 			if (e.GetKeycode() == KeyCode::R)
