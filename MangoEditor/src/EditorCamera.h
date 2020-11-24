@@ -8,7 +8,7 @@ namespace Mango {
 	class EditorCamera {
 	public:
 		EditorCamera();
-		inline xmmatrix GetProjectionMatrix(float aspect) const { return XMMatrixPerspectiveFovLH(mFOV, aspect, 100.0f, 0.1f); }
+		inline xmmatrix GetProjectionMatrix(float aspect) const { return XMMatrixPerspectiveFovLH(mFOV, aspect, 1000.0f, 0.1f); }
 		inline xmmatrix GetProjectionMatrixNotInverted(float aspect) const { return XMMatrixPerspectiveFovLH(mFOV, aspect, 0.1f, 100.0f); }
 		xmmatrix GetTransform() const;
 		void OnEvent(Event& e);

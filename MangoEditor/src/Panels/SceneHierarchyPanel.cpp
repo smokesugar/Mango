@@ -294,7 +294,7 @@ namespace Mango {
 						orthographic = true;
 					}
 					if (ImGui::Selectable("Perspective", !orthographic) && orthographic) {
-						cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f);
+						cameraComp.Camera = Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 1000.0f);
 						orthographic = false;
 					}
 
@@ -450,7 +450,7 @@ namespace Mango {
 				if (ImGui::BeginPopup("add_component")) {
 					if (!reg.Has<CameraComponent>(mSelectedEntity)) {
 						if (ImGui::MenuItem("Camera"))
-							reg.Emplace<CameraComponent>(mSelectedEntity, Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 100.0f));
+							reg.Emplace<CameraComponent>(mSelectedEntity, Camera::CreatePerspective(ToRadians(45.0f), 0.1f, 1000.0f));
 					}
 					if (!reg.Has<SpriteRendererComponent>(mSelectedEntity)) {
 						if (ImGui::MenuItem("Sprite Renderer"))

@@ -5,6 +5,8 @@
 
 namespace Mango {
 
+	float CascadedShadowmap::sShadowDistance = 200.0f;
+
 	std::vector<float> CascadedShadowmap::GenerateCascadeDistances(const xmmatrix& projection, uint32_t numCascades)
 	{
 		xmvector zNear = { 0.0f, 0.0f, 1.0f, 1.0f };
@@ -16,6 +18,8 @@ namespace Mango {
 		zFar = XMVector4Transform(zFar, invProj);
 		float nearPlane = XMVectorGetZ(zNear) / XMVectorGetW(zNear);
 		float farPlane = XMVectorGetZ(zFar) / XMVectorGetW(zFar);
+
+		farPlane = sShadowDistance;
 
 		std::vector<float> cascadeEnds((size_t)numCascades + 1);
 		for (uint32_t i = 0; i < numCascades; i++) {
