@@ -9,7 +9,7 @@ Mango is a work in progress Game Engine. Future plans include an editor, scripti
 - Entity Component System
 - 2D Rendering
 - Textures
-- Editor
+- Epic Editor
 - 3D Rendering
 - Temporal Anti-aliasing
 - PBR Shading

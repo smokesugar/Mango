@@ -131,7 +131,7 @@ namespace Mango {
 	{
 		mIcons[mesh] = Ref<Texture>(Texture::Create(nullptr, ICON_SIZE, ICON_SIZE, Format::RGBA8_UNORM, Texture_RenderTarget));
 		BindRenderTargets({ mIcons[mesh] }, mDepthBuffer);
-		mIcons[mesh]->Clear(float4(0.1f, 0.1f, 0.1f, 1.0f));
+		mIcons[mesh]->Clear(float4(0.5f, 0.5f, 0.5f, 1.0f));
 		mDepthBuffer->Clear(0.0f);
 		mTransformBuffer->VSBind(0);
 		mShader->Bind();

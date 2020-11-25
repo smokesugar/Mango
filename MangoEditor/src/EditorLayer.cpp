@@ -50,7 +50,7 @@ namespace Mango {
 		Dockspace::Begin();
 
 		ImGui::Begin("Runtime");
-		if (ImGui::Button(!mScenePlaying ? "Play" : "Stop")) mScenePlaying = !mScenePlaying;
+		if (ImGui::Button(!mScenePlaying ? "Play" : "Stop", ImVec2(30, 30))) mScenePlaying = !mScenePlaying;
 		ImGui::End();
 
 		ImGui::Begin("Performance");
