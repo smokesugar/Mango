@@ -131,7 +131,7 @@ namespace Mango {
 	{
 		mIcons[mesh] = Ref<Texture>(Texture::Create(nullptr, ICON_SIZE, ICON_SIZE, Format::RGBA8_UNORM, Texture_RenderTarget));
 		BindRenderTargets({ mIcons[mesh] }, mDepthBuffer);
-		mIcons[mesh]->Clear(float4(0.5f, 0.5f, 0.5f, 1.0f));
+		mIcons[mesh]->Clear(float4(0.25f, 0.25f, 0.25f, 1.0f));
 		mDepthBuffer->Clear(0.0f);
 
 		mTransformBuffer->VSBind(0);
@@ -144,11 +144,11 @@ namespace Mango {
 		float minZ = mesh->AABB.Min.z;
 		float maxZ = mesh->AABB.Max.z;
 
+		if (minX == 0.0f && minY == 0.0f && minZ == 0.0f && maxX == 0.0f && maxY == 0.0f && maxZ == 0.0f) return;
+
 		float mx = minX + maxX;
 		float my = minY + maxY;
 		float mz = minZ + maxZ;
-
-		if (mx == 0.0f && my == 0.0f && mz == 0.0f) return;
 
 		float3 aabbCenter = float3(mx/2.0f, my/2.0f, mz/2.0f);
 

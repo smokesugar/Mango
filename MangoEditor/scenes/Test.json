@@ -45,7 +45,7 @@
                     ],
                     "translation": [
                         3.0478103160858154,
-                        -0.6349837183952332,
+                        1.0,
                         -2.1570301055908203
                     ]
                 }
@@ -129,6 +129,34 @@
                         0.0,
                         0.0,
                         0.0
+                    ]
+                }
+            }
+        },
+        "5": {
+            "components": {
+                "luaScript": {
+                    "path": ""
+                },
+                "mesh": {
+                    "index": 3
+                },
+                "tag": "Player",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        -0.9735731482505798,
+                        1.0,
+                        -3.066920280456543
                     ]
                 }
             }
@@ -220,6 +248,21 @@
             ],
             "name": "Cube",
             "type": "cube"
+        },
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Player",
+            "type": "capsule"
         }
     ],
     "skybox": "assets\\textures\\env\\Newport_Loft_Ref.hdr"

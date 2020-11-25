@@ -159,6 +159,14 @@ namespace Mango {
 						j["entities"][std::to_string(entity)]["components"]["light"]["intensity"] = comp.Intensity;
 					}
 				}
+
+				// Lua Script
+				{
+					if (reg.Has<LuaScriptComponent>(entity)) {
+						auto& comp = reg.Get<LuaScriptComponent>(entity);
+						j["entities"][std::to_string(entity)]["components"]["luaScript"]["path"] = comp.Path;
+					}
+				}
 			}
 		}
 		
@@ -202,11 +210,11 @@ namespace Mango {
 			}
 			if (type == "sphere") {
 				auto mat = LoadMaterial(mesh["materials"][0], scene->GetTextureLibrary());
-				scene->GetMeshLibrary().Push(name, Mesh::CreateCube(mat));
+				scene->GetMeshLibrary().Push(name, Mesh::CreateSphere(mat));
 			}
 			if (type == "capsule") {
 				auto mat = LoadMaterial(mesh["materials"][0], scene->GetTextureLibrary());
-				scene->GetMeshLibrary().Push(name, Mesh::CreateCube(mat));
+				scene->GetMeshLibrary().Push(name, Mesh::CreateCapsule(mat));
 			}
 			if (type == "model") {
 				std::string path = mesh["path"];
@@ -298,6 +306,15 @@ namespace Mango {
 					float intensity = light["intensity"];
 					std::string type = light["type"];
 					reg.Emplace<LightComponent>(entity, *(float3*)col.data(), intensity, type == "point" ? LightType::Point : LightType::Directional);
+				}
+			}
+
+			// Lua Script
+			{
+				if (components.find("luaScript") != components.end()) {
+					auto& script = components["luaScript"];
+					std::string path = script["path"];
+					reg.Emplace<LuaScriptComponent>(entity, path);
 				}
 			}
 		}

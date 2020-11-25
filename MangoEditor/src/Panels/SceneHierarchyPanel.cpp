@@ -442,6 +442,23 @@ namespace Mango {
 				ImGui::Columns(1);
 			});
 
+			DrawComponent<LuaScriptComponent>("Lua Script", mSelectedEntity, reg, [&]() {
+				auto& comp = reg.Get<LuaScriptComponent>(mSelectedEntity);
+
+				char buf[64];
+				memset(buf, 0, sizeof(buf));
+				memcpy(buf, comp.Path.c_str(), Min(sizeof(buf), comp.Path.size()));
+
+				ImGui::InputText("##lua_script_path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+				ImGui::SameLine();
+				if (ImGui::Button(". . .")) {
+					std::string path;
+					if (FileDialog::Open(path, L"Lua Script\0*.lua\0All\0*.*\0")) {
+						comp = LuaScriptComponent(path);
+					}
+				}
+			});
+
 			// Add Component Button
 			{
 				if (ImGui::Button("Add Component", ImVec2(ImGui::GetContentRegionAvailWidth(), 0.0f)))
@@ -463,6 +480,10 @@ namespace Mango {
 					if (!reg.Has<LightComponent>(mSelectedEntity)) {
 						if (ImGui::MenuItem("Light"))
 							reg.Emplace<LightComponent>(mSelectedEntity, float3(1.0f, 1.0f, 1.0f), 1.0f, LightType::Point);
+					}
+					if (!reg.Has<LuaScriptComponent>(mSelectedEntity)) {
+						if (ImGui::MenuItem("Lua Script"))
+							reg.Emplace<LuaScriptComponent>(mSelectedEntity);
 					}
 					ImGui::EndPopup();
 				}

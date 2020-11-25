@@ -45,7 +45,10 @@ namespace Mango {
 		float3 Min;
 		float3 Max;
 
-		BoundingBox() = default;
+		BoundingBox()
+			: Min(0.0f, 0.0f, 0.0f),
+			Max(0.0f, 0.0f, 0.0f)
+		{};
 		BoundingBox(const BoundingBox&) = default;
 		BoundingBox(const float3& min, const float3& max)
 			: Min(min), Max(max) {}

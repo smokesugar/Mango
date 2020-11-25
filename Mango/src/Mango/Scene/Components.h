@@ -6,7 +6,7 @@
 #include "Mango/Renderer/Mesh.h"
 
 namespace Mango {
-	
+
 	struct TransformComponent {
 		float3 Translation;
 		float3 Rotation;
@@ -86,6 +86,16 @@ namespace Mango {
 		LightComponent(const LightComponent&) = default;
 		LightComponent(const float3& color, float intensity, LightType type)
 			: Color(color), Intensity(intensity), Type(type)
+		{}
+	};
+
+	struct LuaScriptComponent {
+		std::string Path;
+
+		LuaScriptComponent() = default;
+		LuaScriptComponent(const LuaScriptComponent&) = default;
+		LuaScriptComponent(const std::string& path)
+			: Path(path)
 		{}
 	};
 

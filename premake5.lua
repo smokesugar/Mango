@@ -12,6 +12,7 @@ Includes["spdlog"] = "Mango/vendor/spdlog/include"
 Includes["ImGui"] = "Mango/vendor/ImGui"
 Includes["stb_image"] = "Mango/vendor/stb_image"
 Includes["json"] = "Mango/vendor/json/include"
+Includes["Lua"] = "Mango/vendor/Lua/include"
 
 TargetDir = "bin/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
 ObjDir = "bin-int/%{prj.name}/%{cfg.buildcfg}-%{cfg.architecture}"
@@ -64,11 +65,19 @@ project "Mango"
         "%{Includes.ImGui}",
         "%{Includes.stb_image}",
         "%{Includes.json}",
+        "%{Includes.Lua}",
         "Mango/vendor/assimp/include"
+    }
+
+    libdirs {
+        "Mango/vendor/assimp/bin",
+        "Mango/vendor/Lua/bin"
     }
 
     links {
         "dxguid.lib",
+        "assimp.lib",
+        "lua54.lib", 
         "ImGui"
     }
 
@@ -103,16 +112,11 @@ project "Sandbox"
         "%{prj.name}/src/Shaders/**_ps.hlsl",
     }
 
-    libdirs {
-        "Mango/vendor/assimp/bin"
-    }
-
     links {
         "Mango",
         "d3d11.lib",
         "dxgi.lib",
-        "d3dcompiler.lib",
-        "assimp.lib"
+        "d3dcompiler.lib"
     }
 
     includedirs {
@@ -166,17 +170,12 @@ project "MangoEditor"
         "%{prj.name}/vendor/ImGuizmo/*.h",
         "%{prj.name}/vendor/ImGuizmo/*.cpp",
     }
-    
-    libdirs {
-        "Mango/vendor/assimp/bin"
-    }
 
     links {
         "Mango",
         "d3d11.lib",
         "dxgi.lib",
-        "d3dcompiler.lib",
-        "assimp.lib"
+        "d3dcompiler.lib"
     }
 
     includedirs {
@@ -238,16 +237,11 @@ project "Tests"
         "Tests/vendor/catch2"
     }
 
-    libdirs {
-        "Mango/vendor/assimp/bin"
-    }
-
     links {
         "Mango",
         "d3d11.lib",
         "dxgi.lib",
-        "d3dcompiler.lib",
-        "assimp.lib"
+        "d3dcompiler.lib"
     }
 
     filter "files:**.hlsl"
