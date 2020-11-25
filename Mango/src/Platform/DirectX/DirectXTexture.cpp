@@ -41,10 +41,18 @@ namespace Mango {
 		else
 			data = stbi_load(filePath.c_str(), &width, &height, nullptr, 4);
 
-		if (!data) MG_CORE_ERROR("Failed to load texture: {0}", filePath);
-
 		mWidth = (uint32_t)width;
 		mHeight = (uint32_t)height;
+
+		if (!data) {
+			std::stringstream ss;
+			ss << "Failed to load texture: " << filePath << std::endl;
+			Application::Get().GetRuntimeLog().AddLog(ss.str());
+			MG_CORE_ERROR("Failed to load texture: {0}", filePath);
+			mWidth = 1;
+			mHeight = 1;
+		}
+		
 		Create(data);
 		
 		if(data) stbi_image_free(data);

@@ -1,6 +1,7 @@
 #include "mgpch.h"
 #include "Mango/Renderer/Mesh.h"
 #include "Mango/Renderer/Render/Renderer.h"
+#include "Mango/Core/Application.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -90,6 +91,9 @@ namespace Mango {
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder | aiProcess_FlipUVs | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_ValidateDataStructure);
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+			std::stringstream ss;
+			ss << "Failed to load 3D model: " << file << std::endl;
+			Application::Get().GetRuntimeLog().AddLog(ss.str());
 			MG_CORE_ERROR("Unable to load 3D model '{0}'.", file);
 			importer.FreeScene();
 			return CreateRef<Mesh>();

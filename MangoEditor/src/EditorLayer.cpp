@@ -156,6 +156,11 @@ namespace Mango {
 		}
 
 		ImGui::End();
+
+		ImGui::Begin("Log");
+		if (ImGui::Button("Clear")) { Application::Get().GetRuntimeLog().Clear(); }
+		ImGui::TextUnformatted(Application::Get().GetRuntimeLog().GetBuffer());
+		ImGui::End();
 		
 		mSceneHierarchyPanel.OnImGuiRender();
 		mModelLibraryPanel.OnImGuiRender();

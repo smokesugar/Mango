@@ -5,6 +5,7 @@
 #include "Layer.h"
 #include "Mango/Events/Events.h"
 #include "Mango/Renderer/GraphicsContext.h"
+#include "RuntimeLog.h"
 
 namespace Mango {
 	
@@ -19,6 +20,7 @@ namespace Mango {
 
 		inline Window& GetWindow() { return *mWindow; }
 		inline GraphicsContext& GetGraphicsContext() { return *mGraphicsContext; }
+		inline RuntimeLog& GetRuntimeLog() { return mRuntimeLog; }
 
 		inline void Close() { mRunning = false; }
 	protected:
@@ -31,6 +33,7 @@ namespace Mango {
 		Scope<Window> mWindow;
 		Scope<GraphicsContext> mGraphicsContext;
 		std::vector<Layer*> mLayerStack;
+		RuntimeLog mRuntimeLog;
 		bool mRunning = true;
 	};
 

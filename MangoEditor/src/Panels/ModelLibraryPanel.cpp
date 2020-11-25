@@ -133,6 +133,7 @@ namespace Mango {
 		BindRenderTargets({ mIcons[mesh] }, mDepthBuffer);
 		mIcons[mesh]->Clear(float4(0.5f, 0.5f, 0.5f, 1.0f));
 		mDepthBuffer->Clear(0.0f);
+
 		mTransformBuffer->VSBind(0);
 		mShader->Bind();
 
@@ -146,6 +147,9 @@ namespace Mango {
 		float mx = minX + maxX;
 		float my = minY + maxY;
 		float mz = minZ + maxZ;
+
+		if (mx == 0.0f && my == 0.0f && mz == 0.0f) return;
+
 		float3 aabbCenter = float3(mx/2.0f, my/2.0f, mz/2.0f);
 
 		float dx = minX - maxX;
