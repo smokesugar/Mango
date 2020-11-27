@@ -21,7 +21,7 @@ namespace Mango {
 				if (meshComp.MeshIndex == index)
 					meshComp.MeshIndex = -1;
 				if (meshComp.MeshIndex == mMeshes.size() - 1)
-					meshComp.MeshIndex = index;
+					meshComp.MeshIndex = (int)index;
 			}
 		}
 

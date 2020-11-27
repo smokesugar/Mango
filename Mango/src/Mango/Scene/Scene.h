@@ -18,6 +18,11 @@ namespace Mango {
 		void OnUpdate(float dt, const Ref<Texture>& rendertarget);
 		void OnUpdate(float dt, const Ref<Texture>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
 
+		void Start();
+		void Stop();
+
+		inline bool IsPlaying() const { return mPlaying; }
+
 		void SetActiveCamera(ECS::Entity entity);
 		ECS::Entity GetActiveCameraEntity();
 		
@@ -25,6 +30,10 @@ namespace Mango {
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
 		inline MeshLibrary& GetMeshLibrary() { return mMeshLibrary; }
 	private:
+		void InternalUpdate();
+		void Render(const Ref<Texture>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
+	private:
+		bool mPlaying = false;
 		ECS::Registry mRegistry;
 		ECS::Entity mActiveCameraEntity = ECS::Null;
 		TextureLibrary mTextureLibrary;

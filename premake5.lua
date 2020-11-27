@@ -123,7 +123,7 @@ project "Sandbox"
         "Mango/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
-        "%{Includes.stb_image}"
+        "%{Includes.Lua}",
     }
 
     filter "files:**.hlsl"
@@ -182,7 +182,7 @@ project "MangoEditor"
         "Mango/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
-        "%{Includes.stb_image}",
+        "%{Includes.Lua}",
         "%{prj.name}/vendor/ImGuizmo",
     }
 
@@ -233,7 +233,7 @@ project "Tests"
         "Mango/src",
         "%{Includes.spdlog}",
         "%{Includes.ImGui}",
-        "%{Includes.stb_image}",
+        "%{Includes.Lua}",
         "Tests/vendor/catch2"
     }
 

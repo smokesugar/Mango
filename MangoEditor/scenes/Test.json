@@ -1,5 +1,5 @@
 {
-    "activeCamera": 4294967295,
+    "activeCamera": 6,
     "entities": {
         "0": {
             "components": {
@@ -136,7 +136,7 @@
         "5": {
             "components": {
                 "luaScript": {
-                    "path": ""
+                    "path": "assets\\scripts\\testScript.lua"
                 },
                 "mesh": {
                     "index": 3
@@ -157,6 +157,34 @@
                         -0.9735731482505798,
                         1.0,
                         -3.066920280456543
+                    ]
+                }
+            }
+        },
+        "6": {
+            "components": {
+                "camera": {
+                    "farPlane": 1000.0,
+                    "fov": 0.7853981852531433,
+                    "nearPlane": 0.10000000149011612,
+                    "type": "perspective"
+                },
+                "tag": "Scene Camera",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        0.0,
+                        1.1100000143051147,
+                        -8.130000114440918
                     ]
                 }
             }

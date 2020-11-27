@@ -26,12 +26,12 @@ namespace Mango {
 
 		mFramebuffer->EnsureSize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		mFramebuffer->Clear(RENDERER_CLEAR_COLOR);
-		if(mScenePlaying)
+		if(mScene->IsPlaying())
 			mScene->OnUpdate(dt, mFramebuffer);
 		else
 			mScene->OnUpdate(dt, mFramebuffer, mEditorCamera.GetProjectionMatrix(mViewportSize.x/mViewportSize.y), mEditorCamera.GetTransform());
 
-		if (!mScenePlaying && mScene->GetRegistry().Valid(mSceneHierarchyPanel.GetSelectedEntity())) {
+		if (!mScene->IsPlaying() && mScene->GetRegistry().Valid(mSceneHierarchyPanel.GetSelectedEntity())) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
 			ViewportInteraction::RenderSelectionOutline(mScene, mSceneHierarchyPanel.GetSelectedEntity(), viewProjection, mFramebuffer);
 		}
@@ -50,7 +50,12 @@ namespace Mango {
 		Dockspace::Begin();
 
 		ImGui::Begin("Runtime");
-		if (ImGui::Button(!mScenePlaying ? "Play" : "Stop", ImVec2(30, 30))) mScenePlaying = !mScenePlaying;
+		if (ImGui::Button(!mScene->IsPlaying() ? "Play" : "Stop", ImVec2(30, 30))) {
+			if (mScene->IsPlaying())
+				mScene->Stop();
+			else
+				mScene->Start();
+		}
 		ImGui::End();
 
 		ImGui::Begin("Performance");
@@ -113,7 +118,7 @@ namespace Mango {
 		
 		bool entitySelected = mScene->GetRegistry().Valid(mSceneHierarchyPanel.GetSelectedEntity());
 
-		if (entitySelected && !mScenePlaying)
+		if (entitySelected && !mScene->IsPlaying())
 		{
 			ImGuizmo::BeginFrame();
 			ImVec2 pos = ImGui::GetWindowPos();
@@ -135,7 +140,7 @@ namespace Mango {
 		ImGui::PopStyleVar();
 
 		static bool selectedEntityHovered = ECS::Null;
-		if (!mScenePlaying && mViewportHovered && ImGui::IsMouseClicked(1)) {
+		if (!mScene->IsPlaying() && mViewportHovered && ImGui::IsMouseClicked(1)) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
 			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene, mViewportSize, mViewportMousePosition, viewProjection);
 			selectedEntityHovered = mSceneHierarchyPanel.GetSelectedEntity() == hoveredEntity;
@@ -159,7 +164,10 @@ namespace Mango {
 
 		ImGui::Begin("Log");
 		if (ImGui::Button("Clear")) { Application::Get().GetRuntimeLog().Clear(); }
+		ImGui::Separator();
+		ImGui::BeginChild("scrollpanel");
 		ImGui::TextUnformatted(Application::Get().GetRuntimeLog().GetBuffer());
+		ImGui::EndChild();
 		ImGui::End();
 		
 		mSceneHierarchyPanel.OnImGuiRender();
@@ -184,7 +192,7 @@ namespace Mango {
 
 	bool EditorLayer::OnMouseButtonDown(MouseButtonDownEvent& e)
 	{
-		if (e.GetButton() == MouseCode::LBUTTON && !mScenePlaying && mViewportHovered && !mGizmoHovered) {
+		if (e.GetButton() == MouseCode::LBUTTON && !mScene->IsPlaying() && mViewportHovered && !mGizmoHovered) {
 			xmmatrix viewProjection = XMMatrixInverse(nullptr, mEditorCamera.GetTransform()) * mEditorCamera.GetProjectionMatrix(mViewportSize.x / mViewportSize.y);
 			ECS::Entity hoveredEntity = ViewportInteraction::GetHoveredEntity(mScene, mViewportSize, mViewportMousePosition, viewProjection);
 			mSceneHierarchyPanel.SetSelectedEntity(hoveredEntity);

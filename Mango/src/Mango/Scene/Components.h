@@ -5,6 +5,8 @@
 #include "Mango/Renderer/Texture.h"
 #include "Mango/Renderer/Mesh.h"
 
+#include "MangoLua.h"
+
 namespace Mango {
 
 	struct TransformComponent {
@@ -91,6 +93,7 @@ namespace Mango {
 
 	struct LuaScriptComponent {
 		std::string Path;
+		lua_State* L = nullptr;
 
 		LuaScriptComponent() = default;
 		LuaScriptComponent(const LuaScriptComponent&) = default;

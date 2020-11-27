@@ -22,7 +22,6 @@ namespace Mango {
 		bool OnKeyDown(KeyDownEvent& e);
 		bool OnMouseButtonDown(MouseButtonDownEvent& e);
 	private:
-		bool mScenePlaying = false;
 		Ref<Scene> mScene;
 
 		SceneHierarchyPanel mSceneHierarchyPanel;
