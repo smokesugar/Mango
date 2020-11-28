@@ -3,6 +3,7 @@
 #include "Mango/Core/Base.h"
 #include "Mango/Core/Math.h"
 #include "Formats.h"
+#include "SwapChain.h"
 #include "Texture.h"
 
 namespace Mango {
@@ -23,5 +24,5 @@ namespace Mango {
 	};
 
 	void BindRenderTargets(const std::vector<Ref<Texture>>& colorbuffers, const Ref<DepthBuffer>& depthbuffer = nullptr);
-
+	void BlitToSwapChain(SwapChain& dest, const Ref<Texture>& src);
 }

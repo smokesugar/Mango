@@ -2,7 +2,6 @@
 
 #include <cinttypes>
 #include "Mango/Core/Math.h"
-#include "RenderTarget.h"
 
 namespace Mango {
 	

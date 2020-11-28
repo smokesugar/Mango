@@ -140,13 +140,12 @@ namespace Mango {
 
 		ShadowmapPass(sData->RenderQueue3D);
 		RenderToGBuffer(sData->RenderQueue3D, {sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity}, sData->DepthBuffer);
-		LightingPass(sData->GBuffer.Color, sData->GBuffer.Normal, sData->DepthBuffer, sData->ImmediateTarget);
+		LightingPass(sData->GBuffer.Color, sData->GBuffer.Normal, sData->DepthBuffer, target);
 		Texture::Unbind(2);
-		SSAOPass(sData->DepthBuffer, sData->GBuffer.Normal, sData->ImmediateTarget, target);
+		SSAOPass(sData->DepthBuffer, sData->GBuffer.Normal, target, sData->ImmediateTarget);
 		Texture::Unbind(0);
-		FlushSpriteQueue(sData->RenderQueue2D, { target, sData->GBuffer.Velocity }, sData->DepthBuffer);
-		TAAPass(target, sData->GBuffer.Velocity, sData->ImmediateTarget);
-		BlitTexture(target, sData->ImmediateTarget);
+		FlushSpriteQueue(sData->RenderQueue2D, { sData->ImmediateTarget, sData->GBuffer.Velocity }, sData->DepthBuffer);
+		TAAPass(sData->ImmediateTarget, sData->GBuffer.Velocity, target);
 
 		Texture::Unbind(0);
 		Texture::Unbind(1);

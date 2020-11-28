@@ -4,6 +4,7 @@
 #include "Mango/Core/Application.h"
 #include "DirectXContext.h"
 #include "DirectXTexture.h"
+#include "DirectXSwapChain.h"
 
 namespace Mango {
 
@@ -35,6 +36,14 @@ namespace Mango {
 
 		VOID_CALL(context.GetDeviceContext()->RSSetViewports(1, &vp));
 		VOID_CALL(context.GetDeviceContext()->OMSetRenderTargets((uint32_t)rtvs.size(), rtvs.data(), dsv));
+	}
+
+	void BlitToSwapChain(SwapChain& dest, const Ref<Texture>& src)
+	{
+		auto destX = (DirectXSwapChain*)(&dest);
+		auto srcX = std::static_pointer_cast<DirectXTexture>(src);
+		auto& context = RetrieveContext();
+		VOID_CALL(context.GetDeviceContext()->CopyResource(destX->GetBackBuffer(), srcX->GetInternalTexture()));
 	}
 
 	// DEPTH BUFFER ----------------------------------------------------------------------------------

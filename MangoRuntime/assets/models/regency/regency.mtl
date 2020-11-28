@@ -1,0 +1,15 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl Divani_Chester_nuovi_regency_mat1
+Ns 18.000005
+Ka 1.000000 1.000000 1.000000
+Kd 0.400000 0.400000 0.400000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Kn -bm 0.800000 Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png
+map_Kd Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png
+map_Ks Regency_low_my_Divani_Chester_nuovi_regency_mat_Glossiness.png

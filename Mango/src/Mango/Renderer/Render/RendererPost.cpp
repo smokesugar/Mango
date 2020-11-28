@@ -57,6 +57,9 @@ namespace Mango {
 
 	void Renderer::TAAPass(const Ref<Texture>& aliasedFrame, const Ref<Texture>& velocityBuffer, const Ref<Texture>& rendertarget)
 	{
+		if (sData->PreviousFrame->GetFormat() != rendertarget->GetFormat()) {
+			sData->PreviousFrame = Ref<Texture>(Texture::Create(nullptr, 1, 1, rendertarget->GetFormat(), Texture_RenderTarget));
+		}
 		sData->PreviousFrame->EnsureSize(aliasedFrame->GetWidth(), aliasedFrame->GetHeight());
 		BindRenderTargets({ rendertarget });
 

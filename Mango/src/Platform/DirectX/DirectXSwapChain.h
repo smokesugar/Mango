@@ -16,9 +16,11 @@ namespace Mango {
 		virtual void Present() override;
 		virtual void BindAsRenderTarget() override;
 		virtual void Resize(uint32_t width, uint32_t height) override;
+		inline ID3D11Resource* GetBackBuffer() const { return mBackbuffer.Get(); }
 	private:
 		void CreateRenderTargetView(uint32_t width, uint32_t height);
 	private:
+		Microsoft::WRL::ComPtr <ID3D11Resource> mBackbuffer;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> mInternal;
 	};

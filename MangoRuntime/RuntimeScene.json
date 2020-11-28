@@ -1,0 +1,297 @@
+{
+    "activeCamera": 6,
+    "entities": {
+        "0": {
+            "components": {
+                "mesh": {
+                    "index": 0
+                },
+                "tag": "Test Scene",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        0.037799932062625885,
+                        0.03779999911785126,
+                        0.037799932062625885
+                    ],
+                    "translation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        },
+        "1": {
+            "components": {
+                "mesh": {
+                    "index": 1
+                },
+                "tag": "Couch",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        74.67040252685547,
+                        0.0
+                    ],
+                    "scale": [
+                        2.0699996948242188,
+                        2.069999933242798,
+                        2.0699996948242188
+                    ],
+                    "translation": [
+                        3.0478103160858154,
+                        1.0,
+                        -2.1570301055908203
+                    ]
+                }
+            }
+        },
+        "2": {
+            "components": {
+                "mesh": {
+                    "index": 2
+                },
+                "tag": "Cube",
+                "transform": {
+                    "rotation": [
+                        -10.162385940551758,
+                        23.172607421875,
+                        8.664929964652401e-07
+                    ],
+                    "scale": [
+                        2.0500006675720215,
+                        2.0499985218048096,
+                        2.0500006675720215
+                    ],
+                    "translation": [
+                        4.200466156005859,
+                        1.3437269926071167,
+                        4.363805770874023
+                    ]
+                }
+            }
+        },
+        "3": {
+            "components": {
+                "spriteRenderer": {
+                    "texturePath": "assets\\textures\\Mango.png",
+                    "usesTexture": true
+                },
+                "tag": "Sprite",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        2.25,
+                        2.25,
+                        2.25
+                    ],
+                    "translation": [
+                        -0.9322404861450195,
+                        3.0977091789245605,
+                        4.081377983093262
+                    ]
+                }
+            }
+        },
+        "4": {
+            "components": {
+                "light": {
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "intensity": 1.0700000524520874,
+                    "type": "directional"
+                },
+                "tag": "Sun",
+                "transform": {
+                    "rotation": [
+                        138.86798095703125,
+                        -32.385799407958984,
+                        -122.30170440673828
+                    ],
+                    "scale": [
+                        0.9999942779541016,
+                        0.9999963641166687,
+                        0.9999957084655762
+                    ],
+                    "translation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        },
+        "5": {
+            "components": {
+                "luaScript": {
+                    "path": "assets\\scripts\\testScript.lua"
+                },
+                "mesh": {
+                    "index": 3
+                },
+                "tag": "Player",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        -0.9735731482505798,
+                        1.0,
+                        -3.066920280456543
+                    ]
+                }
+            }
+        },
+        "6": {
+            "components": {
+                "camera": {
+                    "farPlane": 1000.0,
+                    "fov": 0.7853981852531433,
+                    "nearPlane": 0.10000000149011612,
+                    "type": "perspective"
+                },
+                "tag": "Scene Camera",
+                "transform": {
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "translation": [
+                        0.0,
+                        1.1100000143051147,
+                        -8.130000114440918
+                    ]
+                }
+            }
+        }
+    },
+    "envStrength": 1.0,
+    "meshes": [
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        0.7074059844017029,
+                        0.7074059844017029,
+                        0.7074059844017029
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        0.800000011920929,
+                        0.3069469928741455,
+                        0.15806299448013306
+                    ],
+                    "metalness": 1.0,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        0.800000011920929,
+                        0.5730940103530884,
+                        0.21723000705242157
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        0.3344709873199463,
+                        0.37123700976371765,
+                        0.6367740035057068
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Test Scene",
+            "path": "assets\\models\\testScene.fbx",
+            "type": "model"
+        },
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        0.6000000238418579,
+                        0.6000000238418579,
+                        0.6000000238418579
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                },
+                {
+                    "albedoColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "albedoTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Diffuse.png",
+                    "metalness": 0.10000000149011612,
+                    "normalTexture": "assets\\models\\regency\\Regency_low_my_Divani_Chester_nuovi_regency_mat_Normal.png",
+                    "roughnessValue": 0.3400000035762787
+                }
+            ],
+            "name": "Couch",
+            "path": "assets\\models\\regency\\regency.obj",
+            "type": "model"
+        },
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Cube",
+            "type": "cube"
+        },
+        {
+            "materials": [
+                {
+                    "albedoColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "metalness": 0.10000000149011612,
+                    "roughnessValue": 0.5
+                }
+            ],
+            "name": "Player",
+            "type": "capsule"
+        }
+    ],
+    "skybox": "assets\\textures\\env\\Newport_Loft_Ref.hdr"
+}

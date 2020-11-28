@@ -12,7 +12,7 @@ namespace Mango {
 		mSceneHierarchyPanel.SetScene(mScene.get());
 		mModelLibraryPanel.SetScene(mScene.get());
 
-		mFramebuffer = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
+		mFramebuffer = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA8_UNORM, Texture_RenderTarget));
 		ViewportInteraction::Init();
 	}
 

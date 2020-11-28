@@ -93,7 +93,7 @@ project "Mango"
         }
         optimize "On"
 
-project "Sandbox"
+project "MangoRuntime"
     kind "WindowedApp"
     location "%{prj.name}"
     language "C++"

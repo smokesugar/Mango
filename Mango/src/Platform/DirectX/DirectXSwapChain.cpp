@@ -54,6 +54,7 @@ namespace Mango {
 	void DirectXSwapChain::Resize(uint32_t width, uint32_t height)
 	{
 		mRTV.Reset();
+		mBackbuffer.Reset();
 		HR_CALL(mInternal->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0));
 		CreateRenderTargetView(width, height);
 	}
@@ -62,9 +63,8 @@ namespace Mango {
 	{
 		auto& context = RetrieveContext();
 
-		Microsoft::WRL::ComPtr<ID3D11Resource> backbuffer;
-		HR_CALL(mInternal->GetBuffer(0, __uuidof(ID3D11Resource), &backbuffer));
-		HR_CALL(context.GetDevice()->CreateRenderTargetView(backbuffer.Get(), nullptr, &mRTV));
+		HR_CALL(mInternal->GetBuffer(0, __uuidof(ID3D11Resource), &mBackbuffer));
+		HR_CALL(context.GetDevice()->CreateRenderTargetView(mBackbuffer.Get(), nullptr, &mRTV));
 	}
 
 }
