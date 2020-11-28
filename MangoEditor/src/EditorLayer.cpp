@@ -165,8 +165,10 @@ namespace Mango {
 		ImGui::Begin("Log");
 		if (ImGui::Button("Clear")) { Application::Get().GetRuntimeLog().Clear(); }
 		ImGui::Separator();
-		ImGui::BeginChild("scrollpanel");
+		ImGui::BeginChild("scroll panel");
 		ImGui::TextUnformatted(Application::Get().GetRuntimeLog().GetBuffer());
+		if (Application::Get().GetRuntimeLog().HandleScroll())
+			ImGui::SetScrollHere(1.0f);
 		ImGui::EndChild();
 		ImGui::End();
 		

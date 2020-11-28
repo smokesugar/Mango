@@ -30,10 +30,11 @@ namespace Mango {
 		inline TextureLibrary& GetTextureLibrary() { return mTextureLibrary; }
 		inline MeshLibrary& GetMeshLibrary() { return mMeshLibrary; }
 	private:
-		void InternalUpdate();
+		void InternalUpdate(float dt);
 		void Render(const Ref<Texture>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform);
 	private:
 		bool mPlaying = false;
+		float mAccumulatedTime = 0;
 		ECS::Registry mRegistry;
 		ECS::Entity mActiveCameraEntity = ECS::Null;
 		TextureLibrary mTextureLibrary;

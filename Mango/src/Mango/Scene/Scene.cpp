@@ -3,6 +3,7 @@
 
 #include "Components.h"
 #include "Mango/Renderer/Render/Renderer.h"
+#include "ScriptEngine.h"
 
 namespace Mango {
 
@@ -28,7 +29,7 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt, const Ref<Texture>& rendertarget)
 	{
-		InternalUpdate();
+		InternalUpdate(dt);
 
 		if (mRegistry.Valid(mActiveCameraEntity) && !mRegistry.Has<CameraComponent>(mActiveCameraEntity))
 			mActiveCameraEntity = ECS::Null;
@@ -44,29 +45,17 @@ namespace Mango {
 
 	void Scene::OnUpdate(float dt, const Ref<Texture>& rendertarget, const xmmatrix& projection, const xmmatrix& cameraTransform)
 	{
-		InternalUpdate();
+		InternalUpdate(dt);
 		Render(rendertarget, projection, cameraTransform);
 	}
 
-	void Scene::InternalUpdate()
+	void Scene::InternalUpdate(float dt)
 	{
-		if (mPlaying) {
-			auto scriptQuery = mRegistry.Query<LuaScriptComponent>();
-			bool shouldStop = false;
-			for (auto& [size, scripts] : scriptQuery) {
-				for (size_t i = 0; i < size; i++) {
-					auto L = scripts[i].L;
-					lua_getglobal(L, "update");
-					if (lua_isfunction(L, -1)) {
-						if (!LUA_FN_CALL(L, lua_pcall(L, 0, 0, 0)))
-							shouldStop = true;
-					}
-					else {
-						lua_pop(L, 1); // We need to call pop here in the case where we can't call "lua_pcall", which pops for us.
-					}
-				}
-			}
-			if (shouldStop) Stop();
+		mAccumulatedTime += dt;
+		if (mPlaying)
+		{
+			if (!ScriptEngine::UpdateScriptComponents(mRegistry, dt, mAccumulatedTime))
+				Stop();
 		}
 	}
 
@@ -127,50 +116,18 @@ namespace Mango {
 		Renderer::EndScene(rendertarget);
 	}
 
-	// Define custom log function
-	static int lua_Log(lua_State* L) {
-		const char* str = lua_tostring(L, 1);
-		MG_CORE_TRACE("[Script] {0}", str);
-		Application::Get().GetRuntimeLog().AddLog(std::string("[Script] ") + str + "\n");
-		return 0;
-	}
 
 	void Scene::Start()
 	{
 		mPlaying = true;
-
-		auto query = mRegistry.Query<LuaScriptComponent>();
-		for (auto& [size, scriptComps] : query) {
-			for (int i = 0; i < size; i++)
-			{
-				auto& comp = scriptComps[i];
-				auto& L = comp.L;
-
-				// Initialize
-				L = luaL_newstate();
-				luaL_openlibs(L);
-
-				// Register Custom Functions
-				lua_register(L, "Log", lua_Log);
-
-				// Run the actual file
-				LUA_FN_CALL(L, luaL_dofile(L, comp.Path.c_str()));
-			}
-		}
+		mAccumulatedTime = 0;
+		ScriptEngine::InitializeScriptComponents(mRegistry);
 	}
 
 	void Scene::Stop()
 	{
 		mPlaying = false;
-
-		auto query = mRegistry.Query<LuaScriptComponent>();
-		for (auto& [size, scriptComps] : query) {
-			for (int i = 0; i < size; i++) {
-				auto& L = scriptComps[i].L;
-				lua_close(L);
-				L = nullptr;
-			}
-		}
+		ScriptEngine::ShutdownScriptComponents(mRegistry);
 	}
 
 	void Scene::SetActiveCamera(ECS::Entity entity)
