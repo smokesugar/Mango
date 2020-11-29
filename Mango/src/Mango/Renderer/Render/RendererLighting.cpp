@@ -225,7 +225,7 @@ namespace Mango {
 		RenderCommand::EnableCulling();
 	}
 
-	void Renderer::LightingPass(const Ref<Texture>& color, const Ref<Texture>& normal, const Ref<DepthBuffer>& depth, const Ref<Texture>& rendertarget)
+	void Renderer::LightingPass(const Ref<Texture>& color, const Ref<Texture>& normal, const Ref<Texture>& ao, const Ref<DepthBuffer>& depth, const Ref<Texture>& rendertarget)
 	{
 		BindRenderTargets({ rendertarget });
 		rendertarget->Clear(RENDERER_CLEAR_COLOR);
@@ -250,14 +250,15 @@ namespace Mango {
 		sData->ShadowSampler->Bind(3);
 		color->Bind(0);
 		normal->Bind(1);
-		depth->BindAsTexture(2);
-		sData->IrradianceMap->BindAsShaderResource(8);
-		sData->PrefilteredCubemap->BindAsShaderResource(9);
-		sData->BRDFLUT->Bind(10);
+		ao->Bind(2);
+		depth->BindAsTexture(3);
+		sData->IrradianceMap->BindAsShaderResource(9);
+		sData->PrefilteredCubemap->BindAsShaderResource(10);
+		sData->BRDFLUT->Bind(11);
 		sData->LightingShader->Bind();
 
 		for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++) {
-			sData->DirectionalShadowmaps[i]->BindAsTexture((size_t)i + 3);
+			sData->DirectionalShadowmaps[i]->BindAsTexture((size_t)i + 4);
 		}
 
 		FillLightingData();
@@ -294,8 +295,8 @@ namespace Mango {
 
 		RenderCommand::DisableCulling();
 
-		Texture::Unbind(8);
 		Texture::Unbind(9);
+		Texture::Unbind(10);
 
 		// Irradiance
 		sData->IrradianceMap->BindAsRenderTarget();

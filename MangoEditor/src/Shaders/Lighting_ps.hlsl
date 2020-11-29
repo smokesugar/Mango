@@ -3,17 +3,18 @@
 
 Texture2D color : register(t0);
 Texture2D normal : register(t1);
-Texture2D depthBuffer : register(t2);
+Texture2D aoTexture : register(t2);
+Texture2D depthBuffer : register(t3);
 
-Texture2DArray<float> directionalShadowmap0 : register(t3);
-Texture2DArray<float> directionalShadowmap1 : register(t4);
-Texture2DArray<float> directionalShadowmap2 : register(t5);
-Texture2DArray<float> directionalShadowmap3 : register(t6);
-Texture2DArray<float> directionalShadowmap4 : register(t7);
+Texture2DArray<float> directionalShadowmap0 : register(t4);
+Texture2DArray<float> directionalShadowmap1 : register(t5);
+Texture2DArray<float> directionalShadowmap2 : register(t6);
+Texture2DArray<float> directionalShadowmap3 : register(t7);
+Texture2DArray<float> directionalShadowmap4 : register(t8);
 
-TextureCube irradianceMap : register(t8);
-TextureCube prefilteredMap : register(t9);
-Texture2D brdfLUT : register(t10);
+TextureCube irradianceMap : register(t9);
+TextureCube prefilteredMap : register(t10);
+Texture2D brdfLUT : register(t11);
 
 SamplerState sampler0 : register(s0);
 SamplerState sampler1 : register(s1);
@@ -216,6 +217,9 @@ float4 main (VSOut vso): SV_Target
     
     // IBL --------------------------------------------------------
     
+    float ao = aoTexture.Sample(sampler0, vso.uv).r;
+    //return ao.xxxx;
+    
     float3 F0 = 0.04.xxx;
     F0 = lerp(F0, albedo, metallic);
     float NdotV = max(dot(N, V), 0.0f);
@@ -234,7 +238,7 @@ float4 main (VSOut vso): SV_Target
     float2 envBRDF = brdfLUT.Sample(linearSampleClamp, float2(NdotV, roughness)).rg;
     float3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
     
-    float3 ambient = kD * diffuse + specular;
+    float3 ambient = (kD * diffuse + specular)*ao;
     
     // Lighting -------------------------------------------------------
     

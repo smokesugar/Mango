@@ -22,6 +22,7 @@ namespace Mango {
 			Ref<Texture> Color;
 			Ref<Texture> Normal;
 			Ref<Texture> Velocity;
+			Ref<Texture> AO;
 		} GBuffer;
 		Ref<Texture> ImmediateTarget;
 		Ref<Mango::DepthBuffer> DepthBuffer;
@@ -51,6 +52,7 @@ namespace Mango {
 		sData->GBuffer.Velocity = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 		sData->GBuffer.Normal   = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 		sData->GBuffer.Color    = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
+		sData->GBuffer.AO       = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA8_UNORM, Texture_RenderTarget));
 		sData->ImmediateTarget  = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 
 		sData->DepthBuffer = Ref<DepthBuffer>(DepthBuffer::Create(800, 600));
@@ -137,13 +139,13 @@ namespace Mango {
 		sData->GBuffer.Color->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->GBuffer.Normal->EnsureSize(target->GetWidth(), target->GetHeight());
 		sData->GBuffer.Velocity->EnsureSize(target->GetWidth(), target->GetHeight());
+		sData->GBuffer.AO->EnsureSize(target->GetWidth(), target->GetHeight());
 
 		ShadowmapPass(sData->RenderQueue3D);
 		RenderToGBuffer(sData->RenderQueue3D, {sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.Velocity}, sData->DepthBuffer);
-		LightingPass(sData->GBuffer.Color, sData->GBuffer.Normal, sData->DepthBuffer, target);
-		Texture::Unbind(2);
-		SSAOPass(sData->DepthBuffer, sData->GBuffer.Normal, target, sData->ImmediateTarget);
-		Texture::Unbind(0);
+		SSAOPass(sData->DepthBuffer, sData->GBuffer.Normal, sData->GBuffer.AO);
+		LightingPass(sData->GBuffer.Color, sData->GBuffer.Normal, sData->GBuffer.AO, sData->DepthBuffer, sData->ImmediateTarget);
+		Texture::Unbind(3);
 		FlushSpriteQueue(sData->RenderQueue2D, { sData->ImmediateTarget, sData->GBuffer.Velocity }, sData->DepthBuffer);
 		TAAPass(sData->ImmediateTarget, sData->GBuffer.Velocity, target);
 

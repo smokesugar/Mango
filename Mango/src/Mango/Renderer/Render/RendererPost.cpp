@@ -1,6 +1,8 @@
 #include "mgpch.h"
 #include "RendererPost.h"
 
+#include <random>
+
 #include "Mango/Renderer/Shader.h"
 #include "Mango/Renderer/Buffer.h"
 
@@ -12,6 +14,7 @@ namespace Mango {
 		xmmatrix View;
 		xmmatrix Projection;
 		float4 PerspectiveValues;
+		float4 randomHemispheres[64];
 		float randomSeed;
 		float radius = 1.0f;
 		float2 padding;
@@ -48,6 +51,18 @@ namespace Mango {
 
 		sData->PreviousFrame = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA16_FLOAT, Texture_RenderTarget));
 		sData->AOTexture = Ref<Texture>(Texture::Create(nullptr, 800, 600, Format::RGBA8_UNORM, Texture_RenderTarget));
+
+		static std::uniform_real_distribution<float> randomFloats(0.0f, 1.0f);
+		static std::default_random_engine generator;
+		for (int i = 0; i < 64; i++) {
+			xmvector sample = { randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) };
+			sample = XMVector3Normalize(sample);
+			sample *= randomFloats(generator);
+			float scale = (float)i / 64.0f;
+			scale = lerp(0.1f, 1.0f, scale * scale);
+			sample *= scale;
+			XMStoreFloat4(&sData->SSAOCbuffer.randomHemispheres[i], sample);
+		}
 	}
 
 	void Renderer::ShutdownPost()
@@ -75,7 +90,7 @@ namespace Mango {
 		Texture::Unbind(0);
 	}
 
-	void Renderer::SSAOPass(const Ref<DepthBuffer>& depthBuffer, const Ref<Texture>& normalBuffer, const Ref<Texture>& litImage, const Ref<Texture>& rendertarget)
+	void Renderer::SSAOPass(const Ref<DepthBuffer>& depthBuffer, const Ref<Texture>& normalBuffer, const Ref<Texture>& rendertarget)
 	{
 		sData->AOTexture->EnsureSize(rendertarget->GetWidth(), rendertarget->GetHeight());
 
@@ -94,6 +109,7 @@ namespace Mango {
 		sData->SSAOCbuffer.PerspectiveValues.y = 1.0f / proj.m[1][1];
 		sData->SSAOCbuffer.PerspectiveValues.z = proj.m[3][2];
 		sData->SSAOCbuffer.PerspectiveValues.w = -proj.m[2][2];
+
 		sData->SSAOUniforms->PSBind(0);
 		sData->SSAOUniforms->SetData(sData->SSAOCbuffer);
 			
@@ -106,7 +122,6 @@ namespace Mango {
 		BindRenderTargets({ rendertarget });
 		sData->AOBlurShader->Bind();
 		sData->AOTexture->Bind(0);
-		litImage->Bind(1);
 		LinearSamplerClamp().Bind(0);
 		DrawScreenQuad();
 		Texture::Unbind(1);
