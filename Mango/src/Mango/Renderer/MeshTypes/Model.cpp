@@ -12,10 +12,10 @@ namespace Mango {
 
 	static std::vector<Ref<Material>> sMaterials;
 
-	static float3 aabbMin;
-	static float3 aabbMax;
+	static float3 globalAabbMin;
+	static float3 globalAabbMax;
 
-	static Ref<VertexArray> ProcessMesh(aiMesh* mesh, const aiScene* scene, const xmmatrix& transform)
+	static Ref<VertexArray> ProcessMesh(aiMesh* mesh, const aiScene* scene, const xmmatrix& transform, BoundingBox& aabb)
 	{
 		std::vector<float> vertices;
 		vertices.reserve(mesh->mNumVertices * 8);
@@ -28,10 +28,13 @@ namespace Mango {
 			vertices.push_back(mesh->mVertices[i].y);
 			vertices.push_back(mesh->mVertices[i].z);
 
+			aabb.Min = Min(aabb.Min, float3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
+			aabb.Max = Max(aabb.Max, float3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
+
 			xmvector transformed = XMVector4Transform({ mesh->mVertices[i].x ,mesh->mVertices[i].y,mesh->mVertices[i].z, 1.0f }, transform);
 			float3 transformedF; XMStoreFloat3(&transformedF, transformed);
-			aabbMin = Min(aabbMin, transformedF);
-			aabbMax = Max(aabbMax, transformedF);
+			globalAabbMin = Min(globalAabbMin, transformedF);
+			globalAabbMax = Max(globalAabbMax, transformedF);
 
 			vertices.push_back(mesh->mNormals[i].x);
 			vertices.push_back(mesh->mNormals[i].y);
@@ -65,7 +68,9 @@ namespace Mango {
 
 		for (size_t i = 0; i < ainode->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[ainode->mMeshes[i]];
-			node.Submeshes.push_back({ ProcessMesh(mesh, scene, accumulatedTransform), sMaterials[mesh->mMaterialIndex] });
+			BoundingBox aabb(float3(INFINITY, INFINITY, INFINITY), float3(-INFINITY, -INFINITY, -INFINITY));
+			Ref<VertexArray> va = ProcessMesh(mesh, scene, accumulatedTransform, aabb);
+			node.Submeshes.push_back({ va, aabb, sMaterials[mesh->mMaterialIndex] });
 		}
 
 		for (size_t i = 0; i < ainode->mNumChildren; i++) {
@@ -136,11 +141,11 @@ namespace Mango {
 		}
 
 
-		aabbMin = float3(INFINITY, INFINITY, INFINITY);
-		aabbMax = float3(-INFINITY, -INFINITY, -INFINITY);
+		globalAabbMin = float3(INFINITY, INFINITY, INFINITY);
+		globalAabbMax = float3(-INFINITY, -INFINITY, -INFINITY);
 
 		Node node = ProcessNode(scene->mRootNode, scene, XMMatrixIdentity());
-		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Model, BoundingBox(aabbMin, aabbMax), file);
+		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Model, BoundingBox(globalAabbMin, globalAabbMax), file);
 		mesh->Materials = sMaterials;
 
 		importer.FreeScene();

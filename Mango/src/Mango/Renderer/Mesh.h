@@ -21,9 +21,33 @@ namespace Mango {
 		{}
 	};
 
+	struct BoundingBox {
+		float3 Min;
+		float3 Max;
+
+		BoundingBox()
+			: Min(0.0f, 0.0f, 0.0f),
+			Max(0.0f, 0.0f, 0.0f)
+		{};
+		BoundingBox(const BoundingBox&) = default;
+		BoundingBox(const float3& min, const float3& max)
+			: Min(min), Max(max) {}
+	};
+
+	struct BoundingSphere {
+		float3 Center;
+		float Radius;
+	};
+
+	struct Submesh {
+		Ref<VertexArray> VA;
+		BoundingBox AABB;
+		Ref<Material> Material;
+	};
+
 	struct Node {
 		std::vector<Node> Children;
-		std::vector<std::pair<Ref<VertexArray>, Ref<Material>>> Submeshes;
+		std::vector<Submesh> Submeshes;
 		xmmatrix Transform;
 
 		Node(const xmmatrix& transform = XMMatrixIdentity())
@@ -39,19 +63,6 @@ namespace Mango {
 		MeshType_Sphere,
 		MeshType_Capsule,
 		MeshType_Model
-	};
-
-	struct BoundingBox {
-		float3 Min;
-		float3 Max;
-
-		BoundingBox()
-			: Min(0.0f, 0.0f, 0.0f),
-			Max(0.0f, 0.0f, 0.0f)
-		{};
-		BoundingBox(const BoundingBox&) = default;
-		BoundingBox(const float3& min, const float3& max)
-			: Min(min), Max(max) {}
 	};
 
 	struct Mesh {

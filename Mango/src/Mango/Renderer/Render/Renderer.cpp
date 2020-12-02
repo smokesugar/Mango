@@ -30,7 +30,7 @@ namespace Mango {
 		bool TAAEnabled = true;
 
 		std::queue<std::tuple<xmmatrix, xmmatrix, Ref<Texture>, float4>> RenderQueue2D;
-		std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>> RenderQueue3D;
+		std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, BoundingBox, xmmatrix, xmmatrix>>> RenderQueue3D;
 	};
 
 	static RendererData* sData;
@@ -119,9 +119,9 @@ namespace Mango {
 		xmmatrix transform = node->Transform * parentTransform;
 		xmmatrix prevT = node->Transform * previousTransform;
 
-		for (auto& [va, material] : node->Submeshes)
+		for (auto& submesh : node->Submeshes)
 		{
-			sData->RenderQueue3D[material].push_back({va, prevT, transform});
+			sData->RenderQueue3D[submesh.Material].push_back({submesh.VA, submesh.AABB, prevT, transform});
 		}
 
 		for (auto& node : node->Children) {

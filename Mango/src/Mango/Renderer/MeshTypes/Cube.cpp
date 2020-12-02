@@ -57,7 +57,7 @@ namespace Mango {
 		auto vb = Ref<VertexBuffer>(VertexBuffer::Create(vertices, std::size(vertices)/8, 8*sizeof(float)));
 
 		Node node;
-		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, Ref<IndexBuffer>()), mat });
+		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, Ref<IndexBuffer>()), BoundingBox(aabbMin, aabbMax), mat });
 		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Cube, BoundingBox(aabbMin, aabbMax));
 		mesh->Materials.push_back(mat);
 

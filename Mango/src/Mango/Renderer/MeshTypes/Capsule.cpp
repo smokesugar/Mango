@@ -189,7 +189,7 @@ namespace Mango {
 		auto ib = Ref<IndexBuffer>(IndexBuffer::Create(indices.data(), indices.size()));
 
 		Node node;
-		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), mat });
+		node.Submeshes.push_back({ CreateRef<VertexArray>(vb, ib), BoundingBox(aabbMin, aabbMax), mat });
 		Ref<Mesh> mesh = CreateRef<Mesh>(node, MeshType_Capsule, BoundingBox(aabbMin, aabbMax));
 		mesh->Materials.push_back(mat);
 

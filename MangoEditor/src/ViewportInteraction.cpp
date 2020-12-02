@@ -56,13 +56,13 @@ namespace Mango {
 	static void RenderNode(const Node& node, const xmmatrix& parentTransform, const xmmatrix& viewProjection, float3 color) {
 		xmmatrix transform = node.Transform * parentTransform;
 
-		for (auto& [va, mat] : node.Submeshes) {
+		for (auto& submesh : node.Submeshes) {
 			sData->SolidColorUniforms->SetData<SolidColorShaderData>({ transform * viewProjection, color });
-			va->Bind();
-			if (va->IsIndexed())
-				RenderCommand::DrawIndexed(va->GetDrawCount(), 0);
+			submesh.VA->Bind();
+			if (submesh.VA->IsIndexed())
+				RenderCommand::DrawIndexed(submesh.VA->GetDrawCount(), 0);
 			else
-				RenderCommand::Draw(va->GetDrawCount(), 0);
+				RenderCommand::Draw(submesh.VA->GetDrawCount(), 0);
 		}
 
 		for (auto& child : node.Children) {

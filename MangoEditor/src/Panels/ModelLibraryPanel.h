@@ -7,7 +7,7 @@ namespace Mango {
 	class ModelLibraryPanel {
 	public:
 		ModelLibraryPanel();
-		void SetScene(Scene* scene) { mScene = scene; }
+		void SetScene(Scene* scene) { mIcons.clear(); mScene = scene; }
 
 		void OnImGuiRender();
 	private:

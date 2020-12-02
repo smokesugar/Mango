@@ -197,7 +197,7 @@ namespace Mango {
 			sData->LightingData.CascadeEnds[i] = ends[(size_t)i + 1];
 	}
 
-	void Renderer::ShadowmapPass(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue)
+	void Renderer::ShadowmapPass(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, BoundingBox, xmmatrix, xmmatrix>>>& queue)
 	{
 		RenderCommand::DisableCulling();
 		sData->DirectionalShadowmapShader->Bind();
@@ -209,7 +209,7 @@ namespace Mango {
 			shadowmap->Clear(0.0f);
 
 			for (auto& [material, submeshes] : queue) {
-				for (auto& [va, prevT, transform] : submeshes) {
+				for (auto& [va, aabb, prevT, transform] : submeshes) {
 					CSMData data;
 					for (int c = 0; c < NUM_SHADOW_CASCADES; c++)
 						data.MVP[c] = transform * sData->LightingData.DirectionalMatrices[i * NUM_SHADOW_CASCADES + c];

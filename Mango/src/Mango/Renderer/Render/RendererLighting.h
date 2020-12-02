@@ -11,7 +11,7 @@ namespace Mango {
 		void InitLighting();
 		void ShutdownLighting();
 
-		void ShadowmapPass(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue);
+		void ShadowmapPass(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, BoundingBox, xmmatrix, xmmatrix>>>& queue);
 		void LightingPass(const Ref<Texture>& color, const Ref<Texture>& normal, const Ref<Texture>& ao, const Ref<DepthBuffer>& depth, const Ref<Texture>& rendertarget);
 
 		void SubmitDirectionalLight(const float3& direction, const float3& color);

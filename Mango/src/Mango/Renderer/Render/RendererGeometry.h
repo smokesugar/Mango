@@ -9,7 +9,7 @@ namespace Mango {
 		void InitGeometry();
 		void ShutdownGeometry();
 		
-		void RenderToGBuffer(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthBuffer);
+		void RenderToGBuffer(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, BoundingBox, xmmatrix, xmmatrix>>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthBuffer);
 
 	}
 }

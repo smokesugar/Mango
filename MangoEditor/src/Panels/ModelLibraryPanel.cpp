@@ -110,12 +110,12 @@ namespace Mango {
 	void ModelLibraryPanel::RenderNode(const Node& node, const xmmatrix& parentTransform) {
 		xmmatrix transform = node.Transform * parentTransform;
 		mTransformBuffer->SetData<TransformBuffer>({transform, transform*mViewProjection});
-		for (auto& [mesh, mat] : node.Submeshes) {
-			mesh->Bind();
-			if (mesh->IsIndexed())
-				RenderCommand::DrawIndexed(mesh->GetDrawCount(), 0);
+		for (auto& submesh : node.Submeshes) {
+			submesh.VA->Bind();
+			if (submesh.VA->IsIndexed())
+				RenderCommand::DrawIndexed(submesh.VA->GetDrawCount(), 0);
 			else
-				RenderCommand::Draw(mesh->GetDrawCount(), 0);
+				RenderCommand::Draw(submesh.VA->GetDrawCount(), 0);
 		}
 		for (auto& child : node.Children)
 			RenderNode(child, transform);

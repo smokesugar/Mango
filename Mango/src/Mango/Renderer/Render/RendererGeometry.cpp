@@ -46,7 +46,7 @@ namespace Mango {
 		delete sData;
 	}
 
-	void Renderer::RenderToGBuffer(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, xmmatrix, xmmatrix>>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthBuffer)
+	void Renderer::RenderToGBuffer(std::unordered_map<Ref<Material>, std::vector<std::tuple<Ref<VertexArray>, BoundingBox, xmmatrix, xmmatrix>>>& queue, const std::vector<Ref<Texture>>& rendertargets, const Ref<DepthBuffer>& depthBuffer)
 	{
 		RenderCommand::DisableBlending();
 		BindRenderTargets(rendertargets, depthBuffer);
@@ -59,6 +59,9 @@ namespace Mango {
 		sData->SurfaceUniforms->PSBind(0);
 		sData->TransformUniforms->VSBind(0);
 
+		xmmatrix prevVP = GetPrevViewMatrix() * GetPrevProjectionMatrix() * GetJitterMatrix();
+		xmmatrix VP = GetViewMatrix() * GetProjectionMatrix() * GetJitterMatrix();
+
 		for (auto& [material, submeshes] : queue) {
 			sData->SurfaceUniforms->SetData<SurfaceData>({ material->AlbedoColor, material->NormalTexture ? true : false, material->RoughnessValue, material->Metalness });
 			material->AlbedoTexture->Bind(0);
@@ -66,10 +69,8 @@ namespace Mango {
 				material->NormalTexture->Bind(1);
 			material->RoughnessTexture->Bind(2);
 
-			xmmatrix prevVP = GetPrevViewMatrix() * GetPrevProjectionMatrix();
-			xmmatrix VP = GetViewMatrix() * GetProjectionMatrix() * GetJitterMatrix();
-
-			for (auto& [va, prevT, transform] : submeshes) {
+			for (auto& [va, aabb, prevT, transform] : submeshes)
+			{
 				xmmatrix prevMVP = prevT * prevVP;
 				xmmatrix MVP = transform * VP;
 				sData->TransformUniforms->SetData<TransformData>({transform, prevMVP, MVP});
